@@ -49,6 +49,7 @@ type QuestionRow = {
   opcao_c: string;
   opcao_d: string;
   opcao_e: string;
+  resposta_correta: string;
 };
 
 async function fetchRandomQuestion(area: Area): Promise<QuestionRow | null> {
