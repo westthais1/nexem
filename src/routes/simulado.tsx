@@ -114,6 +114,7 @@ async function fetchRandomQuestion(area: Area): Promise<QuestionRow | null> {
 
 function SimuladoPage() {
   const [choice, setChoice] = useState<number | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [area, setArea] = useState<Area>("Ciências da Natureza");
 
