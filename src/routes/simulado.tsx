@@ -317,17 +317,27 @@ function SimuladoPage() {
                 </div>
 
                 {confirmed && current && (
-                  <div className="mt-6 rounded-2xl border border-primary/30 bg-primary/5 p-5 md:p-6">
+                  <div
+                    className={`mt-6 rounded-2xl border p-5 md:p-6 ${
+                      choice === correctIndex
+                        ? "border-primary/30 bg-primary/5"
+                        : "border-warning/60 bg-warning/10"
+                    }`}
+                  >
                     <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
-                      <span aria-hidden="true">💡</span> Gabarito Comentado
+                      <span aria-hidden="true">💡</span> Explicação Detalhada do Gabarito
                     </h2>
                     <p className="mt-3 text-[15px] leading-7 text-foreground/85">
                       A alternativa correta é a letra{" "}
-                      <span className="font-semibold text-primary">{current.resposta_correta}</span>,
-                      porque ela responde diretamente ao enunciado da questão de forma precisa. Lembre-se
-                      de revisar os conceitos fundamentais desta matéria para fixar o aprendizado na
-                      matriz do ENEM!
+                      <span className="font-semibold text-primary">{current.resposta_correta}</span>.
                     </p>
+                    {current.explicacao ? (
+                      <p className="mt-3 text-[15px] leading-7 text-foreground/85">{current.explicacao}</p>
+                    ) : (
+                      <p className="mt-3 text-sm italic text-muted-foreground">
+                        A explicação detalhada desta questão ainda não foi cadastrada na tabela {TABLE}.
+                      </p>
+                    )}
                   </div>
                 )}
               </article>
