@@ -129,6 +129,7 @@ function SimuladoPage() {
   const options = current
     ? [current.opcao_a, current.opcao_b, current.opcao_c, current.opcao_d, current.opcao_e]
     : [];
+  const correctIndex = current ? LETTERS.indexOf(current.resposta_correta) : -1;
 
   function drawAnother() {
     setChoice(null);
