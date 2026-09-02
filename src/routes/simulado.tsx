@@ -205,17 +205,17 @@ function SimuladoPage() {
         </header>
 
         <div className="mt-6 flex flex-wrap gap-2">
-          {AREAS.map((a) => (
+          {subjects.map((s) => (
             <button
-              key={a}
-              onClick={() => selectArea(a)}
+              key={s}
+              onClick={() => selectMateria(s)}
               className={`rounded-xl border px-4 py-2 text-sm font-medium transition-all ${
-                area === a
+                materia === s
                   ? "border-primary/50 bg-primary/15 text-foreground"
                   : "border-border bg-background/30 text-muted-foreground hover:border-primary/30 hover:text-foreground"
               }`}
             >
-              {a}
+              {s}
             </button>
           ))}
         </div>
