@@ -16,7 +16,17 @@ const CorrectionSchema = z.object({
   c4: z.number(),
   c5: z.number(),
   nota_total: z.number(),
-  dicas: z.array(z.string()).min(1),
+  dicas: z
+    .union([z.array(z.string()), z.string()])
+    .transform((v) =>
+      Array.isArray(v)
+        ? v
+        : v
+            .split(/\n+|(?:^|\s)\d\.\s|(?:^|\s)[-•]\s/)
+            .map((s) => s.trim())
+            .filter(Boolean),
+    )
+    .pipe(z.array(z.string()).min(1)),
   comentario: z.string().optional().default(""),
 });
 
