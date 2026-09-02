@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Loader2, Sparkles } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { AlertCircle, Loader2, Sparkles } from "lucide-react";
+import { corrigirRedacao, type EssayCorrection } from "@/lib/essay.functions";
+
 
 export const Route = createFileRoute("/redacao")({
   head: () => ({
@@ -51,10 +54,20 @@ const ESSAY_INSTRUCTIONS: { title: string; body: string }[] = [
   },
 ];
 
+const COMPETENCIAS: { key: "c1" | "c2" | "c3" | "c4" | "c5"; label: string }[] = [
+  { key: "c1", label: "C1 · Norma culta" },
+  { key: "c2", label: "C2 · Compreensão do tema" },
+  { key: "c3", label: "C3 · Defesa de ponto de vista" },
+  { key: "c4", label: "C4 · Mecanismos coesivos" },
+  { key: "c5", label: "C5 · Proposta de intervenção" },
+];
+
 function RedacaoPage() {
   const [text, setText] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done">("idle");
-  const [feedback, setFeedback] = useState<null | { nota: number; competencias: { c: string; note: number; max: number }[]; sugestoes: string[] }>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<EssayCorrection | null>(null);
+  const corrigir = useServerFn(corrigirRedacao);
 
   // Conta linhas com base em quebras reais (\n) — simula as linhas da folha do ENEM.
   const lineCount = useMemo(() => {
@@ -67,31 +80,29 @@ function RedacaoPage() {
     return Math.min(MAX_LINES, count);
   }, [text]);
 
-  const canSend = status === "idle" && lineCount >= MIN_LINES_TO_SEND;
+  const canSend =
+    status !== "sending" && lineCount >= MIN_LINES_TO_SEND && text.trim().length >= 200;
 
   async function handleSubmit() {
     if (!canSend) return;
     setStatus("sending");
+    setError(null);
     setFeedback(null);
-    // Simula a análise do Professor Claude (a integração com IA entra aqui depois).
-    await new Promise((r) => setTimeout(r, 3200));
-    setFeedback({
-      nota: 920,
-      competencias: [
-        { c: "Competência 1", note: 200, max: 200 },
-        { c: "Competência 2", note: 180, max: 200 },
-        { c: "Competência 3", note: 160, max: 200 },
-        { c: "Competência 4", note: 200, max: 200 },
-        { c: "Competência 5", note: 180, max: 200 },
-      ],
-      sugestoes: [
-        "Reforce o repertório sociológico na C3.",
-        "A proposta de intervenção precisa de um agente claro.",
-        "Conecte melhor os parágrafos de desenvolvimento.",
-      ],
-    });
-    setStatus("done");
+    try {
+      const result = await corrigir({
+        data: { tema: THEME_OF_THE_WEEK, texto: text.trim() },
+      });
+      setFeedback(result);
+      setStatus("done");
+    } catch (err) {
+      console.error("[Redação] Erro na correção:", err);
+      setError(
+        err instanceof Error ? err.message : "Não foi possível corrigir sua redação agora.",
+      );
+      setStatus("idle");
+    }
   }
+
 
   return (
     <main className="flex-1 overflow-y-auto">
@@ -219,6 +230,13 @@ function RedacaoPage() {
                   Enviar para Correção da IA
                 </button>
               </div>
+
+              {error && (
+                <div className="mt-4 flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
             </div>
 
             {/* Estado de envio / carregamento */}
@@ -248,28 +266,33 @@ function RedacaoPage() {
                 <div className="rounded-2xl border border-border bg-card p-6 card-glow">
                   <div className="flex items-end gap-2">
                     <span className="text-4xl font-semibold text-foreground text-glow-electric">
-                      {feedback.nota}
+                      {feedback.nota_total}
                     </span>
                     <span className="mb-1 text-sm text-muted-foreground">
                       / 1000
                     </span>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Nota estimada pelo Professor Claude
+                    Nota atribuída pelo Professor Claude
                   </p>
+                  {feedback.comentario && (
+                    <p className="mt-3 text-sm leading-relaxed text-foreground/90">
+                      {feedback.comentario}
+                    </p>
+                  )}
                   <div className="mt-5 space-y-3">
-                    {feedback.competencias.map((row) => (
-                      <div key={row.c}>
+                    {COMPETENCIAS.map((row) => (
+                      <div key={row.key}>
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">{row.c}</span>
+                          <span className="text-muted-foreground">{row.label}</span>
                           <span className="font-medium text-foreground">
-                            {row.note}/{row.max}
+                            {feedback[row.key]}/200
                           </span>
                         </div>
                         <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-secondary">
                           <div
                             className="h-full rounded-full bg-gradient-to-r from-accent to-primary"
-                            style={{ width: `${(row.note / row.max) * 100}%` }}
+                            style={{ width: `${(feedback[row.key] / 200) * 100}%` }}
                           />
                         </div>
                       </div>
@@ -278,10 +301,10 @@ function RedacaoPage() {
                 </div>
                 <div className="rounded-2xl border border-border bg-card p-6 card-glow">
                   <h3 className="text-sm font-semibold text-foreground">
-                    Sugestões do Professor Claude
+                    Dicas do Professor Claude
                   </h3>
                   <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                    {feedback.sugestoes.map((s) => (
+                    {feedback.dicas.map((s) => (
                       <li key={s} className="flex gap-2">
                         <span className="text-accent">›</span> {s}
                       </li>
@@ -290,6 +313,7 @@ function RedacaoPage() {
                 </div>
               </div>
             )}
+
           </section>
         </div>
       </div>
