@@ -32,14 +32,7 @@ const TABLE = "enem_tutor";
 const SELECT_COLUMNS = "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta,explicacao";
 const REQUEST_TIMEOUT_MS = 12_000;
 
-const AREAS = [
-  "Ciências da Natureza",
-  "Ciências Humanas",
-  "Matemática",
-  "Linguagens",
-] as const;
-
-type Area = (typeof AREAS)[number];
+const ALL_SUBJECTS = "Ver Todas";
 
 type QuestionRow = {
   id: number | string;
@@ -57,13 +50,14 @@ type HistoryRow = {
   id: number | string;
   enunciado: string;
   area_conhecimento: string | null;
+  materia: string | null;
 };
 
 async function fetchAllQuestions(): Promise<HistoryRow[]> {
   const { data, error } = await questionsSupabase
     .from(TABLE)
-    .select("id,enunciado,area_conhecimento")
-    .order("area_conhecimento", { ascending: true });
+    .select("id,enunciado,area_conhecimento,materia")
+    .order("materia", { ascending: true });
 
   if (error) {
     console.error(`[Simulado] Falha ao listar histórico de ${TABLE}`, error);
@@ -72,19 +66,23 @@ async function fetchAllQuestions(): Promise<HistoryRow[]> {
   return (data ?? []) as HistoryRow[];
 }
 
-async function fetchRandomQuestion(area: Area, forcedId: number | string | null): Promise<QuestionRow | null> {
+async function fetchRandomQuestion(materia: string, forcedId: number | string | null): Promise<QuestionRow | null> {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    // Busca apenas as colunas necessárias — nunca o gabarito (resposta_correta).
-    // Filtra pela área selecionada usando a coluna `area_conhecimento` da tabela.
+    // Busca apenas as colunas necessárias. Filtra pela matéria selecionada
+    // usando a coluna `materia` da tabela (ou traz tudo em "Ver Todas").
     let query = questionsSupabase.from(TABLE).select(SELECT_COLUMNS);
-    query = forcedId !== null ? query.eq("id", forcedId) : query.eq("area_conhecimento", area);
+    if (forcedId !== null) {
+      query = query.eq("id", forcedId);
+    } else if (materia !== ALL_SUBJECTS) {
+      query = query.eq("materia", materia);
+    }
     const { data, error, status, statusText } = await query.abortSignal(controller.signal);
 
     console.info(`[Simulado] Consulta direta à tabela ${TABLE} (Supabase externo)`, {
-      area,
+      materia,
       status,
       statusText,
       linhasRetornadas: data?.length ?? 0,
@@ -134,12 +132,12 @@ function SimuladoPage() {
   const [choice, setChoice] = useState<number | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
-  const [area, setArea] = useState<Area>("Ciências da Natureza");
+  const [materia, setMateria] = useState<string>(ALL_SUBJECTS);
   const [forcedId, setForcedId] = useState<number | string | null>(null);
 
   const { data, isFetching, error, refetch } = useQuery({
-    queryKey: ["random-question", "external", area, forcedId],
-    queryFn: () => fetchRandomQuestion(area, forcedId),
+    queryKey: ["random-question", "external", materia, forcedId],
+    queryFn: () => fetchRandomQuestion(materia, forcedId),
     retry: false,
     staleTime: 0,
   });
@@ -151,6 +149,10 @@ function SimuladoPage() {
     staleTime: 60_000,
   });
   const history = historyQuery.data ?? [];
+  const subjects = [
+    ALL_SUBJECTS,
+    ...new Set(history.map((row) => row.materia).filter((m): m is string => !!m)),
+  ];
 
   const current = data ?? null;
   const options = current
@@ -166,8 +168,8 @@ function SimuladoPage() {
     if (forcedId === null) refetch();
   }
 
-  function selectArea(next: Area) {
-    if (next === area) {
+  function selectMateria(next: string) {
+    if (next === materia) {
       setForcedId(null);
       if (forcedId === null) refetch();
       return;
@@ -176,15 +178,15 @@ function SimuladoPage() {
     setConfirmed(false);
     setChatOpen(false);
     setForcedId(null);
-    setArea(next);
+    setMateria(next);
   }
 
   function answerThis(row: HistoryRow) {
     setChoice(null);
     setConfirmed(false);
     setChatOpen(false);
-    if (row.area_conhecimento && (AREAS as readonly string[]).includes(row.area_conhecimento)) {
-      setArea(row.area_conhecimento as Area);
+    if (row.materia) {
+      setMateria(row.materia);
     }
     setForcedId(row.id);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -197,23 +199,23 @@ function SimuladoPage() {
           <span className="text-xs font-medium uppercase tracking-wider text-primary">Simulado adaptativo</span>
           <h1 className="mt-2 text-3xl font-semibold text-foreground">Pratique questão por questão</h1>
           <p className="mt-2 max-w-xl text-muted-foreground">
-            Escolha uma área, sorteie uma questão e, se travar, chame o tutor de IA — ele orienta com
+            Escolha uma matéria, sorteie uma questão e, se travar, chame o tutor de IA — ele orienta com
             pistas, sem entregar a resposta.
           </p>
         </header>
 
         <div className="mt-6 flex flex-wrap gap-2">
-          {AREAS.map((a) => (
+          {subjects.map((s) => (
             <button
-              key={a}
-              onClick={() => selectArea(a)}
+              key={s}
+              onClick={() => selectMateria(s)}
               className={`rounded-xl border px-4 py-2 text-sm font-medium transition-all ${
-                area === a
+                materia === s
                   ? "border-primary/50 bg-primary/15 text-foreground"
                   : "border-border bg-background/30 text-muted-foreground hover:border-primary/30 hover:text-foreground"
               }`}
             >
-              {a}
+              {s}
             </button>
           ))}
         </div>
@@ -455,9 +457,9 @@ function SimuladoPage() {
                     }`}
                   >
                     <div className="min-w-0">
-                      {row.area_conhecimento && (
+                      {row.materia && (
                         <span className="inline-block rounded-md bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                          {row.area_conhecimento}
+                          {row.materia}
                         </span>
                       )}
                       <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-foreground/85">
