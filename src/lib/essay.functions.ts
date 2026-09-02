@@ -89,7 +89,12 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
       const text = await res.text();
       if (res.status === 429) throw new Error("Muitas correções seguidas. Aguarde alguns segundos e tente novamente.");
       if (res.status === 401) throw new Error("Chave da Anthropic inválida.");
+      if (text.includes("credit balance is too low"))
+        throw new Error(
+          "A conta da Anthropic está sem créditos. Adicione créditos em Plans & Billing para liberar a correção.",
+        );
       throw new Error(`Falha ao corrigir a redação (${res.status}): ${text.slice(0, 200)}`);
+
     }
 
     const json = (await res.json()) as {
