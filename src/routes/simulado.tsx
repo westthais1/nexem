@@ -66,19 +66,23 @@ async function fetchAllQuestions(): Promise<HistoryRow[]> {
   return (data ?? []) as HistoryRow[];
 }
 
-async function fetchRandomQuestion(area: Area, forcedId: number | string | null): Promise<QuestionRow | null> {
+async function fetchRandomQuestion(materia: string, forcedId: number | string | null): Promise<QuestionRow | null> {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    // Busca apenas as colunas necessárias — nunca o gabarito (resposta_correta).
-    // Filtra pela área selecionada usando a coluna `area_conhecimento` da tabela.
+    // Busca apenas as colunas necessárias. Filtra pela matéria selecionada
+    // usando a coluna `materia` da tabela (ou traz tudo em "Ver Todas").
     let query = questionsSupabase.from(TABLE).select(SELECT_COLUMNS);
-    query = forcedId !== null ? query.eq("id", forcedId) : query.eq("area_conhecimento", area);
+    if (forcedId !== null) {
+      query = query.eq("id", forcedId);
+    } else if (materia !== ALL_SUBJECTS) {
+      query = query.eq("materia", materia);
+    }
     const { data, error, status, statusText } = await query.abortSignal(controller.signal);
 
     console.info(`[Simulado] Consulta direta à tabela ${TABLE} (Supabase externo)`, {
-      area,
+      materia,
       status,
       statusText,
       linhasRetornadas: data?.length ?? 0,
