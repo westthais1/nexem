@@ -230,6 +230,13 @@ function RedacaoPage() {
                   Enviar para Correção da IA
                 </button>
               </div>
+
+              {error && (
+                <div className="mt-4 flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
             </div>
 
             {/* Estado de envio / carregamento */}
@@ -259,28 +266,33 @@ function RedacaoPage() {
                 <div className="rounded-2xl border border-border bg-card p-6 card-glow">
                   <div className="flex items-end gap-2">
                     <span className="text-4xl font-semibold text-foreground text-glow-electric">
-                      {feedback.nota}
+                      {feedback.nota_total}
                     </span>
                     <span className="mb-1 text-sm text-muted-foreground">
                       / 1000
                     </span>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Nota estimada pelo Professor Claude
+                    Nota atribuída pelo Professor Claude
                   </p>
+                  {feedback.comentario && (
+                    <p className="mt-3 text-sm leading-relaxed text-foreground/90">
+                      {feedback.comentario}
+                    </p>
+                  )}
                   <div className="mt-5 space-y-3">
-                    {feedback.competencias.map((row) => (
-                      <div key={row.c}>
+                    {COMPETENCIAS.map((row) => (
+                      <div key={row.key}>
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">{row.c}</span>
+                          <span className="text-muted-foreground">{row.label}</span>
                           <span className="font-medium text-foreground">
-                            {row.note}/{row.max}
+                            {feedback[row.key]}/200
                           </span>
                         </div>
                         <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-secondary">
                           <div
                             className="h-full rounded-full bg-gradient-to-r from-accent to-primary"
-                            style={{ width: `${(row.note / row.max) * 100}%` }}
+                            style={{ width: `${(feedback[row.key] / 200) * 100}%` }}
                           />
                         </div>
                       </div>
@@ -289,10 +301,10 @@ function RedacaoPage() {
                 </div>
                 <div className="rounded-2xl border border-border bg-card p-6 card-glow">
                   <h3 className="text-sm font-semibold text-foreground">
-                    Sugestões do Professor Claude
+                    Dicas do Professor Claude
                   </h3>
                   <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                    {feedback.sugestoes.map((s) => (
+                    {feedback.dicas.map((s) => (
                       <li key={s} className="flex gap-2">
                         <span className="text-accent">›</span> {s}
                       </li>
@@ -301,6 +313,7 @@ function RedacaoPage() {
                 </div>
               </div>
             )}
+
           </section>
         </div>
       </div>
