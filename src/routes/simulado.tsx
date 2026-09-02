@@ -314,6 +314,21 @@ function SimuladoPage() {
                     </>
                   )}
                 </div>
+
+                {confirmed && current && (
+                  <div className="mt-6 rounded-2xl border border-primary/30 bg-primary/5 p-5 md:p-6">
+                    <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
+                      <span aria-hidden="true">💡</span> Gabarito Comentado
+                    </h2>
+                    <p className="mt-3 text-[15px] leading-7 text-foreground/85">
+                      A alternativa correta é a letra{" "}
+                      <span className="font-semibold text-primary">{current.resposta_correta}</span>,
+                      porque ela responde diretamente ao enunciado da questão de forma precisa. Lembre-se
+                      de revisar os conceitos fundamentais desta matéria para fixar o aprendizado na
+                      matriz do ENEM!
+                    </p>
+                  </div>
+                )}
               </article>
             ) : (
               <div className="rounded-2xl border border-border bg-card p-6 md:p-9">
