@@ -14,7 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      enem_tutor: {
+        Row: {
+          alternativa_correta: string
+          area: string
+          created_at: string
+          enunciado: string
+          id: string
+          opcao_a: string
+          opcao_b: string
+          opcao_c: string
+          opcao_d: string
+          opcao_e: string
+          topic: string
+        }
+        Insert: {
+          alternativa_correta: string
+          area: string
+          created_at?: string
+          enunciado: string
+          id?: string
+          opcao_a: string
+          opcao_b: string
+          opcao_c: string
+          opcao_d: string
+          opcao_e: string
+          topic: string
+        }
+        Update: {
+          alternativa_correta?: string
+          area?: string
+          created_at?: string
+          enunciado?: string
+          id?: string
+          opcao_a?: string
+          opcao_b?: string
+          opcao_c?: string
+          opcao_d?: string
+          opcao_e?: string
+          topic?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
