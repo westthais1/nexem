@@ -29,7 +29,7 @@ export const Route = createFileRoute("/simulado")({
 
 const LETTERS = ["A", "B", "C", "D", "E"];
 const TABLE = "enem_tutor";
-const SELECT_COLUMNS = "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e";
+const SELECT_COLUMNS = "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta";
 const REQUEST_TIMEOUT_MS = 12_000;
 
 const AREAS = [
@@ -49,6 +49,7 @@ type QuestionRow = {
   opcao_c: string;
   opcao_d: string;
   opcao_e: string;
+  resposta_correta: string;
 };
 
 async function fetchRandomQuestion(area: Area): Promise<QuestionRow | null> {
@@ -82,7 +83,7 @@ async function fetchRandomQuestion(area: Area): Promise<QuestionRow | null> {
     const selected = data[Math.floor(Math.random() * data.length)];
     if (!selected) return null;
 
-    const requiredFields = ["enunciado", "opcao_a", "opcao_b", "opcao_c", "opcao_d", "opcao_e"] as const;
+    const requiredFields = ["enunciado", "opcao_a", "opcao_b", "opcao_c", "opcao_d", "opcao_e", "resposta_correta"] as const;
     const missingFields = requiredFields.filter(
       (field) => typeof selected[field] !== "string" || selected[field].trim() === "",
     );
@@ -91,8 +92,14 @@ async function fetchRandomQuestion(area: Area): Promise<QuestionRow | null> {
       console.error(`[Simulado] Dados inválidos recebidos do banco`, { id: selected.id, missingFields });
       throw new Error(message);
     }
+    const answer = (selected.resposta_correta as string).trim().toUpperCase();
+    if (!LETTERS.includes(answer)) {
+      const message = `A coluna "resposta_correta" da linha ${selected.id} contém um valor inválido: "${selected.resposta_correta}". Esperado: A, B, C, D ou E.`;
+      console.error(`[Simulado] resposta_correta inválida`, { id: selected.id, valor: selected.resposta_correta });
+      throw new Error(message);
+    }
 
-    return selected;
+    return { ...selected, resposta_correta: answer };
   } catch (cause) {
     if (controller.signal.aborted) {
       const message = `A consulta à tabela "${TABLE}" excedeu ${REQUEST_TIMEOUT_MS / 1000} segundos.`;
@@ -107,6 +114,7 @@ async function fetchRandomQuestion(area: Area): Promise<QuestionRow | null> {
 
 function SimuladoPage() {
   const [choice, setChoice] = useState<number | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [area, setArea] = useState<Area>("Ciências da Natureza");
 
@@ -121,9 +129,11 @@ function SimuladoPage() {
   const options = current
     ? [current.opcao_a, current.opcao_b, current.opcao_c, current.opcao_d, current.opcao_e]
     : [];
+  const correctIndex = current ? LETTERS.indexOf(current.resposta_correta) : -1;
 
   function drawAnother() {
     setChoice(null);
+    setConfirmed(false);
     setChatOpen(false);
     refetch();
   }
@@ -134,6 +144,7 @@ function SimuladoPage() {
       return;
     }
     setChoice(null);
+    setConfirmed(false);
     setChatOpen(false);
     setArea(next);
   }
@@ -205,50 +216,103 @@ function SimuladoPage() {
                 </div>
 
                 <div className="mt-8 space-y-3">
-                  {options.map((opt, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setChoice(i)}
-                      className={`flex w-full items-start gap-4 rounded-xl border px-4 py-3.5 text-left transition-all ${
-                        choice === i
-                          ? "border-primary/50 bg-primary/10"
-                          : "border-border bg-background/30 hover:border-primary/30"
-                      }`}
-                    >
-                      <span
-                        className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs font-semibold ${
-                          choice === i
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-secondary text-muted-foreground"
+                  {options.map((opt, i) => {
+                    const isSelected = choice === i;
+                    const isCorrectOption = i === correctIndex;
+                    let optClass: string;
+                    let badgeClass: string;
+                    if (!confirmed) {
+                      if (isSelected) {
+                        optClass = "border-accent/60 bg-accent/15";
+                        badgeClass = "bg-accent text-accent-foreground";
+                      } else {
+                        optClass = "border-border bg-background/30 hover:border-accent/40";
+                        badgeClass = "bg-secondary text-muted-foreground";
+                      }
+                    } else if (isCorrectOption) {
+                      optClass = "border-success/60 bg-success/15";
+                      badgeClass = "bg-success text-success-foreground";
+                    } else if (isSelected) {
+                      optClass = "border-destructive/60 bg-destructive/15";
+                      badgeClass = "bg-destructive text-destructive-foreground";
+                    } else {
+                      optClass = "border-border bg-background/30 opacity-60";
+                      badgeClass = "bg-secondary text-muted-foreground";
+                    }
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => !confirmed && setChoice(i)}
+                        disabled={confirmed}
+                        aria-pressed={isSelected}
+                        className={`flex w-full items-start gap-4 rounded-xl border px-4 py-3.5 text-left transition-all ${optClass} ${
+                          confirmed ? "cursor-default" : ""
                         }`}
                       >
-                        {LETTERS[i]}
-                      </span>
-                      <span className="text-[15px] leading-7 text-foreground/90">{opt}</span>
-                    </button>
-                  ))}
+                        <span
+                          className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs font-semibold ${badgeClass}`}
+                        >
+                          {LETTERS[i]}
+                        </span>
+                        <span className="text-[15px] leading-7 text-foreground/90">{opt}</span>
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-border pt-6">
-                  <button
-                    onClick={drawAnother}
-                    className="rounded-lg border border-primary/50 bg-primary/10 px-4 py-2 text-sm font-medium text-foreground transition-all hover:bg-primary/20"
-                  >
-                    Sortear outra questão
-                  </button>
-                  {!chatOpen && (
-                    <TutorChat
-                      key={`${current.id}-btn`}
-                      open={false}
-                      onOpenChange={setChatOpen}
-                      question={current.enunciado}
-                      options={options}
-                      area="Geral"
-                    />
+                  {!confirmed ? (
+                    <>
+                      <button
+                        onClick={() => setConfirmed(true)}
+                        disabled={choice === null}
+                        className="rounded-lg border border-primary/50 bg-primary/15 px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:bg-primary/25 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-primary/15"
+                      >
+                        Confirmar Resposta
+                      </button>
+                      {!chatOpen && (
+                        <TutorChat
+                          key={`${current.id}-btn`}
+                          open={false}
+                          onOpenChange={setChatOpen}
+                          question={current.enunciado}
+                          options={options}
+                          area="Geral"
+                        />
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Selecione uma alternativa e confirme para ver o resultado.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      {choice === correctIndex ? (
+                        <p className="rounded-lg border border-success/50 bg-success/10 px-4 py-2.5 text-sm font-medium text-success">
+                          ✓ Resposta correta! Mandou bem.
+                        </p>
+                      ) : (
+                        <p className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-2.5 text-sm font-medium text-destructive">
+                          ✗ Quase! A alternativa correta é a {current.resposta_correta}.
+                        </p>
+                      )}
+                      <button
+                        onClick={drawAnother}
+                        className="rounded-lg border border-primary/50 bg-primary/10 px-4 py-2 text-sm font-medium text-foreground transition-all hover:bg-primary/20"
+                      >
+                        Próxima Questão
+                      </button>
+                      {!chatOpen && (
+                        <TutorChat
+                          key={`${current.id}-btn`}
+                          open={false}
+                          onOpenChange={setChatOpen}
+                          question={current.enunciado}
+                          options={options}
+                          area="Geral"
+                        />
+                      )}
+                    </>
                   )}
-                  <p className="text-xs text-muted-foreground">
-                    O tutor dá pistas progressivas — a resposta final fica por sua conta.
-                  </p>
                 </div>
               </article>
             ) : (
