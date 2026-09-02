@@ -135,13 +135,22 @@ function SimuladoPage() {
   const [confirmed, setConfirmed] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [area, setArea] = useState<Area>("Ciências da Natureza");
+  const [forcedId, setForcedId] = useState<number | string | null>(null);
 
   const { data, isFetching, error, refetch } = useQuery({
-    queryKey: ["random-question", "external", area],
-    queryFn: () => fetchRandomQuestion(area),
+    queryKey: ["random-question", "external", area, forcedId],
+    queryFn: () => fetchRandomQuestion(area, forcedId),
     retry: false,
     staleTime: 0,
   });
+
+  const historyQuery = useQuery({
+    queryKey: ["question-history", "external"],
+    queryFn: fetchAllQuestions,
+    retry: false,
+    staleTime: 60_000,
+  });
+  const history = historyQuery.data ?? [];
 
   const current = data ?? null;
   const options = current
