@@ -155,10 +155,7 @@ function SimuladoPage() {
     staleTime: 60_000,
   });
   const history = historyQuery.data ?? [];
-  const subjects = [
-    ALL_SUBJECTS,
-    ...new Set(history.map((row) => row.materia).filter((m): m is string => !!m)),
-  ];
+  const subjects: string[] = [ALL_AREAS, ...ENEM_AREAS];
 
   const current = data ?? null;
   const options = current
