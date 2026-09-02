@@ -32,14 +32,7 @@ const TABLE = "enem_tutor";
 const SELECT_COLUMNS = "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta,explicacao";
 const REQUEST_TIMEOUT_MS = 12_000;
 
-const AREAS = [
-  "Ciências da Natureza",
-  "Ciências Humanas",
-  "Matemática",
-  "Linguagens",
-] as const;
-
-type Area = (typeof AREAS)[number];
+const ALL_SUBJECTS = "Ver Todas";
 
 type QuestionRow = {
   id: number | string;
@@ -57,13 +50,14 @@ type HistoryRow = {
   id: number | string;
   enunciado: string;
   area_conhecimento: string | null;
+  materia: string | null;
 };
 
 async function fetchAllQuestions(): Promise<HistoryRow[]> {
   const { data, error } = await questionsSupabase
     .from(TABLE)
-    .select("id,enunciado,area_conhecimento")
-    .order("area_conhecimento", { ascending: true });
+    .select("id,enunciado,area_conhecimento,materia")
+    .order("materia", { ascending: true });
 
   if (error) {
     console.error(`[Simulado] Falha ao listar histórico de ${TABLE}`, error);
