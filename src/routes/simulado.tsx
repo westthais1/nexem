@@ -29,7 +29,7 @@ export const Route = createFileRoute("/simulado")({
 
 const LETTERS = ["A", "B", "C", "D", "E"];
 const TABLE = "enem_tutor";
-const SELECT_COLUMNS = "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta";
+const SELECT_COLUMNS = "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta,explicacao";
 const REQUEST_TIMEOUT_MS = 12_000;
 
 const AREAS = [
@@ -50,6 +50,7 @@ type QuestionRow = {
   opcao_d: string;
   opcao_e: string;
   resposta_correta: string;
+  explicacao: string | null;
 };
 
 async function fetchRandomQuestion(area: Area): Promise<QuestionRow | null> {
@@ -316,17 +317,27 @@ function SimuladoPage() {
                 </div>
 
                 {confirmed && current && (
-                  <div className="mt-6 rounded-2xl border border-primary/30 bg-primary/5 p-5 md:p-6">
+                  <div
+                    className={`mt-6 rounded-2xl border p-5 md:p-6 ${
+                      choice === correctIndex
+                        ? "border-primary/30 bg-primary/5"
+                        : "border-warning/60 bg-warning/10"
+                    }`}
+                  >
                     <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
-                      <span aria-hidden="true">💡</span> Gabarito Comentado
+                      <span aria-hidden="true">💡</span> Explicação Detalhada do Gabarito
                     </h2>
                     <p className="mt-3 text-[15px] leading-7 text-foreground/85">
                       A alternativa correta é a letra{" "}
-                      <span className="font-semibold text-primary">{current.resposta_correta}</span>,
-                      porque ela responde diretamente ao enunciado da questão de forma precisa. Lembre-se
-                      de revisar os conceitos fundamentais desta matéria para fixar o aprendizado na
-                      matriz do ENEM!
+                      <span className="font-semibold text-primary">{current.resposta_correta}</span>.
                     </p>
+                    {current.explicacao ? (
+                      <p className="mt-3 text-[15px] leading-7 text-foreground/85">{current.explicacao}</p>
+                    ) : (
+                      <p className="mt-3 text-sm italic text-muted-foreground">
+                        A explicação detalhada desta questão ainda não foi cadastrada na tabela {TABLE}.
+                      </p>
+                    )}
                   </div>
                 )}
               </article>
