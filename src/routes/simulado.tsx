@@ -188,8 +188,8 @@ function SimuladoPage() {
     setChoice(null);
     setConfirmed(false);
     setChatOpen(false);
-    if (row.materia) {
-      setMateria(row.materia);
+    if (row.area_conhecimento) {
+      setMateria(row.area_conhecimento);
     }
     setForcedId(row.id);
     window.scrollTo({ top: 0, behavior: "smooth" });
