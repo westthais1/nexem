@@ -149,6 +149,10 @@ function SimuladoPage() {
     staleTime: 60_000,
   });
   const history = historyQuery.data ?? [];
+  const subjects = [
+    ALL_SUBJECTS,
+    ...new Set(history.map((row) => row.materia).filter((m): m is string => !!m)),
+  ];
 
   const current = data ?? null;
   const options = current
@@ -164,8 +168,8 @@ function SimuladoPage() {
     if (forcedId === null) refetch();
   }
 
-  function selectArea(next: Area) {
-    if (next === area) {
+  function selectMateria(next: string) {
+    if (next === materia) {
       setForcedId(null);
       if (forcedId === null) refetch();
       return;
@@ -174,15 +178,15 @@ function SimuladoPage() {
     setConfirmed(false);
     setChatOpen(false);
     setForcedId(null);
-    setArea(next);
+    setMateria(next);
   }
 
   function answerThis(row: HistoryRow) {
     setChoice(null);
     setConfirmed(false);
     setChatOpen(false);
-    if (row.area_conhecimento && (AREAS as readonly string[]).includes(row.area_conhecimento)) {
-      setArea(row.area_conhecimento as Area);
+    if (row.materia) {
+      setMateria(row.materia);
     }
     setForcedId(row.id);
     window.scrollTo({ top: 0, behavior: "smooth" });
