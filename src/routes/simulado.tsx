@@ -83,7 +83,7 @@ async function fetchRandomQuestion(area: Area): Promise<QuestionRow | null> {
     const selected = data[Math.floor(Math.random() * data.length)];
     if (!selected) return null;
 
-    const requiredFields = ["enunciado", "opcao_a", "opcao_b", "opcao_c", "opcao_d", "opcao_e"] as const;
+    const requiredFields = ["enunciado", "opcao_a", "opcao_b", "opcao_c", "opcao_d", "opcao_e", "resposta_correta"] as const;
     const missingFields = requiredFields.filter(
       (field) => typeof selected[field] !== "string" || selected[field].trim() === "",
     );
@@ -92,8 +92,14 @@ async function fetchRandomQuestion(area: Area): Promise<QuestionRow | null> {
       console.error(`[Simulado] Dados inválidos recebidos do banco`, { id: selected.id, missingFields });
       throw new Error(message);
     }
+    const answer = (selected.resposta_correta as string).trim().toUpperCase();
+    if (!LETTERS.includes(answer)) {
+      const message = `A coluna "resposta_correta" da linha ${selected.id} contém um valor inválido: "${selected.resposta_correta}". Esperado: A, B, C, D ou E.`;
+      console.error(`[Simulado] resposta_correta inválida`, { id: selected.id, valor: selected.resposta_correta });
+      throw new Error(message);
+    }
 
-    return selected;
+    return { ...selected, resposta_correta: answer };
   } catch (cause) {
     if (controller.signal.aborted) {
       const message = `A consulta à tabela "${TABLE}" excedeu ${REQUEST_TIMEOUT_MS / 1000} segundos.`;
