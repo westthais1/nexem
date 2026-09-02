@@ -413,6 +413,70 @@ function SimuladoPage() {
             </div>
           )}
         </div>
+
+        <section className="mt-10 rounded-2xl border border-border bg-card p-6 md:p-8">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold text-foreground">Histórico de Questões</h2>
+            <span className="text-xs text-muted-foreground">
+              {history.length} {history.length === 1 ? "questão" : "questões"} no banco
+            </span>
+          </div>
+
+          {historyQuery.isFetching ? (
+            <div className="mt-5 flex items-center gap-3 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" aria-hidden="true" />
+              Carregando histórico…
+            </div>
+          ) : historyQuery.error ? (
+            <div className="mt-5">
+              <p className="text-sm text-destructive">{(historyQuery.error as Error).message}</p>
+              <button
+                onClick={() => historyQuery.refetch()}
+                className="mt-3 rounded-lg border border-primary/50 bg-primary/10 px-4 py-2 text-sm font-medium text-foreground hover:bg-primary/20"
+              >
+                Tentar novamente
+              </button>
+            </div>
+          ) : history.length === 0 ? (
+            <p className="mt-5 text-sm text-muted-foreground">
+              Nenhuma questão cadastrada na tabela {TABLE}.
+            </p>
+          ) : (
+            <ul className="mt-5 space-y-3">
+              {history.map((row) => {
+                const isCurrent = current?.id === row.id;
+                return (
+                  <li
+                    key={row.id}
+                    className={`flex flex-col gap-3 rounded-xl border p-4 transition-all sm:flex-row sm:items-center sm:justify-between ${
+                      isCurrent
+                        ? "border-primary/50 bg-primary/10"
+                        : "border-border bg-background/30 hover:border-primary/30"
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      {row.area_conhecimento && (
+                        <span className="inline-block rounded-md bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                          {row.area_conhecimento}
+                        </span>
+                      )}
+                      <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-foreground/85">
+                        {row.enunciado}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => answerThis(row)}
+                      disabled={isCurrent}
+                      className="shrink-0 rounded-lg border border-primary/50 bg-primary/15 px-4 py-2 text-sm font-semibold text-foreground transition-all hover:bg-primary/25 disabled:cursor-default disabled:opacity-50"
+                    >
+                      {isCurrent ? "Em exibição" : "Responder Esta"}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
       </div>
     </main>
   );
