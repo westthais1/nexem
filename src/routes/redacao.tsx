@@ -54,10 +54,20 @@ const ESSAY_INSTRUCTIONS: { title: string; body: string }[] = [
   },
 ];
 
+const COMPETENCIAS: { key: "c1" | "c2" | "c3" | "c4" | "c5"; label: string }[] = [
+  { key: "c1", label: "C1 · Norma culta" },
+  { key: "c2", label: "C2 · Compreensão do tema" },
+  { key: "c3", label: "C3 · Defesa de ponto de vista" },
+  { key: "c4", label: "C4 · Mecanismos coesivos" },
+  { key: "c5", label: "C5 · Proposta de intervenção" },
+];
+
 function RedacaoPage() {
   const [text, setText] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done">("idle");
-  const [feedback, setFeedback] = useState<null | { nota: number; competencias: { c: string; note: number; max: number }[]; sugestoes: string[] }>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<EssayCorrection | null>(null);
+  const corrigir = useServerFn(corrigirRedacao);
 
   // Conta linhas com base em quebras reais (\n) — simula as linhas da folha do ENEM.
   const lineCount = useMemo(() => {
@@ -70,31 +80,29 @@ function RedacaoPage() {
     return Math.min(MAX_LINES, count);
   }, [text]);
 
-  const canSend = status === "idle" && lineCount >= MIN_LINES_TO_SEND;
+  const canSend =
+    status !== "sending" && lineCount >= MIN_LINES_TO_SEND && text.trim().length >= 200;
 
   async function handleSubmit() {
     if (!canSend) return;
     setStatus("sending");
+    setError(null);
     setFeedback(null);
-    // Simula a análise do Professor Claude (a integração com IA entra aqui depois).
-    await new Promise((r) => setTimeout(r, 3200));
-    setFeedback({
-      nota: 920,
-      competencias: [
-        { c: "Competência 1", note: 200, max: 200 },
-        { c: "Competência 2", note: 180, max: 200 },
-        { c: "Competência 3", note: 160, max: 200 },
-        { c: "Competência 4", note: 200, max: 200 },
-        { c: "Competência 5", note: 180, max: 200 },
-      ],
-      sugestoes: [
-        "Reforce o repertório sociológico na C3.",
-        "A proposta de intervenção precisa de um agente claro.",
-        "Conecte melhor os parágrafos de desenvolvimento.",
-      ],
-    });
-    setStatus("done");
+    try {
+      const result = await corrigir({
+        data: { tema: THEME_OF_THE_WEEK, texto: text.trim() },
+      });
+      setFeedback(result);
+      setStatus("done");
+    } catch (err) {
+      console.error("[Redação] Erro na correção:", err);
+      setError(
+        err instanceof Error ? err.message : "Não foi possível corrigir sua redação agora.",
+      );
+      setStatus("idle");
+    }
   }
+
 
   return (
     <main className="flex-1 overflow-y-auto">
