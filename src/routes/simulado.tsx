@@ -53,18 +53,35 @@ type QuestionRow = {
   explicacao: string | null;
 };
 
-async function fetchRandomQuestion(area: Area): Promise<QuestionRow | null> {
+type HistoryRow = {
+  id: number | string;
+  enunciado: string;
+  area_conhecimento: string | null;
+};
+
+async function fetchAllQuestions(): Promise<HistoryRow[]> {
+  const { data, error } = await questionsSupabase
+    .from(TABLE)
+    .select("id,enunciado,area_conhecimento")
+    .order("area_conhecimento", { ascending: true });
+
+  if (error) {
+    console.error(`[Simulado] Falha ao listar histórico de ${TABLE}`, error);
+    throw new Error(`Erro ao listar o histórico da tabela "${TABLE}": ${error.message}`);
+  }
+  return (data ?? []) as HistoryRow[];
+}
+
+async function fetchRandomQuestion(area: Area, forcedId: number | string | null): Promise<QuestionRow | null> {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
     // Busca apenas as colunas necessárias — nunca o gabarito (resposta_correta).
     // Filtra pela área selecionada usando a coluna `area_conhecimento` da tabela.
-    const { data, error, status, statusText } = await questionsSupabase
-      .from(TABLE)
-      .select(SELECT_COLUMNS)
-      .eq("area_conhecimento", area)
-      .abortSignal(controller.signal);
+    let query = questionsSupabase.from(TABLE).select(SELECT_COLUMNS);
+    query = forcedId !== null ? query.eq("id", forcedId) : query.eq("area_conhecimento", area);
+    const { data, error, status, statusText } = await query.abortSignal(controller.signal);
 
     console.info(`[Simulado] Consulta direta à tabela ${TABLE} (Supabase externo)`, {
       area,
@@ -118,13 +135,22 @@ function SimuladoPage() {
   const [confirmed, setConfirmed] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [area, setArea] = useState<Area>("Ciências da Natureza");
+  const [forcedId, setForcedId] = useState<number | string | null>(null);
 
   const { data, isFetching, error, refetch } = useQuery({
-    queryKey: ["random-question", "external", area],
-    queryFn: () => fetchRandomQuestion(area),
+    queryKey: ["random-question", "external", area, forcedId],
+    queryFn: () => fetchRandomQuestion(area, forcedId),
     retry: false,
     staleTime: 0,
   });
+
+  const historyQuery = useQuery({
+    queryKey: ["question-history", "external"],
+    queryFn: fetchAllQuestions,
+    retry: false,
+    staleTime: 60_000,
+  });
+  const history = historyQuery.data ?? [];
 
   const current = data ?? null;
   const options = current
@@ -136,18 +162,32 @@ function SimuladoPage() {
     setChoice(null);
     setConfirmed(false);
     setChatOpen(false);
-    refetch();
+    setForcedId(null);
+    if (forcedId === null) refetch();
   }
 
   function selectArea(next: Area) {
     if (next === area) {
-      refetch();
+      setForcedId(null);
+      if (forcedId === null) refetch();
       return;
     }
     setChoice(null);
     setConfirmed(false);
     setChatOpen(false);
+    setForcedId(null);
     setArea(next);
+  }
+
+  function answerThis(row: HistoryRow) {
+    setChoice(null);
+    setConfirmed(false);
+    setChatOpen(false);
+    if (row.area_conhecimento && (AREAS as readonly string[]).includes(row.area_conhecimento)) {
+      setArea(row.area_conhecimento as Area);
+    }
+    setForcedId(row.id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   return (
@@ -373,6 +413,70 @@ function SimuladoPage() {
             </div>
           )}
         </div>
+
+        <section className="mt-10 rounded-2xl border border-border bg-card p-6 md:p-8">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold text-foreground">Histórico de Questões</h2>
+            <span className="text-xs text-muted-foreground">
+              {history.length} {history.length === 1 ? "questão" : "questões"} no banco
+            </span>
+          </div>
+
+          {historyQuery.isFetching ? (
+            <div className="mt-5 flex items-center gap-3 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" aria-hidden="true" />
+              Carregando histórico…
+            </div>
+          ) : historyQuery.error ? (
+            <div className="mt-5">
+              <p className="text-sm text-destructive">{(historyQuery.error as Error).message}</p>
+              <button
+                onClick={() => historyQuery.refetch()}
+                className="mt-3 rounded-lg border border-primary/50 bg-primary/10 px-4 py-2 text-sm font-medium text-foreground hover:bg-primary/20"
+              >
+                Tentar novamente
+              </button>
+            </div>
+          ) : history.length === 0 ? (
+            <p className="mt-5 text-sm text-muted-foreground">
+              Nenhuma questão cadastrada na tabela {TABLE}.
+            </p>
+          ) : (
+            <ul className="mt-5 space-y-3">
+              {history.map((row) => {
+                const isCurrent = current?.id === row.id;
+                return (
+                  <li
+                    key={row.id}
+                    className={`flex flex-col gap-3 rounded-xl border p-4 transition-all sm:flex-row sm:items-center sm:justify-between ${
+                      isCurrent
+                        ? "border-primary/50 bg-primary/10"
+                        : "border-border bg-background/30 hover:border-primary/30"
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      {row.area_conhecimento && (
+                        <span className="inline-block rounded-md bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                          {row.area_conhecimento}
+                        </span>
+                      )}
+                      <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-foreground/85">
+                        {row.enunciado}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => answerThis(row)}
+                      disabled={isCurrent}
+                      className="shrink-0 rounded-lg border border-primary/50 bg-primary/15 px-4 py-2 text-sm font-semibold text-foreground transition-all hover:bg-primary/25 disabled:cursor-default disabled:opacity-50"
+                    >
+                      {isCurrent ? "Em exibição" : "Responder Esta"}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
       </div>
     </main>
   );
