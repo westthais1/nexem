@@ -162,18 +162,32 @@ function SimuladoPage() {
     setChoice(null);
     setConfirmed(false);
     setChatOpen(false);
-    refetch();
+    setForcedId(null);
+    if (forcedId === null) refetch();
   }
 
   function selectArea(next: Area) {
     if (next === area) {
-      refetch();
+      setForcedId(null);
+      if (forcedId === null) refetch();
       return;
     }
     setChoice(null);
     setConfirmed(false);
     setChatOpen(false);
+    setForcedId(null);
     setArea(next);
+  }
+
+  function answerThis(row: HistoryRow) {
+    setChoice(null);
+    setConfirmed(false);
+    setChatOpen(false);
+    if (row.area_conhecimento && (AREAS as readonly string[]).includes(row.area_conhecimento)) {
+      setArea(row.area_conhecimento as Area);
+    }
+    setForcedId(row.id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   return (
