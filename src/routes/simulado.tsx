@@ -32,6 +32,15 @@ const TABLE = "enem_tutor";
 const SELECT_COLUMNS = "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e";
 const REQUEST_TIMEOUT_MS = 12_000;
 
+const AREAS = [
+  "Ciências da Natureza",
+  "Ciências Humanas",
+  "Matemática",
+  "Linguagens",
+] as const;
+
+type Area = (typeof AREAS)[number];
+
 type QuestionRow = {
   id: number | string;
   enunciado: string;
@@ -42,18 +51,21 @@ type QuestionRow = {
   opcao_e: string;
 };
 
-async function fetchRandomQuestion(): Promise<QuestionRow | null> {
+async function fetchRandomQuestion(area: Area): Promise<QuestionRow | null> {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
     // Busca apenas as colunas necessárias — nunca o gabarito (resposta_correta).
+    // Filtra pela área selecionada usando a coluna `area_conhecimento` da tabela.
     const { data, error, status, statusText } = await questionsSupabase
       .from(TABLE)
       .select(SELECT_COLUMNS)
+      .eq("area_conhecimento", area)
       .abortSignal(controller.signal);
 
     console.info(`[Simulado] Consulta direta à tabela ${TABLE} (Supabase externo)`, {
+      area,
       status,
       statusText,
       linhasRetornadas: data?.length ?? 0,
