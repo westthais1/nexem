@@ -216,50 +216,103 @@ function SimuladoPage() {
                 </div>
 
                 <div className="mt-8 space-y-3">
-                  {options.map((opt, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setChoice(i)}
-                      className={`flex w-full items-start gap-4 rounded-xl border px-4 py-3.5 text-left transition-all ${
-                        choice === i
-                          ? "border-primary/50 bg-primary/10"
-                          : "border-border bg-background/30 hover:border-primary/30"
-                      }`}
-                    >
-                      <span
-                        className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs font-semibold ${
-                          choice === i
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-secondary text-muted-foreground"
+                  {options.map((opt, i) => {
+                    const isSelected = choice === i;
+                    const isCorrectOption = i === correctIndex;
+                    let optClass: string;
+                    let badgeClass: string;
+                    if (!confirmed) {
+                      if (isSelected) {
+                        optClass = "border-accent/60 bg-accent/15";
+                        badgeClass = "bg-accent text-accent-foreground";
+                      } else {
+                        optClass = "border-border bg-background/30 hover:border-accent/40";
+                        badgeClass = "bg-secondary text-muted-foreground";
+                      }
+                    } else if (isCorrectOption) {
+                      optClass = "border-success/60 bg-success/15";
+                      badgeClass = "bg-success text-success-foreground";
+                    } else if (isSelected) {
+                      optClass = "border-destructive/60 bg-destructive/15";
+                      badgeClass = "bg-destructive text-destructive-foreground";
+                    } else {
+                      optClass = "border-border bg-background/30 opacity-60";
+                      badgeClass = "bg-secondary text-muted-foreground";
+                    }
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => !confirmed && setChoice(i)}
+                        disabled={confirmed}
+                        aria-pressed={isSelected}
+                        className={`flex w-full items-start gap-4 rounded-xl border px-4 py-3.5 text-left transition-all ${optClass} ${
+                          confirmed ? "cursor-default" : ""
                         }`}
                       >
-                        {LETTERS[i]}
-                      </span>
-                      <span className="text-[15px] leading-7 text-foreground/90">{opt}</span>
-                    </button>
-                  ))}
+                        <span
+                          className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs font-semibold ${badgeClass}`}
+                        >
+                          {LETTERS[i]}
+                        </span>
+                        <span className="text-[15px] leading-7 text-foreground/90">{opt}</span>
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-border pt-6">
-                  <button
-                    onClick={drawAnother}
-                    className="rounded-lg border border-primary/50 bg-primary/10 px-4 py-2 text-sm font-medium text-foreground transition-all hover:bg-primary/20"
-                  >
-                    Sortear outra questão
-                  </button>
-                  {!chatOpen && (
-                    <TutorChat
-                      key={`${current.id}-btn`}
-                      open={false}
-                      onOpenChange={setChatOpen}
-                      question={current.enunciado}
-                      options={options}
-                      area="Geral"
-                    />
+                  {!confirmed ? (
+                    <>
+                      <button
+                        onClick={() => setConfirmed(true)}
+                        disabled={choice === null}
+                        className="rounded-lg border border-primary/50 bg-primary/15 px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:bg-primary/25 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-primary/15"
+                      >
+                        Confirmar Resposta
+                      </button>
+                      {!chatOpen && (
+                        <TutorChat
+                          key={`${current.id}-btn`}
+                          open={false}
+                          onOpenChange={setChatOpen}
+                          question={current.enunciado}
+                          options={options}
+                          area="Geral"
+                        />
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Selecione uma alternativa e confirme para ver o resultado.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      {choice === correctIndex ? (
+                        <p className="rounded-lg border border-success/50 bg-success/10 px-4 py-2.5 text-sm font-medium text-success">
+                          ✓ Resposta correta! Mandou bem.
+                        </p>
+                      ) : (
+                        <p className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-2.5 text-sm font-medium text-destructive">
+                          ✗ Quase! A alternativa correta é a {current.resposta_correta}.
+                        </p>
+                      )}
+                      <button
+                        onClick={drawAnother}
+                        className="rounded-lg border border-primary/50 bg-primary/10 px-4 py-2 text-sm font-medium text-foreground transition-all hover:bg-primary/20"
+                      >
+                        Próxima Questão
+                      </button>
+                      {!chatOpen && (
+                        <TutorChat
+                          key={`${current.id}-btn`}
+                          open={false}
+                          onOpenChange={setChatOpen}
+                          question={current.enunciado}
+                          options={options}
+                          area="Geral"
+                        />
+                      )}
+                    </>
                   )}
-                  <p className="text-xs text-muted-foreground">
-                    O tutor dá pistas progressivas — a resposta final fica por sua conta.
-                  </p>
                 </div>
               </article>
             ) : (
