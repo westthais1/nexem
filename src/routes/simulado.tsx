@@ -202,8 +202,8 @@ function SimuladoPage() {
           <span className="text-xs font-medium uppercase tracking-wider text-primary">Simulado adaptativo</span>
           <h1 className="mt-2 text-3xl font-semibold text-foreground">Pratique questão por questão</h1>
           <p className="mt-2 max-w-xl text-muted-foreground">
-            Escolha uma matéria, sorteie uma questão e, se travar, chame o tutor de IA — ele orienta com
-            pistas, sem entregar a resposta.
+            Escolha uma área do conhecimento, sorteie uma questão e, se travar, chame o tutor de IA — ele
+            orienta com pistas, sem entregar a resposta.
           </p>
         </header>
 
