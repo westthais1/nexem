@@ -133,6 +133,7 @@ function SimuladoPage() {
 
   function drawAnother() {
     setChoice(null);
+    setConfirmed(false);
     setChatOpen(false);
     refetch();
   }
@@ -143,6 +144,7 @@ function SimuladoPage() {
       return;
     }
     setChoice(null);
+    setConfirmed(false);
     setChatOpen(false);
     setArea(next);
   }
