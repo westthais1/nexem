@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      enem_essays: {
+        Row: {
+          c1: number
+          c2: number
+          c3: number
+          c4: number
+          c5: number
+          comentario: string | null
+          created_at: string
+          feedback: Json
+          id: string
+          nota_total: number
+          tema: string
+          texto: string
+        }
+        Insert: {
+          c1: number
+          c2: number
+          c3: number
+          c4: number
+          c5: number
+          comentario?: string | null
+          created_at?: string
+          feedback?: Json
+          id?: string
+          nota_total: number
+          tema: string
+          texto: string
+        }
+        Update: {
+          c1?: number
+          c2?: number
+          c3?: number
+          c4?: number
+          c5?: number
+          comentario?: string | null
+          created_at?: string
+          feedback?: Json
+          id?: string
+          nota_total?: number
+          tema?: string
+          texto?: string
+        }
+        Relationships: []
+      }
       enem_tutor: {
         Row: {
           alternativa_correta: string
