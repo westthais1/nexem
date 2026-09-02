@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 
 import { TutorChat } from "@/components/TutorChat";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +33,7 @@ type AreaFilter = Area | "Todas";
 
 const LETTERS = ["A", "B", "C", "D", "E"];
 const TABLE = "enem_tutor";
+const REQUEST_TIMEOUT_MS = 12_000;
 
 type QuestionRow = {
   id: string;
@@ -46,29 +48,52 @@ type QuestionRow = {
 };
 
 async function fetchRandomQuestion(area: AreaFilter): Promise<QuestionRow | null> {
-  let query = supabase.from(TABLE).select("*");
-  if (area !== "Todas") query = query.eq("area", area);
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-  const { data, error, count, status, statusText } = await query;
+  try {
+    let query = supabase.from(TABLE).select("*").abortSignal(controller.signal);
+    if (area !== "Todas") query = query.eq("area", area);
 
-  // Log detalhado para diagnóstico no console do navegador
-  console.log(`[Simulado] SELECT * FROM ${TABLE} (area=${area})`, {
-    status,
-    statusText,
-    count: data?.length ?? count,
-    error,
-    rows: data,
-  });
+    const { data, error, count, status, statusText } = await query;
 
-  if (error) {
-    throw new Error(
-      `Erro ao ler a tabela "${TABLE}": ${error.message} (code: ${error.code ?? "n/a"}, details: ${error.details ?? "n/a"}, hint: ${error.hint ?? "n/a"})`,
-    );
+    console.info(`[Simulado] Consulta direta à tabela ${TABLE}`, {
+      area,
+      status,
+      statusText,
+      linhasRetornadas: data?.length ?? count ?? 0,
+    });
+
+    if (error) {
+      const details = `code: ${error.code ?? "n/a"}, details: ${error.details ?? "n/a"}, hint: ${error.hint ?? "n/a"}`;
+      console.error(`[Simulado] Falha ao consultar ${TABLE}`, error);
+      throw new Error(`Erro ao ler a tabela "${TABLE}": ${error.message} (${details})`);
+    }
+
+    if (!data || data.length === 0) return null;
+
+    const selected = data[Math.floor(Math.random() * data.length)];
+    if (!selected) return null;
+
+    const requiredFields = ["id", "area", "topic", "enunciado", "opcao_a", "opcao_b", "opcao_c", "opcao_d", "opcao_e"] as const;
+    const missingFields = requiredFields.filter((field) => typeof selected[field] !== "string" || selected[field].trim() === "");
+    if (missingFields.length > 0) {
+      const message = `A linha retornada por "${TABLE}" possui campos ausentes ou vazios: ${missingFields.join(", ")}.`;
+      console.error(`[Simulado] Dados inválidos recebidos do banco`, { id: selected.id, missingFields });
+      throw new Error(message);
+    }
+
+    return selected;
+  } catch (cause) {
+    if (controller.signal.aborted) {
+      const message = `A consulta à tabela "${TABLE}" excedeu ${REQUEST_TIMEOUT_MS / 1000} segundos.`;
+      console.error(`[Simulado] ${message}`);
+      throw new Error(message);
+    }
+    throw cause;
+  } finally {
+    window.clearTimeout(timeout);
   }
-  if (!data || data.length === 0) return null;
-
-  const rows = data as unknown as QuestionRow[];
-  return rows[Math.floor(Math.random() * rows.length)]!;
 }
 
 function SimuladoPage() {
@@ -133,7 +158,7 @@ function SimuladoPage() {
             {isFetching ? (
               <div className="rounded-2xl border border-border bg-card p-6 md:p-9">
                 <div className="flex items-center gap-3 text-muted-foreground">
-                  <span className="h-3 w-3 animate-pulse rounded-full bg-primary" />
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" aria-hidden="true" />
                   Buscando questão na tabela {TABLE}…
                 </div>
                 <div className="mt-6 space-y-3">
