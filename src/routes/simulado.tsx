@@ -53,7 +53,26 @@ type QuestionRow = {
   explicacao: string | null;
 };
 
-async function fetchRandomQuestion(area: Area): Promise<QuestionRow | null> {
+type HistoryRow = {
+  id: number | string;
+  enunciado: string;
+  area_conhecimento: string | null;
+};
+
+async function fetchAllQuestions(): Promise<HistoryRow[]> {
+  const { data, error } = await questionsSupabase
+    .from(TABLE)
+    .select("id,enunciado,area_conhecimento")
+    .order("area_conhecimento", { ascending: true });
+
+  if (error) {
+    console.error(`[Simulado] Falha ao listar histórico de ${TABLE}`, error);
+    throw new Error(`Erro ao listar o histórico da tabela "${TABLE}": ${error.message}`);
+  }
+  return (data ?? []) as HistoryRow[];
+}
+
+async function fetchRandomQuestion(area: Area, forcedId: number | string | null): Promise<QuestionRow | null> {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
