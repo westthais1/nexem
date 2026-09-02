@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
 import { TutorChat } from "@/components/TutorChat";
-import { supabase } from "@/integrations/supabase/client";
+import { questionsSupabase } from "@/lib/external-supabase";
 
 export const Route = createFileRoute("/simulado")({
   head: () => ({
@@ -13,12 +13,12 @@ export const Route = createFileRoute("/simulado")({
       {
         name: "description",
         content:
-          "Pratique questões do ENEM por área e peça dicas a um tutor de IA socrático que orienta sem entregar a resposta.",
+          "Pratique questões do ENEM e peça dicas a um tutor de IA socrático que orienta sem entregar a resposta.",
       },
       { property: "og:title", content: "Simulado — ENEM AI Tutor" },
       {
         property: "og:description",
-        content: "Questões do ENEM por área com tutor de IA socrático que dá dicas, não respostas.",
+        content: "Questões do ENEM com tutor de IA socrático que dá dicas, não respostas.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -27,18 +27,13 @@ export const Route = createFileRoute("/simulado")({
   component: SimuladoPage,
 });
 
-const AREAS = ["Exatas", "Humanas", "Natureza", "Linguagens"] as const;
-type Area = (typeof AREAS)[number];
-type AreaFilter = Area | "Todas";
-
 const LETTERS = ["A", "B", "C", "D", "E"];
 const TABLE = "enem_tutor";
+const SELECT_COLUMNS = "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e";
 const REQUEST_TIMEOUT_MS = 12_000;
 
 type QuestionRow = {
-  id: string;
-  area: string;
-  topic: string;
+  id: number | string;
   enunciado: string;
   opcao_a: string;
   opcao_b: string;
@@ -47,21 +42,21 @@ type QuestionRow = {
   opcao_e: string;
 };
 
-async function fetchRandomQuestion(area: AreaFilter): Promise<QuestionRow | null> {
+async function fetchRandomQuestion(): Promise<QuestionRow | null> {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    let query = supabase.from(TABLE).select("*").abortSignal(controller.signal);
-    if (area !== "Todas") query = query.eq("area", area);
+    // Busca apenas as colunas necessárias — nunca o gabarito (resposta_correta).
+    const { data, error, status, statusText } = await questionsSupabase
+      .from(TABLE)
+      .select(SELECT_COLUMNS)
+      .abortSignal(controller.signal);
 
-    const { data, error, count, status, statusText } = await query;
-
-    console.info(`[Simulado] Consulta direta à tabela ${TABLE}`, {
-      area,
+    console.info(`[Simulado] Consulta direta à tabela ${TABLE} (Supabase externo)`, {
       status,
       statusText,
-      linhasRetornadas: data?.length ?? count ?? 0,
+      linhasRetornadas: data?.length ?? 0,
     });
 
     if (error) {
@@ -75,8 +70,10 @@ async function fetchRandomQuestion(area: AreaFilter): Promise<QuestionRow | null
     const selected = data[Math.floor(Math.random() * data.length)];
     if (!selected) return null;
 
-    const requiredFields = ["id", "area", "topic", "enunciado", "opcao_a", "opcao_b", "opcao_c", "opcao_d", "opcao_e"] as const;
-    const missingFields = requiredFields.filter((field) => typeof selected[field] !== "string" || selected[field].trim() === "");
+    const requiredFields = ["enunciado", "opcao_a", "opcao_b", "opcao_c", "opcao_d", "opcao_e"] as const;
+    const missingFields = requiredFields.filter(
+      (field) => typeof selected[field] !== "string" || selected[field].trim() === "",
+    );
     if (missingFields.length > 0) {
       const message = `A linha retornada por "${TABLE}" possui campos ausentes ou vazios: ${missingFields.join(", ")}.`;
       console.error(`[Simulado] Dados inválidos recebidos do banco`, { id: selected.id, missingFields });
@@ -97,26 +94,20 @@ async function fetchRandomQuestion(area: AreaFilter): Promise<QuestionRow | null
 }
 
 function SimuladoPage() {
-  const [area, setArea] = useState<AreaFilter>("Todas");
   const [choice, setChoice] = useState<number | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
 
   const { data, isFetching, error, refetch } = useQuery({
-    queryKey: ["random-question", area],
-    queryFn: () => fetchRandomQuestion(area),
+    queryKey: ["random-question", "external"],
+    queryFn: () => fetchRandomQuestion(),
     retry: false,
+    staleTime: 0,
   });
 
   const current = data ?? null;
   const options = current
     ? [current.opcao_a, current.opcao_b, current.opcao_c, current.opcao_d, current.opcao_e]
     : [];
-
-  function pickArea(next: AreaFilter) {
-    setArea(next);
-    setChoice(null);
-    setChatOpen(false);
-  }
 
   function drawAnother() {
     setChoice(null);
@@ -131,27 +122,10 @@ function SimuladoPage() {
           <span className="text-xs font-medium uppercase tracking-wider text-primary">Simulado adaptativo</span>
           <h1 className="mt-2 text-3xl font-semibold text-foreground">Pratique questão por questão</h1>
           <p className="mt-2 max-w-xl text-muted-foreground">
-            Filtre por área, leia com calma e, se travar, chame o tutor de IA — ele orienta com pistas, sem entregar a
+            Leia com calma e, se travar, chame o tutor de IA — ele orienta com pistas, sem entregar a
             resposta.
           </p>
         </header>
-
-        <div className="mt-7 flex flex-wrap items-center gap-2">
-          {(["Todas", ...AREAS] as const).map((a) => (
-            <button
-              key={a}
-              onClick={() => pickArea(a)}
-              aria-pressed={area === a}
-              className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
-                area === a
-                  ? "border-primary/50 bg-primary/15 text-foreground border-glow-neon"
-                  : "border-border bg-card text-muted-foreground hover:border-primary/30 hover:text-foreground"
-              }`}
-            >
-              {a}
-            </button>
-          ))}
-        </div>
 
         <div className="mt-7 flex flex-col gap-6 lg:flex-row lg:items-start">
           <div className="min-w-0 flex-1 space-y-6">
@@ -183,13 +157,6 @@ function SimuladoPage() {
               </div>
             ) : current ? (
               <article className="rounded-2xl border border-border bg-card p-6 card-glow md:p-9">
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="rounded-full border border-border bg-background/40 px-3 py-1 text-xs text-muted-foreground">
-                    {current.area}
-                  </span>
-                  <span className="text-xs text-muted-foreground">{current.topic}</span>
-                </div>
-
                 <div className="mt-6 space-y-5">
                   {current.enunciado.split("\n\n").map((p, i) => (
                     <p key={i} className="text-[17px] leading-8 tracking-[0.01em] text-foreground/90">
@@ -237,7 +204,7 @@ function SimuladoPage() {
                       onOpenChange={setChatOpen}
                       question={current.enunciado}
                       options={options}
-                      area={current.area}
+                      area="Geral"
                     />
                   )}
                   <p className="text-xs text-muted-foreground">
@@ -248,19 +215,11 @@ function SimuladoPage() {
             ) : (
               <div className="rounded-2xl border border-border bg-card p-6 md:p-9">
                 <p className="text-foreground">
-                  Nenhuma questão encontrada na tabela <span className="font-mono text-primary">{TABLE}</span>
-                  {area !== "Todas" ? (
-                    <>
-                      {" "}para a área <span className="font-medium">{area}</span>
-                    </>
-                  ) : (
-                    ""
-                  )}
-                  .
+                  Nenhuma questão encontrada na tabela <span className="font-mono text-primary">{TABLE}</span>.
                 </p>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  A consulta foi executada com sucesso, mas a tabela retornou 0 linhas. Insira questões na tabela e
-                  tente novamente.
+                  A consulta foi executada com sucesso, mas a tabela retornou 0 linhas. Insira questões na
+                  tabela e tente novamente.
                 </p>
                 <button
                   onClick={drawAnother}
@@ -280,7 +239,7 @@ function SimuladoPage() {
                 onOpenChange={setChatOpen}
                 question={current.enunciado}
                 options={options}
-                area={current.area}
+                area="Geral"
               />
             </div>
           )}
