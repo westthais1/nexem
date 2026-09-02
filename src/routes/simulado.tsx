@@ -199,7 +199,7 @@ function SimuladoPage() {
           <span className="text-xs font-medium uppercase tracking-wider text-primary">Simulado adaptativo</span>
           <h1 className="mt-2 text-3xl font-semibold text-foreground">Pratique questão por questão</h1>
           <p className="mt-2 max-w-xl text-muted-foreground">
-            Escolha uma área, sorteie uma questão e, se travar, chame o tutor de IA — ele orienta com
+            Escolha uma matéria, sorteie uma questão e, se travar, chame o tutor de IA — ele orienta com
             pistas, sem entregar a resposta.
           </p>
         </header>
@@ -457,9 +457,9 @@ function SimuladoPage() {
                     }`}
                   >
                     <div className="min-w-0">
-                      {row.area_conhecimento && (
+                      {row.materia && (
                         <span className="inline-block rounded-md bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                          {row.area_conhecimento}
+                          {row.materia}
                         </span>
                       )}
                       <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-foreground/85">
