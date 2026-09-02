@@ -79,11 +79,9 @@ async function fetchRandomQuestion(area: Area, forcedId: number | string | null)
   try {
     // Busca apenas as colunas necessárias — nunca o gabarito (resposta_correta).
     // Filtra pela área selecionada usando a coluna `area_conhecimento` da tabela.
-    const { data, error, status, statusText } = await questionsSupabase
-      .from(TABLE)
-      .select(SELECT_COLUMNS)
-      .eq("area_conhecimento", area)
-      .abortSignal(controller.signal);
+    let query = questionsSupabase.from(TABLE).select(SELECT_COLUMNS);
+    query = forcedId !== null ? query.eq("id", forcedId) : query.eq("area_conhecimento", area);
+    const { data, error, status, statusText } = await query.abortSignal(controller.signal);
 
     console.info(`[Simulado] Consulta direta à tabela ${TABLE} (Supabase externo)`, {
       area,
