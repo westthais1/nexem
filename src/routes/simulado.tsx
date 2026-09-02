@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 
 import { TutorChat } from "@/components/TutorChat";
-import { getRandomQuestion, type Question } from "@/lib/questions.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/simulado")({
   head: () => ({
@@ -32,20 +31,61 @@ type Area = (typeof AREAS)[number];
 type AreaFilter = Area | "Todas";
 
 const LETTERS = ["A", "B", "C", "D", "E"];
+const TABLE = "enem_tutor";
+
+type QuestionRow = {
+  id: string;
+  area: string;
+  topic: string;
+  enunciado: string;
+  opcao_a: string;
+  opcao_b: string;
+  opcao_c: string;
+  opcao_d: string;
+  opcao_e: string;
+};
+
+async function fetchRandomQuestion(area: AreaFilter): Promise<QuestionRow | null> {
+  let query = supabase.from(TABLE).select("*");
+  if (area !== "Todas") query = query.eq("area", area);
+
+  const { data, error, count, status, statusText } = await query;
+
+  // Log detalhado para diagnóstico no console do navegador
+  console.log(`[Simulado] SELECT * FROM ${TABLE} (area=${area})`, {
+    status,
+    statusText,
+    count: data?.length ?? count,
+    error,
+    rows: data,
+  });
+
+  if (error) {
+    throw new Error(
+      `Erro ao ler a tabela "${TABLE}": ${error.message} (code: ${error.code ?? "n/a"}, details: ${error.details ?? "n/a"}, hint: ${error.hint ?? "n/a"})`,
+    );
+  }
+  if (!data || data.length === 0) return null;
+
+  const rows = data as unknown as QuestionRow[];
+  return rows[Math.floor(Math.random() * rows.length)]!;
+}
 
 function SimuladoPage() {
   const [area, setArea] = useState<AreaFilter>("Todas");
   const [choice, setChoice] = useState<number | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
 
-  const fetchQuestion = useServerFn(getRandomQuestion);
-
   const { data, isFetching, error, refetch } = useQuery({
     queryKey: ["random-question", area],
-    queryFn: () => fetchQuestion({ data: { area } }),
+    queryFn: () => fetchRandomQuestion(area),
+    retry: false,
   });
 
   const current = data ?? null;
+  const options = current
+    ? [current.opcao_a, current.opcao_b, current.opcao_c, current.opcao_d, current.opcao_e]
+    : [];
 
   function pickArea(next: AreaFilter) {
     setArea(next);
@@ -94,7 +134,7 @@ function SimuladoPage() {
               <div className="rounded-2xl border border-border bg-card p-6 md:p-9">
                 <div className="flex items-center gap-3 text-muted-foreground">
                   <span className="h-3 w-3 animate-pulse rounded-full bg-primary" />
-                  Sorteando uma questão…
+                  Buscando questão na tabela {TABLE}…
                 </div>
                 <div className="mt-6 space-y-3">
                   <div className="h-4 w-3/4 animate-pulse rounded bg-border/60" />
@@ -103,9 +143,11 @@ function SimuladoPage() {
                 </div>
               </div>
             ) : error ? (
-              <div className="rounded-2xl border border-border bg-card p-6 md:p-9">
-                <p className="text-sm text-destructive">
-                  Não foi possível carregar a questão. {(error as Error).message}
+              <div className="rounded-2xl border border-destructive/40 bg-card p-6 md:p-9">
+                <p className="text-sm font-medium text-destructive">Não foi possível carregar a questão.</p>
+                <p className="mt-2 break-words text-sm text-destructive/80">{(error as Error).message}</p>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Detalhes completos no console do navegador (procure por "[Simulado]").
                 </p>
                 <button
                   onClick={drawAnother}
@@ -124,7 +166,7 @@ function SimuladoPage() {
                 </div>
 
                 <div className="mt-6 space-y-5">
-                  {current.statement.split("\n\n").map((p, i) => (
+                  {current.enunciado.split("\n\n").map((p, i) => (
                     <p key={i} className="text-[17px] leading-8 tracking-[0.01em] text-foreground/90">
                       {p}
                     </p>
@@ -132,7 +174,7 @@ function SimuladoPage() {
                 </div>
 
                 <div className="mt-8 space-y-3">
-                  {current.options.map((opt, i) => (
+                  {options.map((opt, i) => (
                     <button
                       key={i}
                       onClick={() => setChoice(i)}
@@ -168,8 +210,8 @@ function SimuladoPage() {
                       key={`${current.id}-btn`}
                       open={false}
                       onOpenChange={setChatOpen}
-                      question={current.statement}
-                      options={current.options}
+                      question={current.enunciado}
+                      options={options}
                       area={current.area}
                     />
                   )}
@@ -179,7 +221,29 @@ function SimuladoPage() {
                 </div>
               </article>
             ) : (
-              <p className="text-muted-foreground">Nenhuma questão encontrada nesta área.</p>
+              <div className="rounded-2xl border border-border bg-card p-6 md:p-9">
+                <p className="text-foreground">
+                  Nenhuma questão encontrada na tabela <span className="font-mono text-primary">{TABLE}</span>
+                  {area !== "Todas" ? (
+                    <>
+                      {" "}para a área <span className="font-medium">{area}</span>
+                    </>
+                  ) : (
+                    ""
+                  )}
+                  .
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  A consulta foi executada com sucesso, mas a tabela retornou 0 linhas. Insira questões na tabela e
+                  tente novamente.
+                </p>
+                <button
+                  onClick={drawAnother}
+                  className="mt-4 rounded-lg border border-primary/50 bg-primary/10 px-4 py-2 text-sm font-medium text-foreground hover:bg-primary/20"
+                >
+                  Recarregar
+                </button>
+              </div>
             )}
           </div>
 
@@ -189,8 +253,8 @@ function SimuladoPage() {
                 key={current.id}
                 open
                 onOpenChange={setChatOpen}
-                question={current.statement}
-                options={current.options}
+                question={current.enunciado}
+                options={options}
                 area={current.area}
               />
             </div>
