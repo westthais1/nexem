@@ -32,6 +32,15 @@ const TABLE = "enem_tutor";
 const SELECT_COLUMNS = "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e";
 const REQUEST_TIMEOUT_MS = 12_000;
 
+const AREAS = [
+  "Ciências da Natureza",
+  "Ciências Humanas",
+  "Matemática",
+  "Linguagens",
+] as const;
+
+type Area = (typeof AREAS)[number];
+
 type QuestionRow = {
   id: number | string;
   enunciado: string;
@@ -42,18 +51,21 @@ type QuestionRow = {
   opcao_e: string;
 };
 
-async function fetchRandomQuestion(): Promise<QuestionRow | null> {
+async function fetchRandomQuestion(area: Area): Promise<QuestionRow | null> {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
     // Busca apenas as colunas necessárias — nunca o gabarito (resposta_correta).
+    // Filtra pela área selecionada usando a coluna `area_conhecimento` da tabela.
     const { data, error, status, statusText } = await questionsSupabase
       .from(TABLE)
       .select(SELECT_COLUMNS)
+      .eq("area_conhecimento", area)
       .abortSignal(controller.signal);
 
     console.info(`[Simulado] Consulta direta à tabela ${TABLE} (Supabase externo)`, {
+      area,
       status,
       statusText,
       linhasRetornadas: data?.length ?? 0,
@@ -96,10 +108,11 @@ async function fetchRandomQuestion(): Promise<QuestionRow | null> {
 function SimuladoPage() {
   const [choice, setChoice] = useState<number | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const [area, setArea] = useState<Area>("Ciências da Natureza");
 
   const { data, isFetching, error, refetch } = useQuery({
-    queryKey: ["random-question", "external"],
-    queryFn: () => fetchRandomQuestion(),
+    queryKey: ["random-question", "external", area],
+    queryFn: () => fetchRandomQuestion(area),
     retry: false,
     staleTime: 0,
   });
@@ -115,6 +128,16 @@ function SimuladoPage() {
     refetch();
   }
 
+  function selectArea(next: Area) {
+    if (next === area) {
+      refetch();
+      return;
+    }
+    setChoice(null);
+    setChatOpen(false);
+    setArea(next);
+  }
+
   return (
     <main className="flex-1 overflow-y-auto">
       <div className="mx-auto max-w-7xl px-6 py-8 md:px-10 md:py-12">
@@ -122,10 +145,26 @@ function SimuladoPage() {
           <span className="text-xs font-medium uppercase tracking-wider text-primary">Simulado adaptativo</span>
           <h1 className="mt-2 text-3xl font-semibold text-foreground">Pratique questão por questão</h1>
           <p className="mt-2 max-w-xl text-muted-foreground">
-            Leia com calma e, se travar, chame o tutor de IA — ele orienta com pistas, sem entregar a
-            resposta.
+            Escolha uma área, sorteie uma questão e, se travar, chame o tutor de IA — ele orienta com
+            pistas, sem entregar a resposta.
           </p>
         </header>
+
+        <div className="mt-6 flex flex-wrap gap-2">
+          {AREAS.map((a) => (
+            <button
+              key={a}
+              onClick={() => selectArea(a)}
+              className={`rounded-xl border px-4 py-2 text-sm font-medium transition-all ${
+                area === a
+                  ? "border-primary/50 bg-primary/15 text-foreground"
+                  : "border-border bg-background/30 text-muted-foreground hover:border-primary/30 hover:text-foreground"
+              }`}
+            >
+              {a}
+            </button>
+          ))}
+        </div>
 
         <div className="mt-7 flex flex-col gap-6 lg:flex-row lg:items-start">
           <div className="min-w-0 flex-1 space-y-6">
