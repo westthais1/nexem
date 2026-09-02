@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Loader2, Sparkles } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { AlertCircle, Loader2, Sparkles } from "lucide-react";
+import { corrigirRedacao, type EssayCorrection } from "@/lib/essay.functions";
+
 
 export const Route = createFileRoute("/redacao")({
   head: () => ({
