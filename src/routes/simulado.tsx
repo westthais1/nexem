@@ -29,7 +29,7 @@ export const Route = createFileRoute("/simulado")({
 
 const LETTERS = ["A", "B", "C", "D", "E"];
 const TABLE = "enem_tutor";
-const SELECT_COLUMNS = "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e";
+const SELECT_COLUMNS = "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta";
 const REQUEST_TIMEOUT_MS = 12_000;
 
 const AREAS = [
