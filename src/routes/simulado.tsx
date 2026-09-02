@@ -32,7 +32,13 @@ const TABLE = "enem_tutor";
 const SELECT_COLUMNS = "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta,explicacao";
 const REQUEST_TIMEOUT_MS = 12_000;
 
-const ALL_SUBJECTS = "Ver Todas";
+const ALL_AREAS = "Ver Todas";
+const ENEM_AREAS = [
+  "Ciências da Natureza",
+  "Ciências Humanas",
+  "Linguagens",
+  "Matemática",
+] as const;
 
 type QuestionRow = {
   id: number | string;
@@ -71,13 +77,13 @@ async function fetchRandomQuestion(materia: string, forcedId: number | string | 
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    // Busca apenas as colunas necessárias. Filtra pela matéria selecionada
-    // usando a coluna `materia` da tabela (ou traz tudo em "Ver Todas").
+    // Busca apenas as colunas necessárias. Filtra pela área do conhecimento
+    // usando a coluna `area_conhecimento` (ou traz tudo em "Ver Todas").
     let query = questionsSupabase.from(TABLE).select(SELECT_COLUMNS);
     if (forcedId !== null) {
       query = query.eq("id", forcedId);
-    } else if (materia !== ALL_SUBJECTS) {
-      query = query.eq("materia", materia);
+    } else if (materia !== ALL_AREAS) {
+      query = query.eq("area_conhecimento", materia);
     }
     const { data, error, status, statusText } = await query.abortSignal(controller.signal);
 
@@ -132,7 +138,7 @@ function SimuladoPage() {
   const [choice, setChoice] = useState<number | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
-  const [materia, setMateria] = useState<string>(ALL_SUBJECTS);
+  const [materia, setMateria] = useState<string>(ALL_AREAS);
   const [forcedId, setForcedId] = useState<number | string | null>(null);
 
   const { data, isFetching, error, refetch } = useQuery({
