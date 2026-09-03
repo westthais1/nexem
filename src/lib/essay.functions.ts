@@ -52,6 +52,27 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
     const apiKey = process.env["ANTHROPIC_API_KEY"];
     if (!apiKey) throw new Error("Chave da Anthropic não configurada.");
 
+    // Se houver foto da folha manuscrita, baixa a imagem do armazenamento privado.
+    let imageBlock:
+      | { type: "image"; source: { type: "base64"; media_type: string; data: string } }
+      | null = null;
+    if (data.imagem_path) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: file, error } = await supabaseAdmin.storage
+        .from("redacao-fotos")
+        .download(data.imagem_path);
+      if (error || !file) throw new Error("Não foi possível ler a foto da redação enviada.");
+      const buf = new Uint8Array(await file.arrayBuffer());
+      let binary = "";
+      for (let i = 0; i < buf.length; i += 1) binary += String.fromCharCode(buf[i]!);
+      const mime = file.type && file.type.startsWith("image/") ? file.type : "image/jpeg";
+      imageBlock = {
+        type: "image",
+        source: { type: "base64", media_type: mime, data: btoa(binary) },
+      };
+    }
+
+
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
