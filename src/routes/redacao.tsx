@@ -1,8 +1,11 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertCircle, Loader2, Sparkles } from "lucide-react";
+import { AlertCircle, Camera, CheckCircle2, Loader2, Sparkles, Trash2 } from "lucide-react";
 import { corrigirRedacao, type EssayCorrection } from "@/lib/essay.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
+
 
 
 export const Route = createFileRoute("/redacao")({
@@ -67,6 +70,12 @@ function RedacaoPage() {
   const [status, setStatus] = useState<"idle" | "sending" | "done">("idle");
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<EssayCorrection | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [imagePath, setImagePath] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const isMobile = useIsMobile();
   const corrigir = useServerFn(corrigirRedacao);
 
   // Conta linhas com base em quebras reais (\n) — simula as linhas da folha do ENEM.
@@ -80,8 +89,52 @@ function RedacaoPage() {
     return Math.min(MAX_LINES, count);
   }, [text]);
 
-  const canSend =
-    status !== "sending" && lineCount >= MIN_LINES_TO_SEND && text.trim().length >= 200;
+  const textReady = lineCount >= MIN_LINES_TO_SEND && text.trim().length >= 200;
+  const canSend = status !== "sending" && !uploading && (Boolean(imagePath) || textReady);
+
+  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setUploadError("Envie apenas imagens PNG ou JPG.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError("A imagem precisa ter no máximo 10MB.");
+      return;
+    }
+    setUploadError(null);
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `redacoes/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("redacao-fotos")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) throw upErr;
+      const { data: signed, error: signErr } = await supabase.storage
+        .from("redacao-fotos")
+        .createSignedUrl(path, 3600);
+      if (signErr) throw signErr;
+      setImagePath(path);
+      setPreviewUrl(signed?.signedUrl ?? null);
+    } catch (err) {
+      console.error("[Redação] Falha no upload da imagem:", err);
+      setUploadError(
+        err instanceof Error ? err.message : "Não foi possível enviar a imagem. Tente novamente.",
+      );
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function handleRemoveImage() {
+    setImagePath(null);
+    setPreviewUrl(null);
+    setUploadError(null);
+    fileInputRef.current?.click();
+  }
 
   async function handleSubmit() {
     if (!canSend) return;
@@ -90,7 +143,11 @@ function RedacaoPage() {
     setFeedback(null);
     try {
       const result = await corrigir({
-        data: { tema: THEME_OF_THE_WEEK, texto: text.trim() },
+        data: {
+          tema: THEME_OF_THE_WEEK,
+          texto: text.trim(),
+          ...(imagePath ? { imagem_path: imagePath } : {}),
+        },
       });
       setFeedback(result);
       setStatus("done");
@@ -102,6 +159,86 @@ function RedacaoPage() {
       setStatus("idle");
     }
   }
+
+  const uploadCard = (
+    <div className="rounded-2xl border border-border bg-card p-6 card-glow">
+      <h3 className="text-sm font-semibold text-foreground">
+        Tirar Foto ou Enviar Imagem da Redação
+      </h3>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Fotografe a folha manuscrita como na prova real. Aceita PNG ou JPG (até 10MB).
+      </p>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/png,image/jpeg"
+        {...(isMobile ? { capture: "environment" as const } : {})}
+        onChange={handleFileChange}
+        className="hidden"
+      />
+
+      {!imagePath ? (
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="mt-4 flex w-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-background/40 px-6 py-10 text-center transition-colors hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 text-accent">
+            {uploading ? (
+              <Loader2 className="h-6 w-6 animate-spin" />
+            ) : (
+              <Camera className="h-6 w-6" />
+            )}
+          </span>
+          <span className="text-sm font-medium text-foreground">
+            {uploading
+              ? "Enviando imagem…"
+              : isMobile
+                ? "Abrir câmera e fotografar a folha"
+                : "Tirar Foto ou Enviar Imagem da Redação"}
+          </span>
+          <span className="text-xs text-muted-foreground">PNG ou JPG</span>
+        </button>
+      ) : (
+        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center">
+          {previewUrl && (
+            <img
+              src={previewUrl}
+              alt="Miniatura da folha de redação enviada"
+              className="h-32 w-32 rounded-xl border border-border object-cover"
+              loading="lazy"
+            />
+          )}
+          <div className="flex-1">
+            <p className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <CheckCircle2 className="h-4 w-4 text-accent" />
+              Imagem enviada com sucesso
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              A IA vai ler sua letra e corrigir pelas 5 competências.
+            </p>
+            <button
+              type="button"
+              onClick={handleRemoveImage}
+              className="mt-3 inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground transition-colors hover:border-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Remover e tirar outra
+            </button>
+          </div>
+        </div>
+      )}
+
+      {uploadError && (
+        <div className="mt-4 flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{uploadError}</span>
+        </div>
+      )}
+    </div>
+  );
 
 
   return (
@@ -165,12 +302,13 @@ function RedacaoPage() {
             </div>
           </section>
 
-          {/* Coluna direita — textarea + envio + feedback */}
+          {/* Coluna direita — upload + textarea + envio + feedback */}
           <section className="space-y-6">
+            {uploadCard}
             <div className="rounded-2xl border border-border bg-card p-6 card-glow">
               <div className="flex items-center justify-between">
                 <label htmlFor="essay" className="text-sm font-medium text-foreground">
-                  Sua redação
+                  {imagePath ? "Observações (opcional)" : "Ou digite sua redação"}
                 </label>
                 <span
                   className={`text-xs font-medium tabular-nums ${
@@ -210,11 +348,13 @@ function RedacaoPage() {
               </div>
 
               <p className="mt-3 text-xs text-muted-foreground">
-                {lineCount < MIN_LINES_TO_SEND
-                  ? `Mínimo de ${MIN_LINES_TO_SEND} linhas para enviar. Faltam ${MIN_LINES_TO_SEND - lineCount}.`
-                  : lineCount >= MAX_LINES
-                    ? "Você atingiu o limite de 30 linhas."
-                    : `${MAX_LINES - lineCount} linhas restantes.`}
+                {imagePath
+                  ? "Sua foto já está pronta para correção — o texto digitado é opcional."
+                  : lineCount < MIN_LINES_TO_SEND
+                    ? `Mínimo de ${MIN_LINES_TO_SEND} linhas para enviar. Faltam ${MIN_LINES_TO_SEND - lineCount}.`
+                    : lineCount >= MAX_LINES
+                      ? "Você atingiu o limite de 30 linhas."
+                      : `${MAX_LINES - lineCount} linhas restantes.`}
               </p>
 
               <div className="mt-5 flex items-center justify-between gap-4">

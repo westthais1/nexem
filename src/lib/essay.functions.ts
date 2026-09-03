@@ -1,10 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-const EssayInput = z.object({
-  tema: z.string().min(1),
-  texto: z.string().min(200),
-});
+const EssayInput = z
+  .object({
+    tema: z.string().min(1),
+    texto: z.string().default(""),
+    imagem_path: z.string().optional(),
+  })
+  .refine((v) => v.imagem_path || v.texto.trim().length >= 200, {
+    message: "Envie uma foto da redação ou escreva ao menos 200 caracteres.",
+  });
 
 const SYSTEM_PROMPT =
   "Você é uma inteligência artificial corretora oficial da Redação do ENEM. Avalie o texto fornecido pelo estudante de forma extremamente criteriosa, separando a nota de 0 a 200 para cada uma das 5 Competências oficiais do ENEM (C1: Norma culta, C2: Compreensão do tema, C3: Defesa de ponto de vista, C4: Mecanismos coesivos, C5: Proposta de intervenção). Retorne uma resposta estruturada contendo as notas individuais, a nota total somada (máximo 1000) e 3 dicas muito práticas e encorajadoras em português de como melhorar.";
@@ -46,6 +51,27 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<EssayCorrection> => {
     const apiKey = process.env["ANTHROPIC_API_KEY"];
     if (!apiKey) throw new Error("Chave da Anthropic não configurada.");
+
+    // Se houver foto da folha manuscrita, baixa a imagem do armazenamento privado.
+    let imageBlock:
+      | { type: "image"; source: { type: "base64"; media_type: string; data: string } }
+      | null = null;
+    if (data.imagem_path) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: file, error } = await supabaseAdmin.storage
+        .from("redacao-fotos")
+        .download(data.imagem_path);
+      if (error || !file) throw new Error("Não foi possível ler a foto da redação enviada.");
+      const buf = new Uint8Array(await file.arrayBuffer());
+      let binary = "";
+      for (let i = 0; i < buf.length; i += 1) binary += String.fromCharCode(buf[i]!);
+      const mime = file.type && file.type.startsWith("image/") ? file.type : "image/jpeg";
+      imageBlock = {
+        type: "image",
+        source: { type: "base64", media_type: mime, data: btoa(binary) },
+      };
+    }
+
 
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -89,7 +115,17 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
         messages: [
           {
             role: "user",
-            content: `Tema da redação: ${data.tema}\n\nTexto do estudante:\n"""\n${data.texto}\n"""`,
+            content: imageBlock
+              ? [
+                  imageBlock,
+                  {
+                    type: "text",
+                    text: `Tema da redação: ${data.tema}\n\nA imagem acima é a foto da folha de redação manuscrita do estudante. Transcreva mentalmente o texto e avalie normalmente.${
+                      data.texto.trim() ? `\n\nObservações do estudante:\n${data.texto.trim()}` : ""
+                    }`,
+                  },
+                ]
+              : `Tema da redação: ${data.tema}\n\nTexto do estudante:\n"""\n${data.texto}\n"""`,
           },
         ],
       }),
@@ -133,6 +169,7 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
       await supabaseAdmin.from("enem_essays").insert({
         tema: data.tema,
         texto: data.texto,
+        imagem_path: data.imagem_path ?? null,
         c1: correction.c1,
         c2: correction.c2,
         c3: correction.c3,

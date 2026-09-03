@@ -1,0 +1,1 @@
+ALTER TABLE public.enem_essays ADD COLUMN IF NOT EXISTS imagem_path text;

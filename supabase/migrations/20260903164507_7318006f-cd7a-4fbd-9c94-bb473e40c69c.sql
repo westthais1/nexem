@@ -1,0 +1,2 @@
+CREATE POLICY "Envio publico de fotos de redacao" ON storage.objects FOR INSERT TO anon, authenticated WITH CHECK (bucket_id = 'redacao-fotos');
+CREATE POLICY "Leitura publica de fotos de redacao" ON storage.objects FOR SELECT TO anon, authenticated USING (bucket_id = 'redacao-fotos');
