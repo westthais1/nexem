@@ -439,7 +439,18 @@ function RedacaoPage() {
                     ))}
                   </div>
                 </div>
+                {feedback.transcricao && (
+                  <div className="rounded-2xl border border-border bg-card p-6 card-glow">
+                    <h3 className="text-sm font-semibold text-foreground">
+                      Transcrição lida pela IA
+                    </h3>
+                    <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+                      {feedback.transcricao}
+                    </p>
+                  </div>
+                )}
                 <div className="rounded-2xl border border-border bg-card p-6 card-glow">
+
                   <h3 className="text-sm font-semibold text-foreground">
                     Dicas do Professor Claude
                   </h3>

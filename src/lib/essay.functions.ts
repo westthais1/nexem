@@ -12,7 +12,7 @@ const EssayInput = z
   });
 
 const SYSTEM_PROMPT =
-  "Você é uma inteligência artificial corretora oficial da Redação do ENEM. Avalie o texto fornecido pelo estudante de forma extremamente criteriosa, separando a nota de 0 a 200 para cada uma das 5 Competências oficiais do ENEM (C1: Norma culta, C2: Compreensão do tema, C3: Defesa de ponto de vista, C4: Mecanismos coesivos, C5: Proposta de intervenção). Retorne uma resposta estruturada contendo as notas individuais, a nota total somada (máximo 1000) e 3 dicas muito práticas e encorajadoras em português de como melhorar.";
+  "Você é uma inteligência artificial especialista na correção oficial da Redação do ENEM e possui visão computacional de alta fidelidade. Transcreva mentalmente a redação escrita à mão presente nesta imagem (mesmo que a caligrafia seja desafiadora). Em seguida, avalie o texto de forma extremamente criteriosa de 0 a 200 para cada uma das 5 Competências oficiais do ENEM. Retorne um resultado estruturado contendo a nota de cada competência, a nota final somada, a transcrição completa do texto lido para o aluno conferir, e 3 dicas práticas em português explicando como melhorar a estrutura textual para tirar nota 1000.";
 
 const CorrectionSchema = z.object({
   c1: z.number(),
@@ -32,6 +32,7 @@ const CorrectionSchema = z.object({
             .filter(Boolean),
     )
     .pipe(z.array(z.string()).min(1)),
+  transcricao: z.string().optional().default(""),
   comentario: z.string().optional().default(""),
 });
 
@@ -43,8 +44,10 @@ export type EssayCorrection = {
   c5: number;
   nota_total: number;
   dicas: string[];
+  transcricao: string;
   comentario: string;
 };
+
 
 export const corrigirRedacao = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => EssayInput.parse(input))
@@ -52,25 +55,21 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
     const apiKey = process.env["ANTHROPIC_API_KEY"];
     if (!apiKey) throw new Error("Chave da Anthropic não configurada.");
 
-    // Se houver foto da folha manuscrita, baixa a imagem do armazenamento privado.
+    // Se houver foto da folha manuscrita, gera uma URL hospedada no Supabase e
+    // envia o link direto para a visão computacional do Claude.
     let imageBlock:
-      | { type: "image"; source: { type: "base64"; media_type: string; data: string } }
+      | { type: "image"; source: { type: "url"; url: string } }
       | null = null;
     if (data.imagem_path) {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data: file, error } = await supabaseAdmin.storage
+      const { data: signed, error } = await supabaseAdmin.storage
         .from("redacao-fotos")
-        .download(data.imagem_path);
-      if (error || !file) throw new Error("Não foi possível ler a foto da redação enviada.");
-      const buf = new Uint8Array(await file.arrayBuffer());
-      let binary = "";
-      for (let i = 0; i < buf.length; i += 1) binary += String.fromCharCode(buf[i]!);
-      const mime = file.type && file.type.startsWith("image/") ? file.type : "image/jpeg";
-      imageBlock = {
-        type: "image",
-        source: { type: "base64", media_type: mime, data: btoa(binary) },
-      };
+        .createSignedUrl(data.imagem_path, 60 * 30);
+      if (error || !signed?.signedUrl)
+        throw new Error("Não foi possível ler a foto da redação enviada.");
+      imageBlock = { type: "image", source: { type: "url", url: signed.signedUrl } };
     }
+
 
 
     const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -103,12 +102,28 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
                   items: { type: "string" },
                   description: "Exatamente 3 dicas práticas e encorajadoras em português",
                 },
+                transcricao: {
+                  type: "string",
+                  description:
+                    "Transcrição completa e fiel do texto manuscrito lido na imagem, para o aluno conferir",
+                },
                 comentario: {
                   type: "string",
                   description: "Comentário geral curto sobre a redação, em português",
                 },
               },
-              required: ["c1", "c2", "c3", "c4", "c5", "nota_total", "dicas", "comentario"],
+              required: [
+                "c1",
+                "c2",
+                "c3",
+                "c4",
+                "c5",
+                "nota_total",
+                "dicas",
+                "transcricao",
+                "comentario",
+              ],
+
             },
           },
         ],
@@ -159,7 +174,9 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
       c5: clamp(parsed.c5),
       nota_total: 0,
       dicas: parsed.dicas.slice(0, 3),
+      transcricao: parsed.transcricao ?? "",
       comentario: parsed.comentario ?? "",
+
     };
     correction.nota_total =
       correction.c1 + correction.c2 + correction.c3 + correction.c4 + correction.c5;
@@ -168,7 +185,7 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       await supabaseAdmin.from("enem_essays").insert({
         tema: data.tema,
-        texto: data.texto,
+        texto: data.texto.trim() || correction.transcricao,
         imagem_path: data.imagem_path ?? null,
         c1: correction.c1,
         c2: correction.c2,
