@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 
 import { TutorChat } from "@/components/TutorChat";
 import { questionsSupabase } from "@/lib/external-supabase";
+import { registrarTentativa } from "@/lib/attempts.functions";
 
 export const Route = createFileRoute("/simulado")({
   head: () => ({
@@ -29,7 +30,8 @@ export const Route = createFileRoute("/simulado")({
 
 const LETTERS = ["A", "B", "C", "D", "E"];
 const TABLE = "enem_tutor";
-const SELECT_COLUMNS = "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta,explicacao";
+const SELECT_COLUMNS =
+  "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta,explicacao,dificuldade,materia";
 const REQUEST_TIMEOUT_MS = 12_000;
 
 const ALL_AREAS = "Ver Todas";
@@ -50,6 +52,8 @@ type QuestionRow = {
   opcao_e: string;
   resposta_correta: string;
   explicacao: string | null;
+  dificuldade: string | null;
+  materia: string | null;
 };
 
 type HistoryRow = {
@@ -162,6 +166,22 @@ function SimuladoPage() {
     ? [current.opcao_a, current.opcao_b, current.opcao_c, current.opcao_d, current.opcao_e]
     : [];
   const correctIndex = current ? LETTERS.indexOf(current.resposta_correta) : -1;
+
+  function confirmAnswer() {
+    setConfirmed(true);
+    if (!current || choice === null) return;
+    // Registro em segundo plano: nunca bloqueia nem quebra a tela.
+    void registrarTentativa({
+      data: {
+        question_id: current.id,
+        dificuldade_questao: current.dificuldade,
+        materia_questao: current.materia,
+        foi_correto: choice === correctIndex,
+      },
+    }).catch((cause) => {
+      console.error("[Simulado] Falha ao registrar tentativa", cause);
+    });
+  }
 
   function drawAnother() {
     setChoice(null);
@@ -310,7 +330,7 @@ function SimuladoPage() {
                   {!confirmed ? (
                     <>
                       <button
-                        onClick={() => setConfirmed(true)}
+                        onClick={confirmAnswer}
                         disabled={choice === null}
                         className="rounded-lg border border-primary/50 bg-primary/15 px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:bg-primary/25 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-primary/15"
                       >

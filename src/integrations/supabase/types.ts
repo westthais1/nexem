@@ -101,6 +101,36 @@ export type Database = {
         }
         Relationships: []
       }
+      enem_user_attempts: {
+        Row: {
+          created_at: string
+          dificuldade_questao: string | null
+          foi_correto: boolean
+          id: string
+          materia_questao: string | null
+          question_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          dificuldade_questao?: string | null
+          foi_correto: boolean
+          id?: string
+          materia_questao?: string | null
+          question_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          dificuldade_questao?: string | null
+          foi_correto?: boolean
+          id?: string
+          materia_questao?: string | null
+          question_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
