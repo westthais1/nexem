@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { TriSimulator } from "@/components/TriSimulator";
+
 export const Route = createFileRoute("/estatisticas")({
   head: () => ({
     meta: [
@@ -44,6 +46,8 @@ function EstatisticasPage() {
             </div>
           ))}
         </div>
+
+        <TriSimulator />
 
         <section className="mt-6 rounded-2xl border border-border bg-card p-6 card-glow">
           <h2 className="text-lg font-semibold text-foreground">Acertos por área</h2>
