@@ -302,12 +302,13 @@ function RedacaoPage() {
             </div>
           </section>
 
-          {/* Coluna direita — textarea + envio + feedback */}
+          {/* Coluna direita — upload + textarea + envio + feedback */}
           <section className="space-y-6">
+            {uploadCard}
             <div className="rounded-2xl border border-border bg-card p-6 card-glow">
               <div className="flex items-center justify-between">
                 <label htmlFor="essay" className="text-sm font-medium text-foreground">
-                  Sua redação
+                  {imagePath ? "Observações (opcional)" : "Ou digite sua redação"}
                 </label>
                 <span
                   className={`text-xs font-medium tabular-nums ${
