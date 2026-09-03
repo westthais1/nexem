@@ -167,7 +167,7 @@ export function StudySchedule() {
             <article
               className={`relative overflow-hidden rounded-2xl border p-6 card-glow md:p-7 ${
                 todayDone
-                  ? "border-[var(--success)]/50 bg-[var(--success)]/10"
+                  ? "border-success/50 bg-success/10"
                   : "border-primary/40 bg-card"
               }`}
             >
@@ -178,7 +178,7 @@ export function StudySchedule() {
                     Meta de Hoje · {today.dia_da_semana}
                   </span>
                   {todayDone ? (
-                    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--success)]">
+                    <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-success">
                       <CheckCircle2 className="h-5 w-5" aria-hidden="true" /> Concluído
                     </span>
                   ) : null}
@@ -195,7 +195,7 @@ export function StudySchedule() {
                     conceitos fundamentais hoje!
                   </p>
                 ) : difficulty === "dificil" ? (
-                  <p className="mt-4 rounded-xl border border-[var(--warning)]/60 bg-[var(--warning)]/10 px-4 py-3 text-sm font-medium text-[var(--warning)]">
+                  <p className="mt-4 rounded-xl border border-warning/60 bg-warning/10 px-4 py-3 text-sm font-medium text-warning">
                     🚀 Modo Avançado Desbloqueado: Ótima consistência TRI! Foco em questões aprofundadas hoje!
                   </p>
                 ) : (
@@ -214,7 +214,7 @@ export function StudySchedule() {
                   <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-secondary">
                     <div
                       className={`h-full rounded-full ${
-                        todayDone ? "bg-[var(--success)]" : "bg-gradient-to-r from-primary to-accent"
+                        todayDone ? "bg-success" : "bg-gradient-to-r from-primary to-accent"
                       }`}
                       style={{ width: `${progress}%` }}
                     />
@@ -252,7 +252,7 @@ export function StudySchedule() {
                     key={s.id}
                     className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-3 transition-colors ${
                       done
-                        ? "border-[var(--success)]/50 bg-[var(--success)]/10"
+                        ? "border-success/50 bg-success/10"
                         : "border-border bg-card hover:border-primary/30"
                     }`}
                   >
@@ -261,7 +261,7 @@ export function StudySchedule() {
                       <p className="truncate text-xs text-muted-foreground">{s.materia_principal}</p>
                     </div>
                     {done ? (
-                      <CheckCircle2 className="h-5 w-5 shrink-0 text-[var(--success)]" aria-hidden="true" />
+                      <CheckCircle2 className="h-5 w-5 shrink-0 text-success" aria-hidden="true" />
                     ) : (
                       <span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground">
                         Pendente
