@@ -131,6 +131,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_tri_profiles: {
+        Row: {
+          created_at: string
+          current_difficulty: string
+          id: string
+          materia: string
+          observacao: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_difficulty?: string
+          id?: string
+          materia: string
+          observacao?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_difficulty?: string
+          id?: string
+          materia?: string
+          observacao?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
