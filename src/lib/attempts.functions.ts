@@ -26,3 +26,22 @@ export const registrarTentativa = createServerFn({ method: "POST" })
     }
     return { ok: true as const };
   });
+
+/** Conta quantas questões o estudante respondeu hoje (missão diária). */
+export const contarTentativasHoje = createServerFn({ method: "GET" }).handler(async () => {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const { count, error } = await supabaseAdmin
+    .from("enem_user_attempts")
+    .select("id", { count: "exact", head: true })
+    .gte("created_at", startOfDay.toISOString());
+
+  if (error) {
+    console.error("[Tentativas] Falha ao contar tentativas do dia", error);
+    return { total: 0 };
+  }
+  return { total: count ?? 0 };
+});
