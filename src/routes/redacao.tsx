@@ -1,8 +1,11 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertCircle, Loader2, Sparkles } from "lucide-react";
+import { AlertCircle, Camera, CheckCircle2, Loader2, Sparkles, Trash2 } from "lucide-react";
 import { corrigirRedacao, type EssayCorrection } from "@/lib/essay.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
+
 
 
 export const Route = createFileRoute("/redacao")({
