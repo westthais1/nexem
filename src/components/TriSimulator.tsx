@@ -130,7 +130,7 @@ export function TriSimulator() {
                         color: "hsl(var(--foreground))",
                         fontSize: 12,
                       }}
-                      formatter={(v: number | null) => [v ?? "—", "Nota TRI"]}
+                      formatter={(v) => [v ?? "—", "Nota TRI"] as [string | number, string]}
                     />
                     <Line
                       type="monotone"
