@@ -169,6 +169,7 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
       await supabaseAdmin.from("enem_essays").insert({
         tema: data.tema,
         texto: data.texto,
+        imagem_path: data.imagem_path ?? null,
         c1: correction.c1,
         c2: correction.c2,
         c3: correction.c3,
