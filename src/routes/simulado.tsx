@@ -82,7 +82,11 @@ async function fetchAllQuestions(): Promise<HistoryRow[]> {
   return (data ?? []) as HistoryRow[];
 }
 
-async function fetchRandomQuestion(materia: string, forcedId: number | string | null): Promise<QuestionRow | null> {
+async function fetchRandomQuestion(
+  materia: string,
+  forcedId: number | string | null,
+  dificuldade: string | null,
+): Promise<QuestionRow | null> {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
