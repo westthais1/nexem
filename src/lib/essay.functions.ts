@@ -1,10 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-const EssayInput = z.object({
-  tema: z.string().min(1),
-  texto: z.string().min(200),
-});
+const EssayInput = z
+  .object({
+    tema: z.string().min(1),
+    texto: z.string().default(""),
+    imagem_path: z.string().optional(),
+  })
+  .refine((v) => v.imagem_path || v.texto.trim().length >= 200, {
+    message: "Envie uma foto da redação ou escreva ao menos 200 caracteres.",
+  });
 
 const SYSTEM_PROMPT =
   "Você é uma inteligência artificial corretora oficial da Redação do ENEM. Avalie o texto fornecido pelo estudante de forma extremamente criteriosa, separando a nota de 0 a 200 para cada uma das 5 Competências oficiais do ENEM (C1: Norma culta, C2: Compreensão do tema, C3: Defesa de ponto de vista, C4: Mecanismos coesivos, C5: Proposta de intervenção). Retorne uma resposta estruturada contendo as notas individuais, a nota total somada (máximo 1000) e 3 dicas muito práticas e encorajadoras em português de como melhorar.";
