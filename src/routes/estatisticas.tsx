@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { TriSimulator } from "@/components/TriSimulator";
+
 export const Route = createFileRoute("/estatisticas")({
   head: () => ({
     meta: [
