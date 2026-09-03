@@ -348,11 +348,13 @@ function RedacaoPage() {
               </div>
 
               <p className="mt-3 text-xs text-muted-foreground">
-                {lineCount < MIN_LINES_TO_SEND
-                  ? `Mínimo de ${MIN_LINES_TO_SEND} linhas para enviar. Faltam ${MIN_LINES_TO_SEND - lineCount}.`
-                  : lineCount >= MAX_LINES
-                    ? "Você atingiu o limite de 30 linhas."
-                    : `${MAX_LINES - lineCount} linhas restantes.`}
+                {imagePath
+                  ? "Sua foto já está pronta para correção — o texto digitado é opcional."
+                  : lineCount < MIN_LINES_TO_SEND
+                    ? `Mínimo de ${MIN_LINES_TO_SEND} linhas para enviar. Faltam ${MIN_LINES_TO_SEND - lineCount}.`
+                    : lineCount >= MAX_LINES
+                      ? "Você atingiu o limite de 30 linhas."
+                      : `${MAX_LINES - lineCount} linhas restantes.`}
               </p>
 
               <div className="mt-5 flex items-center justify-between gap-4">
