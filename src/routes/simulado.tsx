@@ -7,7 +7,13 @@ import { TutorChat } from "@/components/TutorChat";
 import { questionsSupabase } from "@/lib/external-supabase";
 import { registrarTentativa } from "@/lib/attempts.functions";
 
+type SimuladoSearch = { area?: string; dificuldade?: string };
+
 export const Route = createFileRoute("/simulado")({
+  validateSearch: (search: Record<string, unknown>): SimuladoSearch => ({
+    ...(typeof search['area'] === "string" ? { area: search['area'] } : {}),
+    ...(typeof search['dificuldade'] === "string" ? { dificuldade: search['dificuldade'] } : {}),
+  }),
   head: () => ({
     meta: [
       { title: "Simulado — ENEM AI Tutor" },
