@@ -47,6 +47,8 @@ function EstatisticasPage() {
           ))}
         </div>
 
+        <TriSimulator />
+
         <section className="mt-6 rounded-2xl border border-border bg-card p-6 card-glow">
           <h2 className="text-lg font-semibold text-foreground">Acertos por área</h2>
           <div className="mt-5 space-y-5">
