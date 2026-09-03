@@ -115,7 +115,17 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
         messages: [
           {
             role: "user",
-            content: `Tema da redação: ${data.tema}\n\nTexto do estudante:\n"""\n${data.texto}\n"""`,
+            content: imageBlock
+              ? [
+                  imageBlock,
+                  {
+                    type: "text",
+                    text: `Tema da redação: ${data.tema}\n\nA imagem acima é a foto da folha de redação manuscrita do estudante. Transcreva mentalmente o texto e avalie normalmente.${
+                      data.texto.trim() ? `\n\nObservações do estudante:\n${data.texto.trim()}` : ""
+                    }`,
+                  },
+                ]
+              : `Tema da redação: ${data.tema}\n\nTexto do estudante:\n"""\n${data.texto}\n"""`,
           },
         ],
       }),
