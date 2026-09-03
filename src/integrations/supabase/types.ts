@@ -25,6 +25,7 @@ export type Database = {
           created_at: string
           feedback: Json
           id: string
+          imagem_path: string | null
           nota_total: number
           tema: string
           texto: string
@@ -39,6 +40,7 @@ export type Database = {
           created_at?: string
           feedback?: Json
           id?: string
+          imagem_path?: string | null
           nota_total: number
           tema: string
           texto: string
@@ -53,6 +55,7 @@ export type Database = {
           created_at?: string
           feedback?: Json
           id?: string
+          imagem_path?: string | null
           nota_total?: number
           tema?: string
           texto?: string
