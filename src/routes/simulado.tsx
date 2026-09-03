@@ -96,8 +96,9 @@ async function fetchRandomQuestion(
     let query = questionsSupabase.from(TABLE).select(SELECT_COLUMNS);
     if (forcedId !== null) {
       query = query.eq("id", forcedId);
-    } else if (materia !== ALL_AREAS) {
-      query = query.eq("area_conhecimento", materia);
+    } else {
+      if (materia !== ALL_AREAS) query = query.eq("area_conhecimento", materia);
+      if (dificuldade) query = query.eq("dificuldade", dificuldade);
     }
     const { data, error, status, statusText } = await query.abortSignal(controller.signal);
 
@@ -149,15 +150,17 @@ async function fetchRandomQuestion(
 }
 
 function SimuladoPage() {
+  const search = Route.useSearch();
+  const missionDifficulty = search.dificuldade ?? null;
   const [choice, setChoice] = useState<number | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
-  const [materia, setMateria] = useState<string>(ALL_AREAS);
+  const [materia, setMateria] = useState<string>(search.area ?? ALL_AREAS);
   const [forcedId, setForcedId] = useState<number | string | null>(null);
 
   const { data, isFetching, error, refetch } = useQuery({
-    queryKey: ["random-question", "external", materia, forcedId],
-    queryFn: () => fetchRandomQuestion(materia, forcedId),
+    queryKey: ["random-question", "external", materia, forcedId, missionDifficulty],
+    queryFn: () => fetchRandomQuestion(materia, forcedId, missionDifficulty),
     retry: false,
     staleTime: 0,
   });
@@ -236,6 +239,15 @@ function SimuladoPage() {
             orienta com pistas, sem entregar a resposta.
           </p>
         </header>
+
+        {missionDifficulty ? (
+          <div className="mt-5 inline-flex flex-wrap items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-2 text-sm text-foreground">
+            <span className="font-semibold text-primary">Missão diária ativa</span>
+            <span className="text-muted-foreground">
+              {materia} · nível travado em {missionDifficulty}
+            </span>
+          </div>
+        ) : null}
 
         <div className="mt-6 flex flex-wrap gap-2">
           {subjects.map((s) => (
