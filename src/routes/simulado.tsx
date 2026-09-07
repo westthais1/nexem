@@ -343,6 +343,44 @@ function SimuladoPage() {
           ))}
         </div>
 
+        <section className="mt-6 rounded-2xl border border-border bg-card p-5 md:p-6">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wider text-primary">
+                Nota TRI estimada da trilha
+              </p>
+              <p className="mt-1 text-4xl font-semibold text-foreground">
+                {tri.score}
+                <span className="ml-1 text-lg text-muted-foreground">/1000</span>
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {attempts.length === 0
+                  ? "Responda a primeira questão (nível Média) para começar a estimativa."
+                  : `${attempts.length} ${attempts.length === 1 ? "questão respondida" : "questões respondidas"} · ${tri.earned} de ${tri.possible} pontos · próximo nível: ${effectiveLevel}`}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-lg border border-border bg-background/40 px-3 py-1.5 text-xs text-muted-foreground">
+                Fácil 100 · Média 200 · Difícil 300
+              </span>
+              <button
+                onClick={resetTrail}
+                className="rounded-lg border border-border bg-background/40 px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:border-primary/40 hover:text-foreground"
+              >
+                Reiniciar trilha
+              </button>
+            </div>
+          </div>
+          {tri.inconsistent && (
+            <p className="mt-4 rounded-xl border border-warning/60 bg-warning/10 px-4 py-3 text-sm text-foreground/90">
+              ⚠️ Padrão inconsistente detectado (acertos em questões difíceis com erros em fáceis). Aplicamos
+              a penalidade de chute de 40% sobre a nota estimada.
+            </p>
+          )}
+        </section>
+
+
+
         <div className="mt-7 flex flex-col gap-6 lg:flex-row lg:items-start">
           <div className="min-w-0 flex-1 space-y-6">
             {isFetching ? (
