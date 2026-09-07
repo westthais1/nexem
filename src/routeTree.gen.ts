@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EstatisticasRouteImport } from './routes/estatisticas'
+import { Route as RaioXRouteImport } from './routes/raio-x'
 import { Route as RedacaoRouteImport } from './routes/redacao'
 import { Route as SimuladoRouteImport } from './routes/simulado'
 import { Route as ProvaIndexRouteImport } from './routes/prova.index'
@@ -24,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 const EstatisticasRoute = EstatisticasRouteImport.update({
   id: '/estatisticas',
   path: '/estatisticas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RaioXRoute = RaioXRouteImport.update({
+  id: '/raio-x',
+  path: '/raio-x',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RedacaoRoute = RedacaoRouteImport.update({
@@ -50,6 +56,7 @@ const ProvaNomeRoute = ProvaNomeRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/estatisticas': typeof EstatisticasRoute
+  '/raio-x': typeof RaioXRoute
   '/redacao': typeof RedacaoRoute
   '/simulado': typeof SimuladoRoute
   '/prova/$nome': typeof ProvaNomeRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/estatisticas': typeof EstatisticasRoute
+  '/raio-x': typeof RaioXRoute
   '/redacao': typeof RedacaoRoute
   '/simulado': typeof SimuladoRoute
   '/prova/$nome': typeof ProvaNomeRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/estatisticas': typeof EstatisticasRoute
+  '/raio-x': typeof RaioXRoute
   '/redacao': typeof RedacaoRoute
   '/simulado': typeof SimuladoRoute
   '/prova/$nome': typeof ProvaNomeRoute
@@ -77,17 +86,25 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/estatisticas'
+    | '/raio-x'
     | '/redacao'
     | '/simulado'
     | '/prova/$nome'
     | '/prova/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    '/' | '/estatisticas' | '/redacao' | '/simulado' | '/prova/$nome' | '/prova'
+    | '/'
+    | '/estatisticas'
+    | '/raio-x'
+    | '/redacao'
+    | '/simulado'
+    | '/prova/$nome'
+    | '/prova'
   id:
     | '__root__'
     | '/'
     | '/estatisticas'
+    | '/raio-x'
     | '/redacao'
     | '/simulado'
     | '/prova/$nome'
@@ -97,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EstatisticasRoute: typeof EstatisticasRoute
+  RaioXRoute: typeof RaioXRoute
   RedacaoRoute: typeof RedacaoRoute
   SimuladoRoute: typeof SimuladoRoute
   ProvaNomeRoute: typeof ProvaNomeRoute
@@ -117,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/estatisticas'
       fullPath: '/estatisticas'
       preLoaderRoute: typeof EstatisticasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/raio-x': {
+      id: '/raio-x'
+      path: '/raio-x'
+      fullPath: '/raio-x'
+      preLoaderRoute: typeof RaioXRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/redacao': {
@@ -153,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EstatisticasRoute: EstatisticasRoute,
+  RaioXRoute: RaioXRoute,
   RedacaoRoute: RedacaoRoute,
   SimuladoRoute: SimuladoRoute,
   ProvaNomeRoute: ProvaNomeRoute,
