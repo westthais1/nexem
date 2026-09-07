@@ -62,6 +62,45 @@ export type Database = {
         }
         Relationships: []
       }
+      enem_exam_attempts: {
+        Row: {
+          acertos: number
+          created_at: string
+          finalizado_por_tempo: boolean
+          id: string
+          nome_prova: string
+          nota: number
+          respostas: Json
+          tempo_gasto_segundos: number
+          total_questoes: number
+          user_id: string | null
+        }
+        Insert: {
+          acertos: number
+          created_at?: string
+          finalizado_por_tempo?: boolean
+          id?: string
+          nome_prova: string
+          nota: number
+          respostas?: Json
+          tempo_gasto_segundos?: number
+          total_questoes: number
+          user_id?: string | null
+        }
+        Update: {
+          acertos?: number
+          created_at?: string
+          finalizado_por_tempo?: boolean
+          id?: string
+          nome_prova?: string
+          nota?: number
+          respostas?: Json
+          tempo_gasto_segundos?: number
+          total_questoes?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       enem_tutor: {
         Row: {
           alternativa_correta: string
