@@ -86,6 +86,7 @@ async function fetchRandomQuestion(
   materia: string,
   forcedId: number | string | null,
   dificuldade: string | null,
+  excludeIds: Array<number | string> = [],
 ): Promise<QuestionRow | null> {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -96,14 +97,14 @@ async function fetchRandomQuestion(
     let query = questionsSupabase.from(TABLE).select(SELECT_COLUMNS);
     if (forcedId !== null) {
       query = query.eq("id", forcedId);
-    } else {
-      if (materia !== ALL_AREAS) query = query.ilike("area_conhecimento", `${materia}%`);
-      if (dificuldade) query = query.eq("dificuldade", dificuldade);
+    } else if (materia !== ALL_AREAS) {
+      query = query.ilike("area_conhecimento", `${materia}%`);
     }
     const { data, error, status, statusText } = await query.abortSignal(controller.signal);
 
     console.info(`[Simulado] Consulta direta à tabela ${TABLE} (Supabase externo)`, {
       materia,
+      dificuldade,
       status,
       statusText,
       linhasRetornadas: data?.length ?? 0,
@@ -117,7 +118,19 @@ async function fetchRandomQuestion(
 
     if (!data || data.length === 0) return null;
 
-    const selected = data[Math.floor(Math.random() * data.length)];
+    const rows = data as QuestionRow[];
+    let pool = rows;
+    if (forcedId === null) {
+      // 1) roteamento adaptativo: prioriza a dificuldade alvo e questões inéditas
+      const unseen = pool.filter((r) => !excludeIds.includes(r.id));
+      const base = unseen.length > 0 ? unseen : pool;
+      const byLevel = dificuldade
+        ? base.filter((r) => (r.dificuldade ?? "").trim().toLowerCase() === dificuldade.toLowerCase())
+        : [];
+      pool = byLevel.length > 0 ? byLevel : base;
+    }
+
+    const selected = pool[Math.floor(Math.random() * pool.length)];
     if (!selected) return null;
 
     const requiredFields = ["enunciado", "opcao_a", "opcao_b", "opcao_c", "opcao_d", "opcao_e", "resposta_correta"] as const;
@@ -149,6 +162,47 @@ async function fetchRandomQuestion(
   }
 }
 
+// ————— Motor de estimativa TRI da sessão —————
+const START_LEVEL = "Média";
+const LEVEL_POINTS: Record<string, number> = { fácil: 100, facil: 100, média: 200, media: 200, difícil: 300, dificil: 300 };
+const MAX_LEVEL_POINTS = 300;
+const GUESSING_PENALTY = 0.4;
+
+type SessionAttempt = { level: string; correct: boolean };
+
+function levelPoints(level: string | null): number {
+  return LEVEL_POINTS[(level ?? "Média").trim().toLowerCase()] ?? 200;
+}
+
+function computeTri(attempts: SessionAttempt[]) {
+  if (attempts.length === 0) {
+    return { score: 0, earned: 0, possible: 0, inconsistent: false, accuracy: 0 };
+  }
+  let earned = 0;
+  let possible = 0;
+  for (const a of attempts) {
+    const pts = levelPoints(a.level);
+    possible += pts;
+    if (a.correct) earned += pts;
+  }
+  // Padrão inconsistente (indício de chute): acerta questões difíceis
+  // enquanto erra questões fáceis.
+  const hitHard = attempts.some((a) => a.correct && levelPoints(a.level) === MAX_LEVEL_POINTS);
+  const missEasy = attempts.some((a) => !a.correct && levelPoints(a.level) === 100);
+  const inconsistent = hitHard && missEasy;
+
+  const raw = possible > 0 ? earned / possible : 0;
+  const adjusted = inconsistent ? raw * (1 - GUESSING_PENALTY) : raw;
+  return {
+    score: Math.round(adjusted * 1000),
+    earned,
+    possible,
+    inconsistent,
+    accuracy: attempts.filter((a) => a.correct).length / attempts.length,
+  };
+}
+
+
 function SimuladoPage() {
   const search = Route.useSearch();
   const missionDifficulty = search.dificuldade ?? null;
@@ -157,10 +211,18 @@ function SimuladoPage() {
   const [chatOpen, setChatOpen] = useState(false);
   const [materia, setMateria] = useState<string>(search.area ?? ALL_AREAS);
   const [forcedId, setForcedId] = useState<number | string | null>(null);
+  // Roteamento adaptativo: toda trilha começa em "Média".
+  const [targetLevel, setTargetLevel] = useState<string>(missionDifficulty ?? START_LEVEL);
+  const [seenIds, setSeenIds] = useState<Array<number | string>>([]);
+  const [attempts, setAttempts] = useState<SessionAttempt[]>([]);
+  const [round, setRound] = useState(0);
+
+  const effectiveLevel = missionDifficulty ?? targetLevel;
+  const tri = computeTri(attempts);
 
   const { data, isFetching, error, refetch } = useQuery({
-    queryKey: ["random-question", "external", materia, forcedId, missionDifficulty],
-    queryFn: () => fetchRandomQuestion(materia, forcedId, missionDifficulty),
+    queryKey: ["random-question", "external", materia, forcedId, effectiveLevel, round],
+    queryFn: () => fetchRandomQuestion(materia, forcedId, effectiveLevel, seenIds),
     retry: false,
     staleTime: 0,
   });
@@ -183,13 +245,21 @@ function SimuladoPage() {
   function confirmAnswer() {
     setConfirmed(true);
     if (!current || choice === null) return;
+    const acertou = choice === correctIndex;
+    const level = current.dificuldade ?? effectiveLevel;
+
+    setAttempts((prev) => [...prev, { level, correct: acertou }]);
+    setSeenIds((prev) => (prev.includes(current.id) ? prev : [...prev, current.id]));
+    // Acertou → sobe para Difícil; errou → desce para Fácil.
+    if (!missionDifficulty) setTargetLevel(acertou ? "Difícil" : "Fácil");
+
     // Registro em segundo plano: nunca bloqueia nem quebra a tela.
     void registrarTentativa({
       data: {
         question_id: current.id,
         dificuldade_questao: current.dificuldade,
         materia_questao: current.materia,
-        foi_correto: choice === correctIndex,
+        foi_correto: acertou,
       },
     }).catch((cause) => {
       console.error("[Simulado] Falha ao registrar tentativa", cause);
@@ -201,21 +271,29 @@ function SimuladoPage() {
     setConfirmed(false);
     setChatOpen(false);
     setForcedId(null);
-    if (forcedId === null) refetch();
+    setRound((r) => r + 1);
+  }
+
+  function resetTrail() {
+    setChoice(null);
+    setConfirmed(false);
+    setChatOpen(false);
+    setForcedId(null);
+    setAttempts([]);
+    setSeenIds([]);
+    setTargetLevel(missionDifficulty ?? START_LEVEL);
+    setRound((r) => r + 1);
   }
 
   function selectMateria(next: string) {
-    if (next === materia) {
-      setForcedId(null);
-      if (forcedId === null) refetch();
-      return;
-    }
     setChoice(null);
     setConfirmed(false);
     setChatOpen(false);
     setForcedId(null);
     setMateria(next);
+    setRound((r) => r + 1);
   }
+
 
   function answerThis(row: HistoryRow) {
     setChoice(null);
@@ -264,6 +342,44 @@ function SimuladoPage() {
             </button>
           ))}
         </div>
+
+        <section className="mt-6 rounded-2xl border border-border bg-card p-5 md:p-6">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wider text-primary">
+                Nota TRI estimada da trilha
+              </p>
+              <p className="mt-1 text-4xl font-semibold text-foreground">
+                {tri.score}
+                <span className="ml-1 text-lg text-muted-foreground">/1000</span>
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {attempts.length === 0
+                  ? "Responda a primeira questão (nível Média) para começar a estimativa."
+                  : `${attempts.length} ${attempts.length === 1 ? "questão respondida" : "questões respondidas"} · ${tri.earned} de ${tri.possible} pontos · próximo nível: ${effectiveLevel}`}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-lg border border-border bg-background/40 px-3 py-1.5 text-xs text-muted-foreground">
+                Fácil 100 · Média 200 · Difícil 300
+              </span>
+              <button
+                onClick={resetTrail}
+                className="rounded-lg border border-border bg-background/40 px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:border-primary/40 hover:text-foreground"
+              >
+                Reiniciar trilha
+              </button>
+            </div>
+          </div>
+          {tri.inconsistent && (
+            <p className="mt-4 rounded-xl border border-warning/60 bg-warning/10 px-4 py-3 text-sm text-foreground/90">
+              ⚠️ Padrão inconsistente detectado (acertos em questões difíceis com erros em fáceis). Aplicamos
+              a penalidade de chute de 40% sobre a nota estimada.
+            </p>
+          )}
+        </section>
+
+
 
         <div className="mt-7 flex flex-col gap-6 lg:flex-row lg:items-start">
           <div className="min-w-0 flex-1 space-y-6">
