@@ -211,10 +211,18 @@ function SimuladoPage() {
   const [chatOpen, setChatOpen] = useState(false);
   const [materia, setMateria] = useState<string>(search.area ?? ALL_AREAS);
   const [forcedId, setForcedId] = useState<number | string | null>(null);
+  // Roteamento adaptativo: toda trilha começa em "Média".
+  const [targetLevel, setTargetLevel] = useState<string>(missionDifficulty ?? START_LEVEL);
+  const [seenIds, setSeenIds] = useState<Array<number | string>>([]);
+  const [attempts, setAttempts] = useState<SessionAttempt[]>([]);
+  const [round, setRound] = useState(0);
+
+  const effectiveLevel = missionDifficulty ?? targetLevel;
+  const tri = computeTri(attempts);
 
   const { data, isFetching, error, refetch } = useQuery({
-    queryKey: ["random-question", "external", materia, forcedId, missionDifficulty],
-    queryFn: () => fetchRandomQuestion(materia, forcedId, missionDifficulty),
+    queryKey: ["random-question", "external", materia, forcedId, effectiveLevel, round],
+    queryFn: () => fetchRandomQuestion(materia, forcedId, effectiveLevel, seenIds),
     retry: false,
     staleTime: 0,
   });
@@ -237,13 +245,21 @@ function SimuladoPage() {
   function confirmAnswer() {
     setConfirmed(true);
     if (!current || choice === null) return;
+    const acertou = choice === correctIndex;
+    const level = current.dificuldade ?? effectiveLevel;
+
+    setAttempts((prev) => [...prev, { level, correct: acertou }]);
+    setSeenIds((prev) => (prev.includes(current.id) ? prev : [...prev, current.id]));
+    // Acertou → sobe para Difícil; errou → desce para Fácil.
+    if (!missionDifficulty) setTargetLevel(acertou ? "Difícil" : "Fácil");
+
     // Registro em segundo plano: nunca bloqueia nem quebra a tela.
     void registrarTentativa({
       data: {
         question_id: current.id,
         dificuldade_questao: current.dificuldade,
         materia_questao: current.materia,
-        foi_correto: choice === correctIndex,
+        foi_correto: acertou,
       },
     }).catch((cause) => {
       console.error("[Simulado] Falha ao registrar tentativa", cause);
@@ -255,21 +271,29 @@ function SimuladoPage() {
     setConfirmed(false);
     setChatOpen(false);
     setForcedId(null);
-    if (forcedId === null) refetch();
+    setRound((r) => r + 1);
+  }
+
+  function resetTrail() {
+    setChoice(null);
+    setConfirmed(false);
+    setChatOpen(false);
+    setForcedId(null);
+    setAttempts([]);
+    setSeenIds([]);
+    setTargetLevel(missionDifficulty ?? START_LEVEL);
+    setRound((r) => r + 1);
   }
 
   function selectMateria(next: string) {
-    if (next === materia) {
-      setForcedId(null);
-      if (forcedId === null) refetch();
-      return;
-    }
     setChoice(null);
     setConfirmed(false);
     setChatOpen(false);
     setForcedId(null);
     setMateria(next);
+    setRound((r) => r + 1);
   }
+
 
   function answerThis(row: HistoryRow) {
     setChoice(null);
