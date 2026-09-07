@@ -6,15 +6,15 @@ import { StudySchedule } from "@/components/StudySchedule";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Dashboard — ENEM AI Tutor" },
+      { title: "Dashboard — Nexem" },
       {
         name: "description",
         content: "Acompanhe seu progresso semanal, última nota de simulado e tempo de estudo no seu tutor de IA para o ENEM.",
       },
-      { property: "og:title", content: "Dashboard — ENEM AI Tutor" },
+      { property: "og:title", content: "Dashboard — Nexem" },
       {
         property: "og:description",
-        content: "Acompanhe seu progresso, notas e tempo de estudo no ENEM AI Tutor.",
+        content: "Acompanhe seu progresso, notas e tempo de estudo no Nexem.",
       },
     ],
   }),

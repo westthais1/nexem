@@ -16,13 +16,13 @@ export const Route = createFileRoute("/simulado")({
   }),
   head: () => ({
     meta: [
-      { title: "Simulado — ENEM AI Tutor" },
+      { title: "Simulado — Nexem" },
       {
         name: "description",
         content:
           "Pratique questões do ENEM e peça dicas a um tutor de IA socrático que orienta sem entregar a resposta.",
       },
-      { property: "og:title", content: "Simulado — ENEM AI Tutor" },
+      { property: "og:title", content: "Simulado — Nexem" },
       {
         property: "og:description",
         content: "Questões do ENEM com tutor de IA socrático que dá dicas, não respostas.",

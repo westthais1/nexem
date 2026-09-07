@@ -11,13 +11,13 @@ import { useIsMobile } from "@/hooks/use-mobile";
 export const Route = createFileRoute("/redacao")({
   head: () => ({
     meta: [
-      { title: "Redação Inteligente — ENEM AI Tutor" },
+      { title: "Redação Inteligente — Nexem" },
       {
         name: "description",
         content:
           "Escreva sua redação do ENEM e receba correção competência por competência com o Professor Claude.",
       },
-      { property: "og:title", content: "Redação Inteligente — ENEM AI Tutor" },
+      { property: "og:title", content: "Redação Inteligente — Nexem" },
       {
         property: "og:description",
         content: "Correção inteligente de redação para o ENEM com IA.",

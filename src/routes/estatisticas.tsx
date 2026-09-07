@@ -5,10 +5,10 @@ import { TriSimulator } from "@/components/TriSimulator";
 export const Route = createFileRoute("/estatisticas")({
   head: () => ({
     meta: [
-      { title: "Estatísticas — ENEM AI Tutor" },
+      { title: "Estatísticas — Nexem" },
       { name: "description", content: "Veja seu desempenho por área do conhecimento, evolução e pontos de melhoria no ENEM." },
-      { property: "og:title", content: "Estatísticas — ENEM AI Tutor" },
-      { property: "og:description", content: "Estatísticas de desempenho no ENEM AI Tutor." },
+      { property: "og:title", content: "Estatísticas — Nexem" },
+      { property: "og:description", content: "Estatísticas de desempenho no Nexem." },
     ],
   }),
   component: EstatisticasPage,
