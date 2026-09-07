@@ -7,13 +7,13 @@ import { fetchExams } from "@/lib/exams";
 export const Route = createFileRoute("/prova/")({
   head: () => ({
     meta: [
-      { title: "Provas Completas — ENEM AI Tutor" },
+      { title: "Provas Completas — Nexem" },
       {
         name: "description",
         content:
           "Escolha uma prova completa do ENEM e faça a simulação cronometrada de 5h30, com correção apenas ao final.",
       },
-      { property: "og:title", content: "Provas Completas — ENEM AI Tutor" },
+      { property: "og:title", content: "Provas Completas — Nexem" },
       {
         property: "og:description",
         content: "Simulação cronometrada de provas completas do ENEM com correção ao final.",

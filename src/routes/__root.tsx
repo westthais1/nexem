@@ -77,13 +77,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "ENEM AI Tutor — Seu tutor de IA para o ENEM" },
+      { title: "Nexem — Seu tutor de IA para o ENEM" },
       {
         name: "description",
         content: "Tutor de inteligência artificial para estudantes do ENEM: simulados, redação inteligente e estatísticas de progresso.",
       },
-      { name: "author", content: "ENEM AI Tutor" },
-      { property: "og:title", content: "ENEM AI Tutor — Seu tutor de IA para o ENEM" },
+      { name: "author", content: "Nexem" },
+      { property: "og:title", content: "Nexem — Seu tutor de IA para o ENEM" },
       {
         property: "og:description",
         content: "Simulados, redação inteligente e estatísticas de progresso para o ENEM com inteligência artificial.",
@@ -225,7 +225,7 @@ function Brand() {
         </svg>
       </span>
       <span className="text-base font-semibold tracking-tight text-sidebar-foreground" style={{ fontFamily: "var(--font-display)" }}>
-        ENEM<span className="text-primary">.</span>AI
+        nexem<span className="text-primary">.</span>
       </span>
     </Link>
   );

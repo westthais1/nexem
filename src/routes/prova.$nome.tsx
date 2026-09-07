@@ -9,7 +9,7 @@ import { registrarProva } from "@/lib/exam.functions";
 export const Route = createFileRoute("/prova/$nome")({
   head: ({ params }) => ({
     meta: [
-      { title: `${params.nome} — Prova Completa | ENEM AI Tutor` },
+      { title: `${params.nome} — Prova Completa | Nexem` },
       {
         name: "description",
         content: `Faça a prova ${params.nome} em modo simulação cronometrada de 5h30, com correção somente após o envio.`,
