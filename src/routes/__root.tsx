@@ -128,6 +128,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 const NAV_ITEMS = [
   { to: "/", label: "Dashboard", icon: DashboardIcon },
+  { to: "/raio-x", label: "Raio-X do ENEM", icon: EstatisticasIcon },
   { to: "/simulado", label: "Simulado", icon: SimuladoIcon },
   { to: "/prova", label: "Prova Completa", icon: SimuladoIcon },
   { to: "/redacao", label: "Redação Inteligente", icon: RedacaoIcon },
