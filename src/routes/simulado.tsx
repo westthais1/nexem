@@ -97,7 +97,7 @@ async function fetchRandomQuestion(
     if (forcedId !== null) {
       query = query.eq("id", forcedId);
     } else {
-      if (materia !== ALL_AREAS) query = query.eq("area_conhecimento", materia);
+      if (materia !== ALL_AREAS) query = query.ilike("area_conhecimento", `${materia}%`);
       if (dificuldade) query = query.eq("dificuldade", dificuldade);
     }
     const { data, error, status, statusText } = await query.abortSignal(controller.signal);
