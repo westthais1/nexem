@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as EstatisticasRouteImport } from './routes/estatisticas'
 import { Route as RedacaoRouteImport } from './routes/redacao'
 import { Route as SimuladoRouteImport } from './routes/simulado'
+import { Route as ProvaIndexRouteImport } from './routes/prova.index'
+import { Route as ProvaNomeRouteImport } from './routes/prova.$nome'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,18 +36,32 @@ const SimuladoRoute = SimuladoRouteImport.update({
   path: '/simulado',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProvaIndexRoute = ProvaIndexRouteImport.update({
+  id: '/prova/',
+  path: '/prova/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProvaNomeRoute = ProvaNomeRouteImport.update({
+  id: '/prova/$nome',
+  path: '/prova/$nome',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/estatisticas': typeof EstatisticasRoute
   '/redacao': typeof RedacaoRoute
   '/simulado': typeof SimuladoRoute
+  '/prova/$nome': typeof ProvaNomeRoute
+  '/prova/': typeof ProvaIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/estatisticas': typeof EstatisticasRoute
   '/redacao': typeof RedacaoRoute
   '/simulado': typeof SimuladoRoute
+  '/prova/$nome': typeof ProvaNomeRoute
+  '/prova': typeof ProvaIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +69,29 @@ export interface FileRoutesById {
   '/estatisticas': typeof EstatisticasRoute
   '/redacao': typeof RedacaoRoute
   '/simulado': typeof SimuladoRoute
+  '/prova/$nome': typeof ProvaNomeRoute
+  '/prova/': typeof ProvaIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/estatisticas' | '/redacao' | '/simulado'
+  fullPaths:
+    | '/'
+    | '/estatisticas'
+    | '/redacao'
+    | '/simulado'
+    | '/prova/$nome'
+    | '/prova/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/estatisticas' | '/redacao' | '/simulado'
-  id: '__root__' | '/' | '/estatisticas' | '/redacao' | '/simulado'
+  to:
+    '/' | '/estatisticas' | '/redacao' | '/simulado' | '/prova/$nome' | '/prova'
+  id:
+    | '__root__'
+    | '/'
+    | '/estatisticas'
+    | '/redacao'
+    | '/simulado'
+    | '/prova/$nome'
+    | '/prova/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +99,8 @@ export interface RootRouteChildren {
   EstatisticasRoute: typeof EstatisticasRoute
   RedacaoRoute: typeof RedacaoRoute
   SimuladoRoute: typeof SimuladoRoute
+  ProvaNomeRoute: typeof ProvaNomeRoute
+  ProvaIndexRoute: typeof ProvaIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +133,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SimuladoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prova/': {
+      id: '/prova/'
+      path: '/prova'
+      fullPath: '/prova/'
+      preLoaderRoute: typeof ProvaIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prova/$nome': {
+      id: '/prova/$nome'
+      path: '/prova/$nome'
+      fullPath: '/prova/$nome'
+      preLoaderRoute: typeof ProvaNomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +155,8 @@ const rootRouteChildren: RootRouteChildren = {
   EstatisticasRoute: EstatisticasRoute,
   RedacaoRoute: RedacaoRoute,
   SimuladoRoute: SimuladoRoute,
+  ProvaNomeRoute: ProvaNomeRoute,
+  ProvaIndexRoute: ProvaIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
