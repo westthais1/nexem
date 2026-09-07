@@ -86,6 +86,7 @@ async function fetchRandomQuestion(
   materia: string,
   forcedId: number | string | null,
   dificuldade: string | null,
+  excludeIds: Array<number | string> = [],
 ): Promise<QuestionRow | null> {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -96,14 +97,14 @@ async function fetchRandomQuestion(
     let query = questionsSupabase.from(TABLE).select(SELECT_COLUMNS);
     if (forcedId !== null) {
       query = query.eq("id", forcedId);
-    } else {
-      if (materia !== ALL_AREAS) query = query.ilike("area_conhecimento", `${materia}%`);
-      if (dificuldade) query = query.eq("dificuldade", dificuldade);
+    } else if (materia !== ALL_AREAS) {
+      query = query.ilike("area_conhecimento", `${materia}%`);
     }
     const { data, error, status, statusText } = await query.abortSignal(controller.signal);
 
     console.info(`[Simulado] Consulta direta à tabela ${TABLE} (Supabase externo)`, {
       materia,
+      dificuldade,
       status,
       statusText,
       linhasRetornadas: data?.length ?? 0,
@@ -117,7 +118,19 @@ async function fetchRandomQuestion(
 
     if (!data || data.length === 0) return null;
 
-    const selected = data[Math.floor(Math.random() * data.length)];
+    const rows = data as QuestionRow[];
+    let pool = rows;
+    if (forcedId === null) {
+      // 1) roteamento adaptativo: prioriza a dificuldade alvo e questões inéditas
+      const unseen = pool.filter((r) => !excludeIds.includes(r.id));
+      const base = unseen.length > 0 ? unseen : pool;
+      const byLevel = dificuldade
+        ? base.filter((r) => (r.dificuldade ?? "").trim().toLowerCase() === dificuldade.toLowerCase())
+        : [];
+      pool = byLevel.length > 0 ? byLevel : base;
+    }
+
+    const selected = pool[Math.floor(Math.random() * pool.length)];
     if (!selected) return null;
 
     const requiredFields = ["enunciado", "opcao_a", "opcao_b", "opcao_c", "opcao_d", "opcao_e", "resposta_correta"] as const;
@@ -148,6 +161,47 @@ async function fetchRandomQuestion(
     window.clearTimeout(timeout);
   }
 }
+
+// ————— Motor de estimativa TRI da sessão —————
+const START_LEVEL = "Média";
+const LEVEL_POINTS: Record<string, number> = { fácil: 100, facil: 100, média: 200, media: 200, difícil: 300, dificil: 300 };
+const MAX_LEVEL_POINTS = 300;
+const GUESSING_PENALTY = 0.4;
+
+type SessionAttempt = { level: string; correct: boolean };
+
+function levelPoints(level: string | null): number {
+  return LEVEL_POINTS[(level ?? "Média").trim().toLowerCase()] ?? 200;
+}
+
+function computeTri(attempts: SessionAttempt[]) {
+  if (attempts.length === 0) {
+    return { score: 0, earned: 0, possible: 0, inconsistent: false, accuracy: 0 };
+  }
+  let earned = 0;
+  let possible = 0;
+  for (const a of attempts) {
+    const pts = levelPoints(a.level);
+    possible += pts;
+    if (a.correct) earned += pts;
+  }
+  // Padrão inconsistente (indício de chute): acerta questões difíceis
+  // enquanto erra questões fáceis.
+  const hitHard = attempts.some((a) => a.correct && levelPoints(a.level) === MAX_LEVEL_POINTS);
+  const missEasy = attempts.some((a) => !a.correct && levelPoints(a.level) === 100);
+  const inconsistent = hitHard && missEasy;
+
+  const raw = possible > 0 ? earned / possible : 0;
+  const adjusted = inconsistent ? raw * (1 - GUESSING_PENALTY) : raw;
+  return {
+    score: Math.round(adjusted * 1000),
+    earned,
+    possible,
+    inconsistent,
+    accuracy: attempts.filter((a) => a.correct).length / attempts.length,
+  };
+}
+
 
 function SimuladoPage() {
   const search = Route.useSearch();
