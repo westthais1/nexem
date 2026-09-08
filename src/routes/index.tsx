@@ -49,12 +49,17 @@ function HeroBanner() {
           <span className="h-1.5 w-1.5 rounded-full bg-primary" />
           Tutor de IA · Online agora
         </span>
-        <h1 className="mt-5 max-w-2xl text-4xl font-semibold leading-tight text-foreground md:text-5xl">
-          Seu tutor de IA para o{" "}
+        <h1 className="mt-5 max-w-2xl text-4xl font-semibold leading-[1.05] text-foreground md:text-6xl" style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}>
           <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent text-glow-neon">
-            ENEM
+            Nexem
           </span>
         </h1>
+        <p className="mt-3 max-w-xl text-lg font-medium text-foreground/90 md:text-xl" style={{ fontFamily: "var(--font-display)" }}>
+          Estudo Adaptativo.{" "}
+          <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent text-glow-neon">
+            Nota Máxima.
+          </span>
+        </p>
         <p className="mt-4 max-w-xl text-base text-muted-foreground md:text-lg">
           Simulados personalizados, correção inteligente de redação e estatísticas que revelam onde você mais evolui.
         </p>
