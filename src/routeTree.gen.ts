@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EstatisticasRouteImport } from './routes/estatisticas'
+import { Route as FullSimuladoRouteImport } from './routes/full-simulado'
 import { Route as RaioXRouteImport } from './routes/raio-x'
 import { Route as RedacaoRouteImport } from './routes/redacao'
 import { Route as SimuladoRouteImport } from './routes/simulado'
@@ -25,6 +26,11 @@ const IndexRoute = IndexRouteImport.update({
 const EstatisticasRoute = EstatisticasRouteImport.update({
   id: '/estatisticas',
   path: '/estatisticas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FullSimuladoRoute = FullSimuladoRouteImport.update({
+  id: '/full-simulado',
+  path: '/full-simulado',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RaioXRoute = RaioXRouteImport.update({
@@ -56,6 +62,7 @@ const ProvaNomeRoute = ProvaNomeRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/estatisticas': typeof EstatisticasRoute
+  '/full-simulado': typeof FullSimuladoRoute
   '/raio-x': typeof RaioXRoute
   '/redacao': typeof RedacaoRoute
   '/simulado': typeof SimuladoRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/estatisticas': typeof EstatisticasRoute
+  '/full-simulado': typeof FullSimuladoRoute
   '/raio-x': typeof RaioXRoute
   '/redacao': typeof RedacaoRoute
   '/simulado': typeof SimuladoRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/estatisticas': typeof EstatisticasRoute
+  '/full-simulado': typeof FullSimuladoRoute
   '/raio-x': typeof RaioXRoute
   '/redacao': typeof RedacaoRoute
   '/simulado': typeof SimuladoRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/estatisticas'
+    | '/full-simulado'
     | '/raio-x'
     | '/redacao'
     | '/simulado'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/estatisticas'
+    | '/full-simulado'
     | '/raio-x'
     | '/redacao'
     | '/simulado'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/estatisticas'
+    | '/full-simulado'
     | '/raio-x'
     | '/redacao'
     | '/simulado'
@@ -114,6 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EstatisticasRoute: typeof EstatisticasRoute
+  FullSimuladoRoute: typeof FullSimuladoRoute
   RaioXRoute: typeof RaioXRoute
   RedacaoRoute: typeof RedacaoRoute
   SimuladoRoute: typeof SimuladoRoute
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/estatisticas'
       fullPath: '/estatisticas'
       preLoaderRoute: typeof EstatisticasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/full-simulado': {
+      id: '/full-simulado'
+      path: '/full-simulado'
+      fullPath: '/full-simulado'
+      preLoaderRoute: typeof FullSimuladoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/raio-x': {
@@ -178,6 +198,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EstatisticasRoute: EstatisticasRoute,
+  FullSimuladoRoute: FullSimuladoRoute,
   RaioXRoute: RaioXRoute,
   RedacaoRoute: RedacaoRoute,
   SimuladoRoute: SimuladoRoute,
