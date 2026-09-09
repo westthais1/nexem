@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { StudySchedule } from "@/components/StudySchedule";
 import { ProgressMascot } from "@/components/ProgressMascot";
 import { DailyChallengeCard } from "@/components/DailyChallengeCard";
+import { MasteryTargets } from "@/components/MasteryTargets";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -34,6 +35,7 @@ function DashboardPage() {
           <LastScoreCard />
           <StudyTimerCard />
         </div>
+        <MasteryTargets />
         <ProgressMascot />
         <StudySchedule />
         <QuickActions />

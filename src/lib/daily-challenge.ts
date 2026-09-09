@@ -4,6 +4,14 @@
  */
 
 import { questionsSupabase } from "@/lib/external-supabase";
+import {
+  TRACKS,
+  clampTheta as clampTrack,
+  defaultTracks,
+  trackOf,
+  type TrackKey,
+  type Tracks,
+} from "@/lib/progress";
 
 export const DAILY_TOTAL = 10;
 const THETA_KEY = "nexem-theta-v1";
@@ -32,16 +40,22 @@ export type DailyAnswer = {
   letra: string;
   correto: boolean;
   dificuldade: number;
+  /** Trilha (área) da questão, para calibrar o theta certo. */
+  track?: TrackKey | null;
 };
 
 export type DailySession = {
   date: string;
   theta: number;
+  /** Níveis por trilha no início da sessão (âncora vinda do banco). */
+  thetas?: Tracks;
   questionIds: string[];
   answers: DailyAnswer[];
   completed: boolean;
   /** XP creditado ao concluir (evita crédito duplicado). */
   rewarded: boolean;
+  /** Progresso já gravado no banco ao final da sessão. */
+  saved?: boolean;
 };
 
 const COLUMNS =
@@ -79,8 +93,10 @@ export function readSession(): DailySession | null {
       theta: clampTheta(Number(parsed.theta) || DEFAULT_THETA),
       questionIds: Array.isArray(parsed.questionIds) ? parsed.questionIds.map(String) : [],
       answers: Array.isArray(parsed.answers) ? parsed.answers : [],
+      ...(parsed.thetas ? { thetas: { ...defaultTracks(), ...parsed.thetas } } : {}),
       completed: Boolean(parsed.completed),
       rewarded: Boolean(parsed.rewarded),
+      saved: Boolean(parsed.saved),
     };
   } catch {
     return null;
@@ -146,6 +162,55 @@ export function buildDailySet(pool: DailyQuestion[], theta: number): DailyQuesti
   });
 
   return picked;
+}
+
+/** Deslocamento por posição: aquecimento (−15), nível real (0) e chefe final (+15). */
+export function offsetOf(index: number): number {
+  if (index < 2) return -15;
+  if (index < 8) return 0;
+  return 15;
+}
+
+/**
+ * Monta a sessão do dia usando o nível salvo de CADA trilha como âncora:
+ * alterna as quatro áreas e busca a questão mais próxima do alvo daquela trilha.
+ */
+export function buildDailySetFromTracks(pool: DailyQuestion[], tracks: Tracks): DailyQuestion[] {
+  const used = new Set<string>();
+  const picked: DailyQuestion[] = [];
+
+  for (let i = 0; i < DAILY_TOTAL; i += 1) {
+    const trilha = TRACKS[i % TRACKS.length] as TrackKey;
+    const alvo = clampTrack((tracks[trilha] ?? DEFAULT_THETA) + offsetOf(i));
+    const candidatos = pool.filter((q) => !used.has(String(q.id)));
+    if (candidatos.length === 0) break;
+    const daTrilha = candidatos.filter((q) => trackOf(q.area_conhecimento) === trilha);
+    const lista = daTrilha.length > 0 ? daTrilha : candidatos;
+    const escolhida = lista.reduce((melhor, q) =>
+      Math.abs(diffOf(q, alvo) - alvo) < Math.abs(diffOf(melhor, alvo) - alvo) ? q : melhor,
+    );
+    used.add(String(escolhida.id));
+    picked.push(escolhida);
+  }
+
+  return picked;
+}
+
+/**
+ * Calibração contínua: cada resposta move o nível da trilha correspondente.
+ * Acertar acima do próprio nível sobe mais; errar abaixo dele desce mais.
+ */
+export function applyVelocity(tracks: Tracks, answers: DailyAnswer[]): Tracks {
+  const next: Tracks = { ...tracks };
+  for (const a of answers) {
+    const trilha = a.track;
+    if (!trilha) continue;
+    const atual = next[trilha];
+    const acima = a.dificuldade >= atual;
+    const delta = a.correto ? (acima ? 3 : 1.5) : acima ? -1.5 : -3;
+    next[trilha] = clampTrack(atual + delta);
+  }
+  return next;
 }
 
 export type DailyResult = {

@@ -8,19 +8,31 @@ import { awardXp, XP_REWARDS } from "@/lib/xp";
 import { useXp } from "@/hooks/use-xp";
 import {
   DAILY_TOTAL,
-  buildDailySet,
+  applyVelocity,
+  buildDailySetFromTracks,
   diffOf,
   fetchDailyPool,
   gradeDaily,
   phaseOf,
   readSession,
-  readTheta,
   todayKey,
   writeSession,
   writeTheta,
   type DailyQuestion,
   type DailySession,
 } from "@/lib/daily-challenge";
+import {
+  MASTERY_TARGET,
+  TRACKS,
+  TRACK_LABEL,
+  averageTheta,
+  defaultProgress,
+  defaultTracks,
+  fetchProgress,
+  saveProgress,
+  trackOf,
+  type UserProgress,
+} from "@/lib/progress";
 
 export const Route = createFileRoute("/desafio")({
   head: () => ({
@@ -68,17 +80,26 @@ function DesafioPage() {
   const pool = useMemo(() => data ?? [], [data]);
   const xp = useXp();
 
+  const progressQuery = useQuery({
+    queryKey: ["nexem_user_progress"],
+    queryFn: fetchProgress,
+    staleTime: 60_000,
+  });
+  const progress: UserProgress = progressQuery.data ?? defaultProgress();
+
   const [session, setSession] = useState<DailySession | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
+  const [savedTracks, setSavedTracks] = useState<UserProgress["tracks"] | null>(null);
 
   useEffect(() => {
     setSession(readSession());
     setHydrated(true);
   }, []);
 
-  const theta = session?.theta ?? (hydrated ? readTheta() : 50);
+  const tracks = session?.thetas ?? progress.tracks;
+  const theta = averageTheta(tracks);
 
   const questions = useMemo(() => {
     if (!session || pool.length === 0) return [] as DailyQuestion[];
@@ -93,21 +114,23 @@ function DesafioPage() {
   const done = Boolean(session?.completed) || (session != null && answered >= session.questionIds.length && session.questionIds.length > 0);
 
   const iniciar = useCallback(() => {
-    const t = readTheta();
-    const set = buildDailySet(pool, t);
+    const base = progress.tracks;
+    const set = buildDailySetFromTracks(pool, base);
     const nova: DailySession = {
       date: todayKey(),
-      theta: t,
+      theta: averageTheta(base),
+      thetas: base,
       questionIds: set.map((q) => String(q.id)),
       answers: [],
       completed: false,
       rewarded: false,
+      saved: false,
     };
     writeSession(nova);
     setSession(nova);
     setSelected(null);
     setConfirmed(false);
-  }, [pool]);
+  }, [pool, progress.tracks]);
 
   const confirmar = useCallback(() => {
     if (!session || !current || !selected || confirmed) return;
@@ -117,7 +140,13 @@ function DesafioPage() {
 
     const answers = [
       ...session.answers,
-      { questionId: String(current.id), letra: selected, correto, dificuldade },
+      {
+        questionId: String(current.id),
+        letra: selected,
+        correto,
+        dificuldade,
+        track: trackOf(current.area_conhecimento),
+      },
     ];
     const completed = answers.length >= session.questionIds.length;
     const next: DailySession = { ...session, answers, completed };
@@ -155,9 +184,33 @@ function DesafioPage() {
         : "Desafio Diário Nexem",
     });
     writeTheta(resultado.novoTheta);
-    const marcada = { ...session, rewarded: true, completed: true, theta: session.theta };
+
+    // Calibração contínua: grava os novos níveis por trilha para o desafio de amanhã.
+    const baseTracks = session.thetas ?? defaultTracks();
+    const novosTracks = applyVelocity(baseTracks, session.answers);
+    const hoje = todayKey();
+    const ontem = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+    const streak =
+      progress.lastPlayedDate === hoje
+        ? progress.streakCounter
+        : progress.lastPlayedDate === ontem
+          ? progress.streakCounter + 1
+          : 1;
+    const proximo: UserProgress = {
+      tracks: novosTracks,
+      streakCounter: streak,
+      lastPlayedDate: hoje,
+      triConsistencyRate: resultado.consistente ? 100 : 60,
+    };
+    setSavedTracks(novosTracks);
+    void saveProgress(proximo)
+      .then(() => progressQuery.refetch())
+      .catch((e) => console.error("[Desafio] Falha ao salvar proficiência", e));
+
+    const marcada = { ...session, rewarded: true, completed: true, saved: true };
     writeSession(marcada);
     setSession(marcada);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, done, resultado]);
 
   return (
@@ -331,6 +384,38 @@ function DesafioPage() {
                 <p className="relative mt-1 text-sm text-muted-foreground">
                   Sem padrão de chute — XP em dobro: +{XP_REWARDS.desafioDiario * 2} XP.
                 </p>
+              </div>
+            )}
+
+            {savedTracks && (
+              <div className="animate-in fade-in slide-in-from-bottom-2 rounded-2xl border border-primary/50 bg-primary/10 p-5 duration-500">
+                <p className="text-sm font-semibold text-primary">
+                  Proficiência salva. O desafio de amanhã já começa no seu novo nível base!
+                </p>
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {TRACKS.map((t) => {
+                    const antes = (session.thetas ?? savedTracks)[t];
+                    const depois = savedTracks[t];
+                    const delta = depois - antes;
+                    return (
+                      <div
+                        key={t}
+                        className="flex items-center justify-between rounded-lg border border-border bg-background/40 px-3 py-2 text-sm"
+                      >
+                        <span className="text-muted-foreground">{TRACK_LABEL[t]}</span>
+                        <span className="font-semibold text-foreground">
+                          {depois}/{MASTERY_TARGET}
+                          {delta !== 0 && (
+                            <span className={delta > 0 ? "ml-2 text-success" : "ml-2 text-destructive"}>
+                              {delta > 0 ? "+" : ""}
+                              {delta}
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
