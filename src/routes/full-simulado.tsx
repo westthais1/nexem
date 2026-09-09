@@ -269,7 +269,12 @@ function FullSimuladoPage() {
               onClick={() => startBlock(nome)}
               className="rounded-2xl border border-border bg-card p-6 text-left transition-all hover:border-primary/50 hover:shadow-[0_0_28px_-10px_var(--neon)]"
             >
-              <p className="text-base font-semibold text-foreground">{nome}</p>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-base font-semibold text-foreground">{nome}</p>
+                <span className="rounded-full bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary">
+                  +{XP_REWARDS.simuladoAdaptativo} XP
+                </span>
+              </div>
               <p className="mt-1 text-sm text-muted-foreground">{total} questões disponíveis</p>
             </button>
           ))}
