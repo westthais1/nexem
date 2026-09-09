@@ -32,6 +32,7 @@ function DashboardPage() {
           <LastScoreCard />
           <StudyTimerCard />
         </div>
+        <ProgressMascot />
         <StudySchedule />
         <QuickActions />
       </div>
