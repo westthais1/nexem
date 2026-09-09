@@ -32,7 +32,7 @@ export function XpCelebration() {
         <div
           key={toast.key}
           role="status"
-          className="fixed bottom-6 right-6 z-50 flex max-w-xs items-center gap-3 rounded-2xl border border-primary/40 bg-card p-4 shadow-2xl animate-scale-in card-glow"
+          className="fixed bottom-6 right-6 z-50 flex max-w-xs items-center gap-3 rounded-2xl border border-primary/40 bg-card p-4 shadow-2xl xp-pop card-glow"
         >
           <FoxMascot stage={stageForLevel(toast.level).id} className="h-12 w-12 shrink-0" animated={false} />
           <div>
@@ -45,7 +45,7 @@ export function XpCelebration() {
       {celebration && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
           <Confetti />
-          <div className="relative w-full max-w-md rounded-2xl border border-primary/50 bg-card p-8 text-center card-glow animate-scale-in">
+          <div className="relative w-full max-w-md rounded-2xl border border-primary/50 bg-card p-8 text-center card-glow xp-pop">
             <FoxMascot stage={stageForLevel(celebration.level).id} className="mx-auto h-40 w-40" />
             <h2 className="mt-2 text-2xl font-semibold text-foreground text-glow-neon">
               {celebration.evolved ? "Sua raposa evoluiu!" : `Nível ${celebration.level}!`}
