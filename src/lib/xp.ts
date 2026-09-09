@@ -119,8 +119,10 @@ export function readXpState(): XpState {
     return {
       totalXp: Number(parsed.totalXp) || 0,
       streak: Number(parsed.streak) || 0,
+      bestStreak: Number(parsed.bestStreak) || Number(parsed.streak) || 0,
       lastActiveDay: parsed.lastActiveDay ?? null,
       lastActivity: parsed.lastActivity ?? null,
+      history: Array.isArray(parsed.history) ? parsed.history.slice(-60) : [],
     };
   } catch {
     return EMPTY;
