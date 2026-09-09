@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertCircle, Camera, CheckCircle2, Loader2, Sparkles, Trash2 } from "lucide-react";
 import { corrigirRedacao, type EssayCorrection } from "@/lib/essay.functions";
+import { awardXp } from "@/lib/xp";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -151,6 +152,7 @@ function RedacaoPage() {
       });
       setFeedback(result);
       setStatus("done");
+      awardXp("redacao");
     } catch (err) {
       console.error("[Redação] Erro na correção:", err);
       setError(

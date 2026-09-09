@@ -1,10 +1,11 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
 import { questionsSupabase } from "@/lib/external-supabase";
 import { registrarTentativa } from "@/lib/attempts.functions";
+import { XP_REWARDS, awardXp } from "@/lib/xp";
 
 export const Route = createFileRoute("/full-simulado")({
   head: () => ({
@@ -215,6 +216,18 @@ function FullSimuladoPage() {
 
   const scorecard = useMemo(() => gradeSession(outcomes), [outcomes]);
 
+  // XP do Simulado Adaptativo: creditado uma única vez ao encerrar a trilha.
+  const xpGivenRef = useRef(false);
+  useEffect(() => {
+    if (!finished) {
+      xpGivenRef.current = false;
+      return;
+    }
+    if (xpGivenRef.current || outcomes.length === 0) return;
+    xpGivenRef.current = true;
+    awardXp("simuladoAdaptativo");
+  }, [finished, outcomes.length]);
+
   if (isLoading) {
     return (
       <Shell>
@@ -256,7 +269,12 @@ function FullSimuladoPage() {
               onClick={() => startBlock(nome)}
               className="rounded-2xl border border-border bg-card p-6 text-left transition-all hover:border-primary/50 hover:shadow-[0_0_28px_-10px_var(--neon)]"
             >
-              <p className="text-base font-semibold text-foreground">{nome}</p>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-base font-semibold text-foreground">{nome}</p>
+                <span className="rounded-full bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary">
+                  +{XP_REWARDS.simuladoAdaptativo} XP
+                </span>
+              </div>
               <p className="mt-1 text-sm text-muted-foreground">{total} questões disponíveis</p>
             </button>
           ))}

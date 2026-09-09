@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { TutorChat } from "@/components/TutorChat";
 import { questionsSupabase } from "@/lib/external-supabase";
 import { registrarTentativa } from "@/lib/attempts.functions";
+import { awardXp } from "@/lib/xp";
 
 type SimuladoSearch = { area?: string; dificuldade?: string };
 
@@ -252,6 +253,8 @@ function SimuladoPage() {
     setSeenIds((prev) => (prev.includes(current.id) ? prev : [...prev, current.id]));
     // Acertou → sobe para Difícil; errou → desce para Fácil.
     if (!missionDifficulty) setTargetLevel(acertou ? "Difícil" : "Fácil");
+
+    awardXp("questao");
 
     // Registro em segundo plano: nunca bloqueia nem quebra a tela.
     void registrarTentativa({

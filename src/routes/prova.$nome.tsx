@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 
 import { EXAM_DURATION_SECONDS, fetchExamQuestions, formatClock, type ExamQuestion } from "@/lib/exams";
 import { registrarProva } from "@/lib/exam.functions";
+import { XP_REWARDS, awardXp } from "@/lib/xp";
 
 export const Route = createFileRoute("/prova/$nome")({
   head: ({ params }) => ({
@@ -72,6 +73,8 @@ function ProvaRunnerPage() {
       ).length;
       const total = questions.length;
       const nota = total > 0 ? Math.round((acertos / total) * 1000) : 0;
+
+      awardXp("provaCompleta", { label: `Prova Completa · ${nome}` });
 
       void registrarProva({
         data: {
@@ -167,6 +170,10 @@ function ProvaRunnerPage() {
               <p className="text-4xl font-mono font-semibold tabular-nums text-foreground">
                 {formatClock(EXAM_DURATION_SECONDS - remaining)}
               </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">XP conquistado</p>
+              <p className="text-4xl font-semibold text-primary">+{XP_REWARDS.provaCompleta}</p>
             </div>
           </div>
           <Link

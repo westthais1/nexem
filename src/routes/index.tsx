@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { StudySchedule } from "@/components/StudySchedule";
+import { ProgressMascot } from "@/components/ProgressMascot";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -31,6 +32,7 @@ function DashboardPage() {
           <LastScoreCard />
           <StudyTimerCard />
         </div>
+        <ProgressMascot />
         <StudySchedule />
         <QuickActions />
       </div>

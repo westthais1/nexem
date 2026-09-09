@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
 import { fetchExams } from "@/lib/exams";
+import { XP_REWARDS } from "@/lib/xp";
 
 export const Route = createFileRoute("/prova/")({
   head: () => ({
@@ -66,7 +67,12 @@ function ProvasPage() {
               className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 card-glow sm:flex-row sm:items-center sm:justify-between"
             >
               <div>
-                <h2 className="text-lg font-semibold text-foreground">{exam.nome_prova}</h2>
+                <div className="flex flex-wrap items-center gap-3">
+                  <h2 className="text-lg font-semibold text-foreground">{exam.nome_prova}</h2>
+                  <span className="rounded-full bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary">
+                    +{XP_REWARDS.provaCompleta} XP
+                  </span>
+                </div>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {exam.total} {exam.total === 1 ? "questão" : "questões"} · 5h30 de duração
                 </p>
