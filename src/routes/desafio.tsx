@@ -8,19 +8,31 @@ import { awardXp, XP_REWARDS } from "@/lib/xp";
 import { useXp } from "@/hooks/use-xp";
 import {
   DAILY_TOTAL,
-  buildDailySet,
+  applyVelocity,
+  buildDailySetFromTracks,
   diffOf,
   fetchDailyPool,
   gradeDaily,
   phaseOf,
   readSession,
-  readTheta,
   todayKey,
   writeSession,
   writeTheta,
   type DailyQuestion,
   type DailySession,
 } from "@/lib/daily-challenge";
+import {
+  MASTERY_TARGET,
+  TRACKS,
+  TRACK_LABEL,
+  averageTheta,
+  defaultProgress,
+  defaultTracks,
+  fetchProgress,
+  saveProgress,
+  trackOf,
+  type UserProgress,
+} from "@/lib/progress";
 
 export const Route = createFileRoute("/desafio")({
   head: () => ({
