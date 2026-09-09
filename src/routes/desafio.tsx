@@ -134,6 +134,7 @@ function DesafioPage() {
     };
     writeSession(nova);
     setSession(nova);
+    setIndex(0);
     setSelected(null);
     setConfirmed(false);
   }, [pool, progress.tracks]);
