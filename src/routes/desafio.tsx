@@ -114,21 +114,23 @@ function DesafioPage() {
   const done = Boolean(session?.completed) || (session != null && answered >= session.questionIds.length && session.questionIds.length > 0);
 
   const iniciar = useCallback(() => {
-    const t = readTheta();
-    const set = buildDailySet(pool, t);
+    const base = progress.tracks;
+    const set = buildDailySetFromTracks(pool, base);
     const nova: DailySession = {
       date: todayKey(),
-      theta: t,
+      theta: averageTheta(base),
+      thetas: base,
       questionIds: set.map((q) => String(q.id)),
       answers: [],
       completed: false,
       rewarded: false,
+      saved: false,
     };
     writeSession(nova);
     setSession(nova);
     setSelected(null);
     setConfirmed(false);
-  }, [pool]);
+  }, [pool, progress.tracks]);
 
   const confirmar = useCallback(() => {
     if (!session || !current || !selected || confirmed) return;
