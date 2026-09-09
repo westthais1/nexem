@@ -17,16 +17,17 @@ export const Route = createFileRoute("/simulado")({
   }),
   head: () => ({
     meta: [
-      { title: "Simulado — Nexem" },
+      { title: "Treine com Nex — Nexem" },
       {
         name: "description",
         content:
-          "Pratique questões do ENEM e peça dicas a um tutor de IA socrático que orienta sem entregar a resposta.",
+          "Questão por questão. Um treino adaptativo que acompanha seu desempenho e ajusta o desafio para você evoluir todos os dias.",
       },
-      { property: "og:title", content: "Simulado — Nexem" },
+      { property: "og:title", content: "Treine com Nex — Nexem" },
       {
         property: "og:description",
-        content: "Questões do ENEM com tutor de IA socrático que dá dicas, não respostas.",
+        content:
+          "Questão por questão, no seu nível. Travou? Chame o Nex — ele dá pistas e explica o caminho, sem entregar a resposta.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -313,11 +314,16 @@ function SimuladoPage() {
     <main className="flex-1 overflow-y-auto">
       <div className="mx-auto max-w-7xl px-6 py-8 md:px-10 md:py-12">
         <header>
-          <span className="text-xs font-medium uppercase tracking-wider text-primary">Simulado adaptativo</span>
-          <h1 className="mt-2 text-3xl font-semibold text-foreground">Pratique questão por questão</h1>
+          <span className="text-xs font-medium uppercase tracking-wider text-primary">Treine com Nex</span>
+          <h1 className="mt-2 text-3xl font-semibold text-foreground">Treine com Nex</h1>
           <p className="mt-2 max-w-xl text-muted-foreground">
-            Escolha uma área do conhecimento, sorteie uma questão e, se travar, chame o tutor de IA — ele
-            orienta com pistas, sem entregar a resposta.
+            Questão por questão. No seu nível.
+          </p>
+          <p className="mt-2 max-w-xl text-muted-foreground">
+            Um treino adaptativo que acompanha seu desempenho e ajusta o desafio para você evoluir todos os dias.
+          </p>
+          <p className="mt-2 max-w-xl text-muted-foreground">
+            Travou? Chame o Nex. Ele dá pistas e explica o caminho — sem entregar a resposta.
           </p>
         </header>
 
