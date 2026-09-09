@@ -42,7 +42,15 @@ export type XpGainDetail = {
   stageName: string;
 };
 
-const EMPTY: XpState = { totalXp: 0, streak: 0, lastActiveDay: null, lastActivity: null };
+export const EMPTY_XP: XpState = {
+  totalXp: 0,
+  streak: 0,
+  bestStreak: 0,
+  lastActiveDay: null,
+  lastActivity: null,
+  history: [],
+};
+const EMPTY = EMPTY_XP;
 
 /** XP necessário para sair do nível informado. */
 export function xpForLevel(level: number): number {
