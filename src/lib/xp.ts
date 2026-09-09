@@ -26,8 +26,11 @@ export const XP_GAIN_EVENT = "nexem-xp-gain";
 export type XpState = {
   totalXp: number;
   streak: number;
+  bestStreak: number;
   lastActiveDay: string | null;
   lastActivity: string | null;
+  /** Dias (YYYY-MM-DD) em que houve atividade — usado no calendário da sequência. */
+  history: string[];
 };
 
 export type XpGainDetail = {
