@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 
 import { EXAM_DURATION_SECONDS, fetchExamQuestions, formatClock, type ExamQuestion } from "@/lib/exams";
 import { registrarProva } from "@/lib/exam.functions";
+import { XP_REWARDS, awardXp } from "@/lib/xp";
 
 export const Route = createFileRoute("/prova/$nome")({
   head: ({ params }) => ({
