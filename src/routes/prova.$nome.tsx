@@ -74,6 +74,8 @@ function ProvaRunnerPage() {
       const total = questions.length;
       const nota = total > 0 ? Math.round((acertos / total) * 1000) : 0;
 
+      awardXp("provaCompleta", { label: `Prova Completa · ${nome}` });
+
       void registrarProva({
         data: {
           nome_prova: nome,
