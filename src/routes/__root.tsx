@@ -244,6 +244,7 @@ function RootComponent() {
           <Outlet />
         </div>
       </div>
+      <XpCelebration />
     </QueryClientProvider>
   );
 }
