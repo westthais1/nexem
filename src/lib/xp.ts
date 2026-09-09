@@ -7,6 +7,7 @@ export const XP_REWARDS = {
   questao: 10,
   simuladoAdaptativo: 25,
   redacao: 50,
+  desafioDiario: 75,
   provaCompleta: 100,
 } as const;
 
@@ -16,6 +17,7 @@ export const XP_LABELS: Record<XpSource, string> = {
   questao: "Questão respondida",
   simuladoAdaptativo: "Simulado Adaptativo",
   redacao: "Redação corrigida",
+  desafioDiario: "Desafio Diário Nexem",
   provaCompleta: "Prova Completa",
 };
 
