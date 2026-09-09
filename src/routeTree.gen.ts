@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DesafioRouteImport } from './routes/desafio'
 import { Route as EstatisticasRouteImport } from './routes/estatisticas'
 import { Route as FullSimuladoRouteImport } from './routes/full-simulado'
 import { Route as RaioXRouteImport } from './routes/raio-x'
@@ -21,6 +22,11 @@ import { Route as ProvaNomeRouteImport } from './routes/prova.$nome'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DesafioRoute = DesafioRouteImport.update({
+  id: '/desafio',
+  path: '/desafio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EstatisticasRoute = EstatisticasRouteImport.update({
@@ -61,6 +67,7 @@ const ProvaNomeRoute = ProvaNomeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/desafio': typeof DesafioRoute
   '/estatisticas': typeof EstatisticasRoute
   '/full-simulado': typeof FullSimuladoRoute
   '/raio-x': typeof RaioXRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/desafio': typeof DesafioRoute
   '/estatisticas': typeof EstatisticasRoute
   '/full-simulado': typeof FullSimuladoRoute
   '/raio-x': typeof RaioXRoute
@@ -82,6 +90,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/desafio': typeof DesafioRoute
   '/estatisticas': typeof EstatisticasRoute
   '/full-simulado': typeof FullSimuladoRoute
   '/raio-x': typeof RaioXRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/desafio'
     | '/estatisticas'
     | '/full-simulado'
     | '/raio-x'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/desafio'
     | '/estatisticas'
     | '/full-simulado'
     | '/raio-x'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/desafio'
     | '/estatisticas'
     | '/full-simulado'
     | '/raio-x'
@@ -125,6 +137,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DesafioRoute: typeof DesafioRoute
   EstatisticasRoute: typeof EstatisticasRoute
   FullSimuladoRoute: typeof FullSimuladoRoute
   RaioXRoute: typeof RaioXRoute
@@ -141,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/desafio': {
+      id: '/desafio'
+      path: '/desafio'
+      fullPath: '/desafio'
+      preLoaderRoute: typeof DesafioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/estatisticas': {
@@ -197,6 +217,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DesafioRoute: DesafioRoute,
   EstatisticasRoute: EstatisticasRoute,
   FullSimuladoRoute: FullSimuladoRoute,
   RaioXRoute: RaioXRoute,

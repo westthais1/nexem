@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { StudySchedule } from "@/components/StudySchedule";
 import { ProgressMascot } from "@/components/ProgressMascot";
+import { DailyChallengeCard } from "@/components/DailyChallengeCard";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -27,6 +28,7 @@ function DashboardPage() {
     <main className="flex-1 overflow-y-auto">
       <div className="mx-auto max-w-6xl px-6 py-8 md:px-10 md:py-12">
         <HeroBanner />
+        <DailyChallengeCard />
         <div className="mt-8 grid gap-5 md:grid-cols-3">
           <ProgressCard />
           <LastScoreCard />
