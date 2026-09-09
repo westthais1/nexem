@@ -26,8 +26,11 @@ export const XP_GAIN_EVENT = "nexem-xp-gain";
 export type XpState = {
   totalXp: number;
   streak: number;
+  bestStreak: number;
   lastActiveDay: string | null;
   lastActivity: string | null;
+  /** Dias (YYYY-MM-DD) em que houve atividade — usado no calendário da sequência. */
+  history: string[];
 };
 
 export type XpGainDetail = {
@@ -39,7 +42,15 @@ export type XpGainDetail = {
   stageName: string;
 };
 
-const EMPTY: XpState = { totalXp: 0, streak: 0, lastActiveDay: null, lastActivity: null };
+export const EMPTY_XP: XpState = {
+  totalXp: 0,
+  streak: 0,
+  bestStreak: 0,
+  lastActiveDay: null,
+  lastActivity: null,
+  history: [],
+};
+const EMPTY = EMPTY_XP;
 
 /** XP necessário para sair do nível informado. */
 export function xpForLevel(level: number): number {
@@ -108,8 +119,10 @@ export function readXpState(): XpState {
     return {
       totalXp: Number(parsed.totalXp) || 0,
       streak: Number(parsed.streak) || 0,
+      bestStreak: Number(parsed.bestStreak) || Number(parsed.streak) || 0,
       lastActiveDay: parsed.lastActiveDay ?? null,
       lastActivity: parsed.lastActivity ?? null,
+      history: Array.isArray(parsed.history) ? parsed.history.slice(-60) : [],
     };
   } catch {
     return EMPTY;
@@ -143,8 +156,12 @@ export function awardXp(source: XpSource, options?: { amount?: number; label?: s
   const next: XpState = {
     totalXp: before.totalXp + amount,
     streak,
+    bestStreak: Math.max(before.bestStreak, streak),
     lastActiveDay: day,
     lastActivity: label,
+    history: before.history.includes(day)
+      ? before.history.slice(-60)
+      : [...before.history, day].slice(-60),
   };
   writeXpState(next);
 
@@ -167,4 +184,18 @@ export function foxMessage(state: XpState, level: number): string {
   if (state.streak >= 3) return `${state.streak} dias de sequência. Mantenha o ritmo e chegamos no nível ${level + 1}!`;
   if (state.lastActivity) return `Boa! "${state.lastActivity}" concluída. Bora buscar mais XP hoje?`;
   return "Que bom te ver de novo. Vamos treinar um pouco?";
+}
+
+/** Últimos N dias (mais antigo → hoje) com marcação de atividade. */
+export function lastDays(history: string[], n = 7): { day: string; label: string; active: boolean }[] {
+  const set = new Set(history);
+  const labels = ["D", "S", "T", "Q", "Q", "S", "S"];
+  const out: { day: string; label: string; active: boolean }[] = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    out.push({ day: key, label: labels[d.getDay()] ?? "", active: set.has(key) });
+  }
+  return out;
 }

@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 import { FoxMascot } from "@/components/FoxMascot";
+import { StreakCard } from "@/components/StreakCard";
 import { useXp } from "@/hooks/use-xp";
 import { XP_REWARDS, foxMessage, FOX_STAGES } from "@/lib/xp";
 
@@ -11,8 +12,10 @@ export function ProgressMascot() {
     {
       totalXp: xp.totalXp,
       streak: xp.streak,
+      bestStreak: xp.bestStreak,
       lastActiveDay: xp.lastActiveDay,
       lastActivity: xp.lastActivity,
+      history: xp.history,
     },
     xp.level,
   );
@@ -53,8 +56,9 @@ export function ProgressMascot() {
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
               {xp.xpNoNivel} / {xp.xpParaProximo} XP para o nível {xp.level + 1}
-              {xp.streak > 0 ? ` · sequência de ${xp.streak} ${xp.streak === 1 ? "dia" : "dias"}` : ""}
             </p>
+
+            <StreakCard className="mt-5" />
 
             <div className="mt-5 flex flex-wrap gap-2">
               <RewardChip to="/simulado" label="Questão no Simulado" xp={XP_REWARDS.questao} />
