@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 
 import { questionsSupabase } from "@/lib/external-supabase";
 import { registrarTentativa } from "@/lib/attempts.functions";
+import { XP_REWARDS, awardXp } from "@/lib/xp";
 
 export const Route = createFileRoute("/full-simulado")({
   head: () => ({
