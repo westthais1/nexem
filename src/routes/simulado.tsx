@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { TutorChat } from "@/components/TutorChat";
 import { questionsSupabase } from "@/lib/external-supabase";
 import { registrarTentativa } from "@/lib/attempts.functions";
+import { awardXp } from "@/lib/xp";
 
 type SimuladoSearch = { area?: string; dificuldade?: string };
 
