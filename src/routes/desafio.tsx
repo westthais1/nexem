@@ -140,7 +140,13 @@ function DesafioPage() {
 
     const answers = [
       ...session.answers,
-      { questionId: String(current.id), letra: selected, correto, dificuldade },
+      {
+        questionId: String(current.id),
+        letra: selected,
+        correto,
+        dificuldade,
+        track: trackOf(current.area_conhecimento),
+      },
     ];
     const completed = answers.length >= session.questionIds.length;
     const next: DailySession = { ...session, answers, completed };
