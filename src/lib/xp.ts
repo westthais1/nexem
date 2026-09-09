@@ -156,8 +156,12 @@ export function awardXp(source: XpSource, options?: { amount?: number; label?: s
   const next: XpState = {
     totalXp: before.totalXp + amount,
     streak,
+    bestStreak: Math.max(before.bestStreak, streak),
     lastActiveDay: day,
     lastActivity: label,
+    history: before.history.includes(day)
+      ? before.history.slice(-60)
+      : [...before.history, day].slice(-60),
   };
   writeXpState(next);
 
