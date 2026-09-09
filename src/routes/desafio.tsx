@@ -171,6 +171,7 @@ function DesafioPage() {
   }, [session, current, selected, confirmed]);
 
   const proxima = useCallback(() => {
+    setIndex((i) => i + 1);
     setSelected(null);
     setConfirmed(false);
   }, []);
