@@ -110,8 +110,14 @@ function DesafioPage() {
   }, [session, pool]);
 
   const answered = session?.answers.length ?? 0;
-  const current = questions[answered] ?? null;
-  const done = Boolean(session?.completed) || (session != null && answered >= session.questionIds.length && session.questionIds.length > 0);
+  // Índice da questão exibida: só avança quando o aluno clica em "Próxima questão".
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    if (hydrated) setIndex(readSession()?.answers.length ?? 0);
+  }, [hydrated]);
+  const current = questions[index] ?? null;
+  const total = session?.questionIds.length ?? 0;
+  const done = session != null && total > 0 && answered >= total && index >= total;
 
   const iniciar = useCallback(() => {
     const base = progress.tracks;
@@ -128,6 +134,7 @@ function DesafioPage() {
     };
     writeSession(nova);
     setSession(nova);
+    setIndex(0);
     setSelected(null);
     setConfirmed(false);
   }, [pool, progress.tracks]);
@@ -164,6 +171,7 @@ function DesafioPage() {
   }, [session, current, selected, confirmed]);
 
   const proxima = useCallback(() => {
+    setIndex((i) => i + 1);
     setSelected(null);
     setConfirmed(false);
   }, []);
@@ -275,12 +283,12 @@ function DesafioPage() {
 
         {session && !done && current && (
           <>
-            <ProgressRing done={answered} total={session.questionIds.length || DAILY_TOTAL} phase={phaseOf(answered)} />
+            <ProgressRing done={answered} total={session.questionIds.length || DAILY_TOTAL} phase={phaseOf(index)} />
 
             <section className="mt-6 rounded-2xl border border-border bg-card p-6 card-glow">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <span className="text-sm font-medium text-muted-foreground">
-                  Questão {answered + 1} de {session.questionIds.length} · nível{" "}
+                  Questão {index + 1} de {session.questionIds.length} · nível{" "}
                   {diffOf(current, session.theta)}/100
                 </span>
                 <span className="rounded-full border border-border bg-background/40 px-3 py-1 text-xs text-muted-foreground">
