@@ -93,8 +93,10 @@ export function readSession(): DailySession | null {
       theta: clampTheta(Number(parsed.theta) || DEFAULT_THETA),
       questionIds: Array.isArray(parsed.questionIds) ? parsed.questionIds.map(String) : [],
       answers: Array.isArray(parsed.answers) ? parsed.answers : [],
+      thetas: parsed.thetas ? { ...defaultTracks(), ...parsed.thetas } : undefined,
       completed: Boolean(parsed.completed),
       rewarded: Boolean(parsed.rewarded),
+      saved: Boolean(parsed.saved),
     };
   } catch {
     return null;
