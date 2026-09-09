@@ -283,12 +283,12 @@ function DesafioPage() {
 
         {session && !done && current && (
           <>
-            <ProgressRing done={answered} total={session.questionIds.length || DAILY_TOTAL} phase={phaseOf(answered)} />
+            <ProgressRing done={answered} total={session.questionIds.length || DAILY_TOTAL} phase={phaseOf(index)} />
 
             <section className="mt-6 rounded-2xl border border-border bg-card p-6 card-glow">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <span className="text-sm font-medium text-muted-foreground">
-                  Questão {answered + 1} de {session.questionIds.length} · nível{" "}
+                  Questão {index + 1} de {session.questionIds.length} · nível{" "}
                   {diffOf(current, session.theta)}/100
                 </span>
                 <span className="rounded-full border border-border bg-background/40 px-3 py-1 text-xs text-muted-foreground">
