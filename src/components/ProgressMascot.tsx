@@ -11,8 +11,10 @@ export function ProgressMascot() {
     {
       totalXp: xp.totalXp,
       streak: xp.streak,
+      bestStreak: xp.bestStreak,
       lastActiveDay: xp.lastActiveDay,
       lastActivity: xp.lastActivity,
+      history: xp.history,
     },
     xp.level,
   );

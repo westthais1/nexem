@@ -185,3 +185,17 @@ export function foxMessage(state: XpState, level: number): string {
   if (state.lastActivity) return `Boa! "${state.lastActivity}" concluída. Bora buscar mais XP hoje?`;
   return "Que bom te ver de novo. Vamos treinar um pouco?";
 }
+
+/** Últimos N dias (mais antigo → hoje) com marcação de atividade. */
+export function lastDays(history: string[], n = 7): { day: string; label: string; active: boolean }[] {
+  const set = new Set(history);
+  const labels = ["D", "S", "T", "Q", "Q", "S", "S"];
+  const out: { day: string; label: string; active: boolean }[] = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    out.push({ day: key, label: labels[d.getDay()] ?? "", active: set.has(key) });
+  }
+  return out;
+}

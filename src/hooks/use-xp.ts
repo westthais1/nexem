@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
-import { XP_EVENT, levelInfo, readXpState, stageForLevel, type XpState } from "@/lib/xp";
+import { EMPTY_XP, XP_EVENT, levelInfo, readXpState, stageForLevel, type XpState } from "@/lib/xp";
 
-const EMPTY: XpState = { totalXp: 0, streak: 0, lastActiveDay: null, lastActivity: null };
+const EMPTY: XpState = EMPTY_XP;
 
 /** Estado de XP reativo — atualiza em qualquer tela assim que uma atividade é concluída. */
 export function useXp() {
