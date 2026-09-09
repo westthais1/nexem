@@ -1,7 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { StudySchedule } from "@/components/StudySchedule";
 import { ProgressMascot } from "@/components/ProgressMascot";
 import { DailyChallengeCard } from "@/components/DailyChallengeCard";
 import { MasteryTargets } from "@/components/MasteryTargets";
@@ -12,12 +10,12 @@ export const Route = createFileRoute("/")({
       { title: "Dashboard — Nexem" },
       {
         name: "description",
-        content: "Acompanhe seu progresso semanal, última nota de simulado e tempo de estudo no seu tutor de IA para o ENEM.",
+        content: "Desafio diário, metas de domínio e progresso adaptativo no seu tutor de IA para o ENEM.",
       },
       { property: "og:title", content: "Dashboard — Nexem" },
       {
         property: "og:description",
-        content: "Acompanhe seu progresso, notas e tempo de estudo no Nexem.",
+        content: "Desafio diário, metas de domínio e progresso adaptativo no Nexem.",
       },
     ],
   }),
@@ -30,14 +28,8 @@ function DashboardPage() {
       <div className="mx-auto max-w-6xl px-6 py-8 md:px-10 md:py-12">
         <HeroBanner />
         <DailyChallengeCard />
-        <div className="mt-8 grid gap-5 md:grid-cols-3">
-          <ProgressCard />
-          <LastScoreCard />
-          <StudyTimerCard />
-        </div>
         <MasteryTargets />
         <ProgressMascot />
-        <StudySchedule />
         <QuickActions />
       </div>
     </main>
