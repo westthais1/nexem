@@ -171,6 +171,10 @@ function ProvaRunnerPage() {
                 {formatClock(EXAM_DURATION_SECONDS - remaining)}
               </p>
             </div>
+            <div>
+              <p className="text-sm text-muted-foreground">XP conquistado</p>
+              <p className="text-4xl font-semibold text-primary">+{XP_REWARDS.provaCompleta}</p>
+            </div>
           </div>
           <Link
             to="/prova"
