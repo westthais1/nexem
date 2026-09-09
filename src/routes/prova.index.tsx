@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
 import { fetchExams } from "@/lib/exams";
+import { XP_REWARDS } from "@/lib/xp";
 
 export const Route = createFileRoute("/prova/")({
   head: () => ({
