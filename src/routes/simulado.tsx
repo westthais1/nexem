@@ -253,6 +253,8 @@ function SimuladoPage() {
     // Acertou → sobe para Difícil; errou → desce para Fácil.
     if (!missionDifficulty) setTargetLevel(acertou ? "Difícil" : "Fácil");
 
+    awardXp("questao");
+
     // Registro em segundo plano: nunca bloqueia nem quebra a tela.
     void registrarTentativa({
       data: {
