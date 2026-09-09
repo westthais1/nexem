@@ -80,17 +80,26 @@ function DesafioPage() {
   const pool = useMemo(() => data ?? [], [data]);
   const xp = useXp();
 
+  const progressQuery = useQuery({
+    queryKey: ["nexem_user_progress"],
+    queryFn: fetchProgress,
+    staleTime: 60_000,
+  });
+  const progress: UserProgress = progressQuery.data ?? defaultProgress();
+
   const [session, setSession] = useState<DailySession | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
+  const [savedTracks, setSavedTracks] = useState<UserProgress["tracks"] | null>(null);
 
   useEffect(() => {
     setSession(readSession());
     setHydrated(true);
   }, []);
 
-  const theta = session?.theta ?? (hydrated ? readTheta() : 50);
+  const tracks = session?.thetas ?? progress.tracks;
+  const theta = averageTheta(tracks);
 
   const questions = useMemo(() => {
     if (!session || pool.length === 0) return [] as DailyQuestion[];
