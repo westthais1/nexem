@@ -387,6 +387,38 @@ function DesafioPage() {
               </div>
             )}
 
+            {savedTracks && (
+              <div className="animate-in fade-in slide-in-from-bottom-2 rounded-2xl border border-primary/50 bg-primary/10 p-5 duration-500">
+                <p className="text-sm font-semibold text-primary">
+                  Proficiência salva. O desafio de amanhã já começa no seu novo nível base!
+                </p>
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {TRACKS.map((t) => {
+                    const antes = (session.thetas ?? savedTracks)[t];
+                    const depois = savedTracks[t];
+                    const delta = depois - antes;
+                    return (
+                      <div
+                        key={t}
+                        className="flex items-center justify-between rounded-lg border border-border bg-background/40 px-3 py-2 text-sm"
+                      >
+                        <span className="text-muted-foreground">{TRACK_LABEL[t]}</span>
+                        <span className="font-semibold text-foreground">
+                          {depois}/{MASTERY_TARGET}
+                          {delta !== 0 && (
+                            <span className={delta > 0 ? "ml-2 text-success" : "ml-2 text-destructive"}>
+                              {delta > 0 ? "+" : ""}
+                              {delta}
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="rounded-2xl border border-border bg-card p-6 card-glow">
               <h2 className="text-lg font-semibold text-foreground">Resumo do desafio de hoje</h2>
               <div className="mt-5 grid gap-4 sm:grid-cols-3">
