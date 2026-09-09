@@ -4,6 +4,14 @@
  */
 
 import { questionsSupabase } from "@/lib/external-supabase";
+import {
+  TRACKS,
+  clampTheta as clampTrack,
+  defaultTracks,
+  trackOf,
+  type TrackKey,
+  type Tracks,
+} from "@/lib/progress";
 
 export const DAILY_TOTAL = 10;
 const THETA_KEY = "nexem-theta-v1";
@@ -32,16 +40,22 @@ export type DailyAnswer = {
   letra: string;
   correto: boolean;
   dificuldade: number;
+  /** Trilha (área) da questão, para calibrar o theta certo. */
+  track?: TrackKey | null;
 };
 
 export type DailySession = {
   date: string;
   theta: number;
+  /** Níveis por trilha no início da sessão (âncora vinda do banco). */
+  thetas?: Tracks;
   questionIds: string[];
   answers: DailyAnswer[];
   completed: boolean;
   /** XP creditado ao concluir (evita crédito duplicado). */
   rewarded: boolean;
+  /** Progresso já gravado no banco ao final da sessão. */
+  saved?: boolean;
 };
 
 const COLUMNS =
