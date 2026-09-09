@@ -184,9 +184,33 @@ function DesafioPage() {
         : "Desafio Diário Nexem",
     });
     writeTheta(resultado.novoTheta);
-    const marcada = { ...session, rewarded: true, completed: true, theta: session.theta };
+
+    // Calibração contínua: grava os novos níveis por trilha para o desafio de amanhã.
+    const baseTracks = session.thetas ?? defaultTracks();
+    const novosTracks = applyVelocity(baseTracks, session.answers);
+    const hoje = todayKey();
+    const ontem = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+    const streak =
+      progress.lastPlayedDate === hoje
+        ? progress.streakCounter
+        : progress.lastPlayedDate === ontem
+          ? progress.streakCounter + 1
+          : 1;
+    const proximo: UserProgress = {
+      tracks: novosTracks,
+      streakCounter: streak,
+      lastPlayedDate: hoje,
+      triConsistencyRate: resultado.consistente ? 100 : 60,
+    };
+    setSavedTracks(novosTracks);
+    void saveProgress(proximo)
+      .then(() => progressQuery.refetch())
+      .catch((e) => console.error("[Desafio] Falha ao salvar proficiência", e));
+
+    const marcada = { ...session, rewarded: true, completed: true, saved: true };
     writeSession(marcada);
     setSession(marcada);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, done, resultado]);
 
   return (
