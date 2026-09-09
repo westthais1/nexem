@@ -216,6 +216,18 @@ function FullSimuladoPage() {
 
   const scorecard = useMemo(() => gradeSession(outcomes), [outcomes]);
 
+  // XP do Simulado Adaptativo: creditado uma única vez ao encerrar a trilha.
+  const xpGivenRef = useRef(false);
+  useEffect(() => {
+    if (!finished) {
+      xpGivenRef.current = false;
+      return;
+    }
+    if (xpGivenRef.current || outcomes.length === 0) return;
+    xpGivenRef.current = true;
+    awardXp("simuladoAdaptativo");
+  }, [finished, outcomes.length]);
+
   if (isLoading) {
     return (
       <Shell>
