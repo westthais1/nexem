@@ -19,7 +19,7 @@ export function ProgressMascot() {
 
   return (
     <section className="mt-8 overflow-hidden rounded-2xl border border-border bg-card card-glow">
-      <div className="bg-aurora absolute-none relative">
+      <div className="relative">
         <div className="grid gap-6 p-6 md:grid-cols-[220px_1fr] md:p-8">
           <div className="flex flex-col items-center">
             <FoxMascot stage={xp.stage.id} className="h-40 w-40" />
@@ -88,7 +88,9 @@ export function ProgressMascot() {
   );
 }
 
-function RewardChip({ to, label, xp }: { to: string; label: string; xp: number }) {
+type RewardTo = "/simulado" | "/full-simulado" | "/redacao" | "/prova";
+
+function RewardChip({ to, label, xp }: { to: RewardTo; label: string; xp: number }) {
   return (
     <Link
       to={to}
