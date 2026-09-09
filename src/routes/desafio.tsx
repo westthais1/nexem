@@ -110,8 +110,14 @@ function DesafioPage() {
   }, [session, pool]);
 
   const answered = session?.answers.length ?? 0;
-  const current = questions[answered] ?? null;
-  const done = Boolean(session?.completed) || (session != null && answered >= session.questionIds.length && session.questionIds.length > 0);
+  // Índice da questão exibida: só avança quando o aluno clica em "Próxima questão".
+  const [index, setIndex] = useState(0);
+  useEffect(() => {
+    if (hydrated) setIndex(readSession()?.answers.length ?? 0);
+  }, [hydrated]);
+  const current = questions[index] ?? null;
+  const total = session?.questionIds.length ?? 0;
+  const done = session != null && total > 0 && answered >= total && index >= total;
 
   const iniciar = useCallback(() => {
     const base = progress.tracks;
