@@ -37,9 +37,9 @@ export const Route = createFileRoute("/simulado")({
 });
 
 const LETTERS = ["A", "B", "C", "D", "E"];
-const TABLE = "enem_tutor";
+const TABLE = "enem_provas";
 const SELECT_COLUMNS =
-  "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta,explicacao,dificuldade,materia";
+  "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta,explicacao,dificuldade,materia,area_conhecimento,imagem_url";
 const REQUEST_TIMEOUT_MS = 12_000;
 
 const ALL_AREAS = "Ver Todas";
@@ -60,9 +60,37 @@ type QuestionRow = {
   opcao_e: string;
   resposta_correta: string;
   explicacao: string | null;
-  dificuldade: string | null;
+  /** Dificuldade contínua de 1 a 100 (mesma base do Desafio Diário). */
+  dificuldade: number | null;
   materia: string | null;
+  area_conhecimento: string | null;
+  imagem_url: string | null;
 };
+
+/** Faixas da dificuldade contínua (1–100) para os três níveis adaptativos. */
+type LevelName = "Fácil" | "Média" | "Difícil";
+const LEVEL_RANGE: Record<LevelName, { min: number; max: number }> = {
+  "Fácil": { min: 1, max: 39 },
+  "Média": { min: 40, max: 75 },
+  "Difícil": { min: 76, max: 100 },
+};
+
+function levelOf(dificuldade: number | null): LevelName {
+  const d = Number(dificuldade);
+  if (!Number.isFinite(d) || d <= 0) return "Média";
+  if (d < 40) return "Fácil";
+  if (d > 75) return "Difícil";
+  return "Média";
+}
+
+/** Normaliza nomes de nível vindos de links externos (ex.: "Media", "media"). */
+function normalizeLevel(raw: string): LevelName | null {
+  const v = raw.trim().toLowerCase();
+  if (v.startsWith("f")) return "Fácil";
+  if (v.startsWith("m")) return "Média";
+  if (v.startsWith("d")) return "Difícil";
+  return null;
+}
 
 type HistoryRow = {
   id: number | string;
@@ -126,8 +154,14 @@ async function fetchRandomQuestion(
       // 1) roteamento adaptativo: prioriza a dificuldade alvo e questões inéditas
       const unseen = pool.filter((r) => !excludeIds.includes(r.id));
       const base = unseen.length > 0 ? unseen : pool;
-      const byLevel = dificuldade
-        ? base.filter((r) => (r.dificuldade ?? "").trim().toLowerCase() === dificuldade.toLowerCase())
+      const level = dificuldade ? normalizeLevel(dificuldade) : null;
+      const range = level ? LEVEL_RANGE[level] : null;
+      const byLevel = range
+        ? base.filter((r) => {
+            const d = Number(r.dificuldade);
+            const n = Number.isFinite(d) && d > 0 ? d : 50;
+            return n >= range.min && n <= range.max;
+          })
         : [];
       pool = byLevel.length > 0 ? byLevel : base;
     }
@@ -248,7 +282,7 @@ function SimuladoPage() {
     setConfirmed(true);
     if (!current || choice === null) return;
     const acertou = choice === correctIndex;
-    const level = current.dificuldade ?? effectiveLevel;
+    const level: LevelName = levelOf(current.dificuldade);
 
     setAttempts((prev) => [...prev, { level, correct: acertou }]);
     setSeenIds((prev) => (prev.includes(current.id) ? prev : [...prev, current.id]));
@@ -261,7 +295,7 @@ function SimuladoPage() {
     void registrarTentativa({
       data: {
         question_id: current.id,
-        dificuldade_questao: current.dificuldade,
+        dificuldade_questao: level,
         materia_questao: current.materia,
         foi_correto: acertou,
       },
@@ -420,6 +454,31 @@ function SimuladoPage() {
               </div>
             ) : current ? (
               <article className="rounded-2xl border border-border bg-card p-6 card-glow md:p-9">
+                <div className="flex flex-wrap items-center gap-2">
+                  {current.area_conhecimento ? (
+                    <span className="rounded-md bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                      {current.area_conhecimento}
+                    </span>
+                  ) : null}
+                  {current.materia ? (
+                    <span className="rounded-md bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                      {current.materia}
+                    </span>
+                  ) : null}
+                  <span className="rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">
+                    {levelOf(current.dificuldade)} · {current.dificuldade ?? 50}/100
+                  </span>
+                </div>
+
+                {current.imagem_url && /^https?:\/\//.test(current.imagem_url) ? (
+                  <img
+                    src={current.imagem_url}
+                    alt="Imagem de apoio da questão"
+                    loading="lazy"
+                    className="mt-5 max-h-80 w-auto rounded-xl border border-border bg-background/40 object-contain"
+                  />
+                ) : null}
+
                 <div className="mt-6 space-y-5">
                   {current.enunciado.split("\n\n").map((p, i) => (
                     <p key={i} className="text-[17px] leading-8 tracking-[0.01em] text-foreground/90">
