@@ -37,9 +37,9 @@ export const Route = createFileRoute("/simulado")({
 });
 
 const LETTERS = ["A", "B", "C", "D", "E"];
-const TABLE = "enem_tutor";
+const TABLE = "enem_provas";
 const SELECT_COLUMNS =
-  "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta,explicacao,dificuldade,materia";
+  "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta,explicacao,dificuldade,materia,area_conhecimento,imagem_url";
 const REQUEST_TIMEOUT_MS = 12_000;
 
 const ALL_AREAS = "Ver Todas";
@@ -60,9 +60,37 @@ type QuestionRow = {
   opcao_e: string;
   resposta_correta: string;
   explicacao: string | null;
-  dificuldade: string | null;
+  /** Dificuldade contínua de 1 a 100 (mesma base do Desafio Diário). */
+  dificuldade: number | null;
   materia: string | null;
+  area_conhecimento: string | null;
+  imagem_url: string | null;
 };
+
+/** Faixas da dificuldade contínua (1–100) para os três níveis adaptativos. */
+type LevelName = "Fácil" | "Média" | "Difícil";
+const LEVEL_RANGE: Record<LevelName, { min: number; max: number }> = {
+  "Fácil": { min: 1, max: 39 },
+  "Média": { min: 40, max: 75 },
+  "Difícil": { min: 76, max: 100 },
+};
+
+function levelOf(dificuldade: number | null): LevelName {
+  const d = Number(dificuldade);
+  if (!Number.isFinite(d) || d <= 0) return "Média";
+  if (d < 40) return "Fácil";
+  if (d > 75) return "Difícil";
+  return "Média";
+}
+
+/** Normaliza nomes de nível vindos de links externos (ex.: "Media", "media"). */
+function normalizeLevel(raw: string): LevelName | null {
+  const v = raw.trim().toLowerCase();
+  if (v.startsWith("f")) return "Fácil";
+  if (v.startsWith("m")) return "Média";
+  if (v.startsWith("d")) return "Difícil";
+  return null;
+}
 
 type HistoryRow = {
   id: number | string;
