@@ -470,7 +470,7 @@ function SimuladoPage() {
                   </span>
                 </div>
 
-                {current.imagem_url ? (
+                {current.imagem_url && /^https?:\/\//.test(current.imagem_url) ? (
                   <img
                     src={current.imagem_url}
                     alt="Imagem de apoio da questão"
