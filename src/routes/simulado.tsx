@@ -454,6 +454,31 @@ function SimuladoPage() {
               </div>
             ) : current ? (
               <article className="rounded-2xl border border-border bg-card p-6 card-glow md:p-9">
+                <div className="flex flex-wrap items-center gap-2">
+                  {current.area_conhecimento ? (
+                    <span className="rounded-md bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                      {current.area_conhecimento}
+                    </span>
+                  ) : null}
+                  {current.materia ? (
+                    <span className="rounded-md bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                      {current.materia}
+                    </span>
+                  ) : null}
+                  <span className="rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">
+                    {levelOf(current.dificuldade)} · {current.dificuldade ?? 50}/100
+                  </span>
+                </div>
+
+                {current.imagem_url ? (
+                  <img
+                    src={current.imagem_url}
+                    alt="Imagem de apoio da questão"
+                    loading="lazy"
+                    className="mt-5 max-h-80 w-auto rounded-xl border border-border bg-background/40 object-contain"
+                  />
+                ) : null}
+
                 <div className="mt-6 space-y-5">
                   {current.enunciado.split("\n\n").map((p, i) => (
                     <p key={i} className="text-[17px] leading-8 tracking-[0.01em] text-foreground/90">
