@@ -334,6 +334,7 @@ function SimuladoPage() {
     setConfirmed(false);
     setChatOpen(false);
     setForcedId(null);
+    setPendingLevel(null);
     setMateria(next);
     setRound((r) => r + 1);
   }
