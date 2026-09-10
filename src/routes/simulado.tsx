@@ -312,6 +312,8 @@ function SimuladoPage() {
     setConfirmed(false);
     setChatOpen(false);
     setForcedId(null);
+    if (pendingLevel) setTargetLevel(pendingLevel);
+    setPendingLevel(null);
     setRound((r) => r + 1);
   }
 
@@ -322,6 +324,7 @@ function SimuladoPage() {
     setForcedId(null);
     setAttempts([]);
     setSeenIds([]);
+    setPendingLevel(null);
     setTargetLevel(missionDifficulty ?? START_LEVEL);
     setRound((r) => r + 1);
   }
