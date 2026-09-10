@@ -282,7 +282,7 @@ function SimuladoPage() {
     setConfirmed(true);
     if (!current || choice === null) return;
     const acertou = choice === correctIndex;
-    const level = current.dificuldade ?? effectiveLevel;
+    const level: LevelName = levelOf(current.dificuldade);
 
     setAttempts((prev) => [...prev, { level, correct: acertou }]);
     setSeenIds((prev) => (prev.includes(current.id) ? prev : [...prev, current.id]));
