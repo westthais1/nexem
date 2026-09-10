@@ -249,6 +249,9 @@ function SimuladoPage() {
   const [forcedId, setForcedId] = useState<number | string | null>(null);
   // Roteamento adaptativo: toda trilha começa em "Média".
   const [targetLevel, setTargetLevel] = useState<string>(missionDifficulty ?? START_LEVEL);
+  // Próximo nível fica pendente até o aluno pedir a próxima questão,
+  // para que a questão atual não seja trocada ao confirmar a resposta.
+  const [pendingLevel, setPendingLevel] = useState<string | null>(null);
   const [seenIds, setSeenIds] = useState<Array<number | string>>([]);
   const [attempts, setAttempts] = useState<SessionAttempt[]>([]);
   const [round, setRound] = useState(0);
@@ -287,7 +290,7 @@ function SimuladoPage() {
     setAttempts((prev) => [...prev, { level, correct: acertou }]);
     setSeenIds((prev) => (prev.includes(current.id) ? prev : [...prev, current.id]));
     // Acertou → sobe para Difícil; errou → desce para Fácil.
-    if (!missionDifficulty) setTargetLevel(acertou ? "Difícil" : "Fácil");
+    if (!missionDifficulty) setPendingLevel(acertou ? "Difícil" : "Fácil");
 
     awardXp("questao");
 
@@ -309,6 +312,8 @@ function SimuladoPage() {
     setConfirmed(false);
     setChatOpen(false);
     setForcedId(null);
+    if (pendingLevel) setTargetLevel(pendingLevel);
+    setPendingLevel(null);
     setRound((r) => r + 1);
   }
 
@@ -319,6 +324,7 @@ function SimuladoPage() {
     setForcedId(null);
     setAttempts([]);
     setSeenIds([]);
+    setPendingLevel(null);
     setTargetLevel(missionDifficulty ?? START_LEVEL);
     setRound((r) => r + 1);
   }
@@ -328,6 +334,7 @@ function SimuladoPage() {
     setConfirmed(false);
     setChatOpen(false);
     setForcedId(null);
+    setPendingLevel(null);
     setMateria(next);
     setRound((r) => r + 1);
   }
