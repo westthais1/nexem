@@ -295,7 +295,7 @@ function SimuladoPage() {
     void registrarTentativa({
       data: {
         question_id: current.id,
-        dificuldade_questao: current.dificuldade,
+        dificuldade_questao: level,
         materia_questao: current.materia,
         foi_correto: acertou,
       },
