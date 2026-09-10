@@ -249,6 +249,9 @@ function SimuladoPage() {
   const [forcedId, setForcedId] = useState<number | string | null>(null);
   // Roteamento adaptativo: toda trilha começa em "Média".
   const [targetLevel, setTargetLevel] = useState<string>(missionDifficulty ?? START_LEVEL);
+  // Próximo nível fica pendente até o aluno pedir a próxima questão,
+  // para que a questão atual não seja trocada ao confirmar a resposta.
+  const [pendingLevel, setPendingLevel] = useState<string | null>(null);
   const [seenIds, setSeenIds] = useState<Array<number | string>>([]);
   const [attempts, setAttempts] = useState<SessionAttempt[]>([]);
   const [round, setRound] = useState(0);
