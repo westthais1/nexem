@@ -290,7 +290,7 @@ function SimuladoPage() {
     setAttempts((prev) => [...prev, { level, correct: acertou }]);
     setSeenIds((prev) => (prev.includes(current.id) ? prev : [...prev, current.id]));
     // Acertou → sobe para Difícil; errou → desce para Fácil.
-    if (!missionDifficulty) setTargetLevel(acertou ? "Difícil" : "Fácil");
+    if (!missionDifficulty) setPendingLevel(acertou ? "Difícil" : "Fácil");
 
     awardXp("questao");
 
