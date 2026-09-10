@@ -154,8 +154,14 @@ async function fetchRandomQuestion(
       // 1) roteamento adaptativo: prioriza a dificuldade alvo e questões inéditas
       const unseen = pool.filter((r) => !excludeIds.includes(r.id));
       const base = unseen.length > 0 ? unseen : pool;
-      const byLevel = dificuldade
-        ? base.filter((r) => (r.dificuldade ?? "").trim().toLowerCase() === dificuldade.toLowerCase())
+      const level = dificuldade ? normalizeLevel(dificuldade) : null;
+      const range = level ? LEVEL_RANGE[level] : null;
+      const byLevel = range
+        ? base.filter((r) => {
+            const d = Number(r.dificuldade);
+            const n = Number.isFinite(d) && d > 0 ? d : 50;
+            return n >= range.min && n <= range.max;
+          })
         : [];
       pool = byLevel.length > 0 ? byLevel : base;
     }
