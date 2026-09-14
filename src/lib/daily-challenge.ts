@@ -197,21 +197,110 @@ export function buildDailySetFromTracks(pool: DailyQuestion[], tracks: Tracks): 
 }
 
 /**
- * Calibração contínua: cada resposta move o nível da trilha correspondente.
- * Acertar acima do próprio nível sobe mais; errar abaixo dele desce mais.
+ * Histórico de questões já respondidas (anti-repetição).
+ * Guardado localmente porque o banco ainda não tem a tabela `historico_simulado`.
+ */
+const HISTORY_KEY = "nexem-historico-simulado-v1";
+
+export function readHistory(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(HISTORY_KEY);
+    const arr = raw ? (JSON.parse(raw) as unknown[]) : [];
+    return Array.isArray(arr) ? arr.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function pushHistory(ids: Array<string | number>) {
+  if (typeof window === "undefined") return;
+  const set = new Set([...readHistory(), ...ids.map(String)]);
+  window.localStorage.setItem(HISTORY_KEY, JSON.stringify([...set]));
+}
+
+/**
+ * Sessão diária completa: 2 Natureza, 2 Humanas, 2 Linguagens, 2 Matemática
+ * (slots 1–2 em θ−15, 3–8 em θ) e 2 coringas globais de alto nível (dificuldade > 75).
+ * Questões já respondidas antes (histórico) são excluídas do sorteio.
+ */
+export function buildProgressiveDailySet(
+  pool: DailyQuestion[],
+  tracks: Tracks,
+  excludedIds: string[] = [],
+): DailyQuestion[] {
+  const excluded = new Set(excludedIds.map(String));
+  let disponiveis = pool.filter((q) => !excluded.has(String(q.id)));
+  // Se o histórico já consumiu quase tudo, libera o banco inteiro novamente.
+  if (disponiveis.length < DAILY_TOTAL) disponiveis = [...pool];
+
+  const used = new Set<string>();
+  const picked: DailyQuestion[] = [];
+
+  const pick = (lista: DailyQuestion[], alvo: number) => {
+    const candidatos = lista.filter((q) => !used.has(String(q.id)));
+    if (candidatos.length === 0) return null;
+    const escolhida = candidatos.reduce((melhor, q) =>
+      Math.abs(diffOf(q, alvo) - alvo) < Math.abs(diffOf(melhor, alvo) - alvo) ? q : melhor,
+    );
+    used.add(String(escolhida.id));
+    picked.push(escolhida);
+    return escolhida;
+  };
+
+  // Slots 1–8: duas questões de cada área (as duas primeiras em modo aquecimento).
+  const ordem: TrackKey[] = [
+    "natureza",
+    "humanas",
+    "linguagens",
+    "matematica",
+    "natureza",
+    "humanas",
+    "linguagens",
+    "matematica",
+  ];
+  ordem.forEach((trilha, i) => {
+    const base = tracks[trilha] ?? DEFAULT_THETA;
+    const alvo = clampTrack(base + (i < 2 ? -15 : 0));
+    const daTrilha = disponiveis.filter((q) => trackOf(q.area_conhecimento) === trilha);
+    pick(daTrilha.length > 0 ? daTrilha : disponiveis, alvo);
+  });
+
+  // Slots 9–10: coringas globais de alto nível (dificuldade > 75).
+  const mediaBoss = clampTrack(
+    TRACKS.reduce((s, t) => s + (tracks[t] ?? DEFAULT_THETA), 0) / TRACKS.length + 15,
+  );
+  for (let i = 0; i < 2; i += 1) {
+    const dificeis = disponiveis.filter((q) => diffOf(q, 0) > 75 && !used.has(String(q.id)));
+    pick(dificeis.length > 0 ? dificeis : disponiveis, Math.max(76, mediaBoss));
+  }
+
+  return picked;
+}
+
+/** Precisão das últimas 5 respostas (janela móvel). */
+export function rollingAccuracy(answers: DailyAnswer[]): number {
+  const janela = answers.slice(-5);
+  if (janela.length === 0) return 0.6;
+  return janela.filter((a) => a.correto).length / janela.length;
+}
+
+/**
+ * Calibração contínua com janela móvel de 5 respostas:
+ * acerto consistente +12, acerto isolado +6, erro consistente −6, erro em série −12.
  */
 export function applyVelocity(tracks: Tracks, answers: DailyAnswer[]): Tracks {
   const next: Tracks = { ...tracks };
-  for (const a of answers) {
+  answers.forEach((a, i) => {
     const trilha = a.track;
-    if (!trilha) continue;
-    const atual = next[trilha];
-    const acima = a.dificuldade >= atual;
-    const delta = a.correto ? (acima ? 3 : 1.5) : acima ? -1.5 : -3;
-    next[trilha] = clampTrack(atual + delta);
-  }
+    if (!trilha) return;
+    const acc = rollingAccuracy(answers.slice(0, i + 1));
+    const delta = a.correto ? (acc >= 0.6 ? 12 : 6) : acc < 0.4 ? -12 : -6;
+    next[trilha] = clampTrack(next[trilha] + delta);
+  });
   return next;
 }
+
 
 export type DailyResult = {
   acertos: number;
