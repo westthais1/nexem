@@ -215,9 +215,12 @@ function DesafioPage() {
       triConsistencyRate: resultado.consistente ? 100 : 60,
     };
     setSavedTracks(novosTracks);
+    // Anti-repetição: as questões do dia não voltam em sessões futuras.
+    pushHistory(session.questionIds);
     void saveProgress(proximo)
       .then(() => progressQuery.refetch())
       .catch((e) => console.error("[Desafio] Falha ao salvar proficiência", e));
+
 
     const marcada = { ...session, rewarded: true, completed: true, saved: true };
     writeSession(marcada);
