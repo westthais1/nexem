@@ -1,54 +1,57 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { CheckCircle2, ChevronLeft, Loader2, Lock, Sparkles, Trophy } from "lucide-react";
 
 import { TutorChat } from "@/components/TutorChat";
 import { questionsSupabase } from "@/lib/external-supabase";
 import { registrarTentativa } from "@/lib/attempts.functions";
 import { awardXp } from "@/lib/xp";
-
-type SimuladoSearch = { area?: string; dificuldade?: string };
+import { pushHistory, readHistory } from "@/lib/daily-challenge";
+import { fetchProgress, saveProgress, TRACK_LABEL, type UserProgress } from "@/lib/progress";
+import {
+  BLOCK_SIZE,
+  LEVELS,
+  SUBJECTS,
+  SUBJECT_BY_SLUG,
+  averageOf,
+  calibrate,
+  subjectOf,
+  unlocked,
+  withTrack,
+  type LevelId,
+  type MasteryLevel,
+  type Subject,
+} from "@/lib/mastery";
 
 export const Route = createFileRoute("/simulado")({
-  validateSearch: (search: Record<string, unknown>): SimuladoSearch => ({
-    ...(typeof search['area'] === "string" ? { area: search['area'] } : {}),
-    ...(typeof search['dificuldade'] === "string" ? { dificuldade: search['dificuldade'] } : {}),
-  }),
   head: () => ({
     meta: [
-      { title: "Treine com Nex — Nexem" },
+      { title: "Níveis de Maestria — Treine com Nex | Nexem" },
       {
         name: "description",
         content:
-          "Questão por questão. Um treino adaptativo que acompanha seu desempenho e ajusta o desafio para você evoluir todos os dias.",
+          "Treino estruturado por matéria em três níveis: Fundações, Aprofundamento e Domínio Avançado. Blocos de 5 questões que calibram sua proficiência.",
       },
-      { property: "og:title", content: "Treine com Nex — Nexem" },
+      { property: "og:title", content: "Níveis de Maestria — Treine com Nex | Nexem" },
       {
         property: "og:description",
         content:
-          "Questão por questão, no seu nível. Travou? Chame o Nex — ele dá pistas e explica o caminho, sem entregar a resposta.",
+          "Escolha a matéria, destrave os níveis e suba sua proficiência bloco a bloco, no estilo TRI do ENEM.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: SimuladoPage,
+  component: MaestriaPage,
 });
 
-const LETTERS = ["A", "B", "C", "D", "E"];
-const TABLE = "enem_provas";
-const SELECT_COLUMNS =
-  "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta,explicacao,dificuldade,materia,area_conhecimento,imagem_url";
-const REQUEST_TIMEOUT_MS = 12_000;
+/* --------------------------------- dados ---------------------------------- */
 
-const ALL_AREAS = "Ver Todas";
-const ENEM_AREAS = [
-  "Ciências da Natureza",
-  "Ciências Humanas",
-  "Linguagens",
-  "Matemática",
-] as const;
+const TABLE = "enem_provas";
+const COLUMNS =
+  "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta,explicacao,dificuldade,materia,area_conhecimento,imagem_url";
+const LETTERS = ["A", "B", "C", "D", "E"] as const;
 
 type QuestionRow = {
   id: number | string;
@@ -60,662 +63,684 @@ type QuestionRow = {
   opcao_e: string;
   resposta_correta: string;
   explicacao: string | null;
-  /** Dificuldade contínua de 1 a 100 (mesma base do Desafio Diário). */
   dificuldade: number | null;
   materia: string | null;
   area_conhecimento: string | null;
   imagem_url: string | null;
 };
 
-/** Faixas da dificuldade contínua (1–100) para os três níveis adaptativos. */
-type LevelName = "Fácil" | "Média" | "Difícil";
-const LEVEL_RANGE: Record<LevelName, { min: number; max: number }> = {
-  "Fácil": { min: 1, max: 39 },
-  "Média": { min: 40, max: 75 },
-  "Difícil": { min: 76, max: 100 },
-};
-
-function levelOf(dificuldade: number | null): LevelName {
-  const d = Number(dificuldade);
-  if (!Number.isFinite(d) || d <= 0) return "Média";
-  if (d < 40) return "Fácil";
-  if (d > 75) return "Difícil";
-  return "Média";
+async function fetchPool(): Promise<QuestionRow[]> {
+  const { data, error } = await questionsSupabase.from(TABLE).select(COLUMNS);
+  if (error) throw new Error(`Erro ao carregar o banco de questões: ${error.message}`);
+  return (data ?? []) as QuestionRow[];
 }
 
-/** Normaliza nomes de nível vindos de links externos (ex.: "Media", "media"). */
-function normalizeLevel(raw: string): LevelName | null {
-  const v = raw.trim().toLowerCase();
-  if (v.startsWith("f")) return "Fácil";
-  if (v.startsWith("m")) return "Média";
-  if (v.startsWith("d")) return "Difícil";
-  return null;
+function diffOf(q: QuestionRow): number {
+  const d = Number(q.dificuldade);
+  return Number.isFinite(d) && d > 0 ? Math.min(100, Math.max(1, Math.round(d))) : 50;
 }
 
-type HistoryRow = {
-  id: number | string;
-  enunciado: string;
-  area_conhecimento: string | null;
-  materia: string | null;
-};
-
-async function fetchAllQuestions(): Promise<HistoryRow[]> {
-  const { data, error } = await questionsSupabase
-    .from(TABLE)
-    .select("id,enunciado,area_conhecimento,materia")
-    .order("materia", { ascending: true });
-
-  if (error) {
-    console.error(`[Simulado] Falha ao listar histórico de ${TABLE}`, error);
-    throw new Error(`Erro ao listar o histórico da tabela "${TABLE}": ${error.message}`);
+function optionText(q: QuestionRow, letter: string): string {
+  switch (letter) {
+    case "A":
+      return q.opcao_a;
+    case "B":
+      return q.opcao_b;
+    case "C":
+      return q.opcao_c;
+    case "D":
+      return q.opcao_d;
+    default:
+      return q.opcao_e;
   }
-  return (data ?? []) as HistoryRow[];
 }
 
-async function fetchRandomQuestion(
-  materia: string,
-  forcedId: number | string | null,
-  dificuldade: string | null,
-  excludeIds: Array<number | string> = [],
-): Promise<QuestionRow | null> {
-  const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+function isValid(q: QuestionRow): boolean {
+  const campos = [q.enunciado, q.opcao_a, q.opcao_b, q.opcao_c, q.opcao_d, q.opcao_e];
+  if (campos.some((c) => typeof c !== "string" || c.trim() === "")) return false;
+  return LETTERS.includes((q.resposta_correta ?? "").trim().toUpperCase() as (typeof LETTERS)[number]);
+}
 
-  try {
-    // Busca apenas as colunas necessárias. Filtra pela área do conhecimento
-    // usando a coluna `area_conhecimento` (ou traz tudo em "Ver Todas").
-    let query = questionsSupabase.from(TABLE).select(SELECT_COLUMNS);
-    if (forcedId !== null) {
-      query = query.eq("id", forcedId);
-    } else if (materia !== ALL_AREAS) {
-      query = query.ilike("area_conhecimento", `${materia}%`);
+/** Bloco de 5 questões inéditas dentro da faixa exata do nível. */
+function buildBlock(
+  pool: QuestionRow[],
+  subject: Subject,
+  level: MasteryLevel,
+  excluded: Set<string>,
+): QuestionRow[] {
+  const daMateria = pool.filter(
+    (q) => isValid(q) && subjectOf(q.materia, q.area_conhecimento)?.slug === subject.slug,
+  );
+  const naFaixa = daMateria.filter((q) => {
+    const d = diffOf(q);
+    return d >= level.min && d <= level.max;
+  });
+  const ineditas = naFaixa.filter((q) => !excluded.has(String(q.id)));
+  const base = ineditas.length >= BLOCK_SIZE ? ineditas : naFaixa.length > 0 ? naFaixa : daMateria;
+  const sorteadas = [...base].sort(() => Math.random() - 0.5).slice(0, BLOCK_SIZE);
+  return sorteadas.map((q) => ({ ...q, resposta_correta: q.resposta_correta.trim().toUpperCase() }));
+}
+
+type Answer = { questionId: string; letra: string; correto: boolean; dificuldade: number };
+
+/* --------------------------------- página --------------------------------- */
+
+type View =
+  | { kind: "materias" }
+  | { kind: "niveis"; subject: Subject }
+  | { kind: "bloco"; subject: Subject; level: MasteryLevel };
+
+function MaestriaPage() {
+  const poolQuery = useQuery({ queryKey: [TABLE, "maestria"], queryFn: fetchPool });
+  const progressQuery = useQuery({ queryKey: ["nexem_user_progress"], queryFn: fetchProgress });
+
+  const [view, setView] = useState<View>({ kind: "materias" });
+
+  const pool = useMemo(() => poolQuery.data ?? [], [poolQuery.data]);
+  const progress = progressQuery.data ?? null;
+
+  const contagem = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const q of pool) {
+      const s = subjectOf(q.materia, q.area_conhecimento);
+      if (!s) continue;
+      map.set(s.slug, (map.get(s.slug) ?? 0) + 1);
     }
-    const { data, error, status, statusText } = await query.abortSignal(controller.signal);
+    return map;
+  }, [pool]);
 
-    console.info(`[Simulado] Consulta direta à tabela ${TABLE} (Supabase externo)`, {
-      materia,
-      dificuldade,
-      status,
-      statusText,
-      linhasRetornadas: data?.length ?? 0,
-    });
-
-    if (error) {
-      const details = `code: ${error.code ?? "n/a"}, details: ${error.details ?? "n/a"}, hint: ${error.hint ?? "n/a"}`;
-      console.error(`[Simulado] Falha ao consultar ${TABLE}`, error);
-      throw new Error(`Erro ao ler a tabela "${TABLE}": ${error.message} (${details})`);
-    }
-
-    if (!data || data.length === 0) return null;
-
-    const rows = data as QuestionRow[];
-    let pool = rows;
-    if (forcedId === null) {
-      // 1) roteamento adaptativo: prioriza a dificuldade alvo e questões inéditas
-      const unseen = pool.filter((r) => !excludeIds.includes(r.id));
-      const base = unseen.length > 0 ? unseen : pool;
-      const level = dificuldade ? normalizeLevel(dificuldade) : null;
-      const range = level ? LEVEL_RANGE[level] : null;
-      const byLevel = range
-        ? base.filter((r) => {
-            const d = Number(r.dificuldade);
-            const n = Number.isFinite(d) && d > 0 ? d : 50;
-            return n >= range.min && n <= range.max;
-          })
-        : [];
-      pool = byLevel.length > 0 ? byLevel : base;
-    }
-
-    const selected = pool[Math.floor(Math.random() * pool.length)];
-    if (!selected) return null;
-
-    const requiredFields = ["enunciado", "opcao_a", "opcao_b", "opcao_c", "opcao_d", "opcao_e", "resposta_correta"] as const;
-    const missingFields = requiredFields.filter(
-      (field) => typeof selected[field] !== "string" || selected[field].trim() === "",
+  if (poolQuery.isLoading || progressQuery.isLoading) {
+    return (
+      <Shell>
+        <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-6 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" /> Carregando suas trilhas de maestria...
+        </div>
+      </Shell>
     );
-    if (missingFields.length > 0) {
-      const message = `A linha retornada por "${TABLE}" possui campos ausentes ou vazios: ${missingFields.join(", ")}.`;
-      console.error(`[Simulado] Dados inválidos recebidos do banco`, { id: selected.id, missingFields });
-      throw new Error(message);
-    }
-    const answer = (selected.resposta_correta as string).trim().toUpperCase();
-    if (!LETTERS.includes(answer)) {
-      const message = `A coluna "resposta_correta" da linha ${selected.id} contém um valor inválido: "${selected.resposta_correta}". Esperado: A, B, C, D ou E.`;
-      console.error(`[Simulado] resposta_correta inválida`, { id: selected.id, valor: selected.resposta_correta });
-      throw new Error(message);
-    }
-
-    return { ...selected, resposta_correta: answer };
-  } catch (cause) {
-    if (controller.signal.aborted) {
-      const message = `A consulta à tabela "${TABLE}" excedeu ${REQUEST_TIMEOUT_MS / 1000} segundos.`;
-      console.error(`[Simulado] ${message}`);
-      throw new Error(message);
-    }
-    throw cause;
-  } finally {
-    window.clearTimeout(timeout);
-  }
-}
-
-// ————— Motor de estimativa TRI da sessão —————
-const START_LEVEL = "Média";
-const LEVEL_POINTS: Record<string, number> = { fácil: 100, facil: 100, média: 200, media: 200, difícil: 300, dificil: 300 };
-const MAX_LEVEL_POINTS = 300;
-const GUESSING_PENALTY = 0.4;
-
-type SessionAttempt = { level: string; correct: boolean };
-
-function levelPoints(level: string | null): number {
-  return LEVEL_POINTS[(level ?? "Média").trim().toLowerCase()] ?? 200;
-}
-
-function computeTri(attempts: SessionAttempt[]) {
-  if (attempts.length === 0) {
-    return { score: 0, earned: 0, possible: 0, inconsistent: false, accuracy: 0 };
-  }
-  let earned = 0;
-  let possible = 0;
-  for (const a of attempts) {
-    const pts = levelPoints(a.level);
-    possible += pts;
-    if (a.correct) earned += pts;
-  }
-  // Padrão inconsistente (indício de chute): acerta questões difíceis
-  // enquanto erra questões fáceis.
-  const hitHard = attempts.some((a) => a.correct && levelPoints(a.level) === MAX_LEVEL_POINTS);
-  const missEasy = attempts.some((a) => !a.correct && levelPoints(a.level) === 100);
-  const inconsistent = hitHard && missEasy;
-
-  const raw = possible > 0 ? earned / possible : 0;
-  const adjusted = inconsistent ? raw * (1 - GUESSING_PENALTY) : raw;
-  return {
-    score: Math.round(adjusted * 1000),
-    earned,
-    possible,
-    inconsistent,
-    accuracy: attempts.filter((a) => a.correct).length / attempts.length,
-  };
-}
-
-
-function SimuladoPage() {
-  const search = Route.useSearch();
-  const missionDifficulty = search.dificuldade ?? null;
-  const [choice, setChoice] = useState<number | null>(null);
-  const [confirmed, setConfirmed] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false);
-  const [materia, setMateria] = useState<string>(search.area ?? ALL_AREAS);
-  const [forcedId, setForcedId] = useState<number | string | null>(null);
-  // Roteamento adaptativo: toda trilha começa em "Média".
-  const [targetLevel, setTargetLevel] = useState<string>(missionDifficulty ?? START_LEVEL);
-  // Próximo nível fica pendente até o aluno pedir a próxima questão,
-  // para que a questão atual não seja trocada ao confirmar a resposta.
-  const [pendingLevel, setPendingLevel] = useState<string | null>(null);
-  const [seenIds, setSeenIds] = useState<Array<number | string>>([]);
-  const [attempts, setAttempts] = useState<SessionAttempt[]>([]);
-  const [round, setRound] = useState(0);
-
-  const effectiveLevel = missionDifficulty ?? targetLevel;
-  const tri = computeTri(attempts);
-
-  const { data, isFetching, error, refetch } = useQuery({
-    queryKey: ["random-question", "external", materia, forcedId, effectiveLevel, round],
-    queryFn: () => fetchRandomQuestion(materia, forcedId, effectiveLevel, seenIds),
-    retry: false,
-    staleTime: 0,
-  });
-
-  const historyQuery = useQuery({
-    queryKey: ["question-history", "external"],
-    queryFn: fetchAllQuestions,
-    retry: false,
-    staleTime: 60_000,
-  });
-  const history = historyQuery.data ?? [];
-  const subjects: string[] = [ALL_AREAS, ...ENEM_AREAS];
-
-  const current = data ?? null;
-  const options = current
-    ? [current.opcao_a, current.opcao_b, current.opcao_c, current.opcao_d, current.opcao_e]
-    : [];
-  const correctIndex = current ? LETTERS.indexOf(current.resposta_correta) : -1;
-
-  function confirmAnswer() {
-    setConfirmed(true);
-    if (!current || choice === null) return;
-    const acertou = choice === correctIndex;
-    const level: LevelName = levelOf(current.dificuldade);
-
-    setAttempts((prev) => [...prev, { level, correct: acertou }]);
-    setSeenIds((prev) => (prev.includes(current.id) ? prev : [...prev, current.id]));
-    // Acertou → sobe para Difícil; errou → desce para Fácil.
-    if (!missionDifficulty) setPendingLevel(acertou ? "Difícil" : "Fácil");
-
-    awardXp("questao");
-
-    // Registro em segundo plano: nunca bloqueia nem quebra a tela.
-    void registrarTentativa({
-      data: {
-        question_id: current.id,
-        dificuldade_questao: level,
-        materia_questao: current.materia,
-        foi_correto: acertou,
-      },
-    }).catch((cause) => {
-      console.error("[Simulado] Falha ao registrar tentativa", cause);
-    });
   }
 
-  function drawAnother() {
-    setChoice(null);
-    setConfirmed(false);
-    setChatOpen(false);
-    setForcedId(null);
-    if (pendingLevel) setTargetLevel(pendingLevel);
-    setPendingLevel(null);
-    setRound((r) => r + 1);
+  if (poolQuery.isError || progressQuery.isError) {
+    const err = (poolQuery.error ?? progressQuery.error) as Error;
+    return (
+      <Shell>
+        <div className="rounded-2xl border border-destructive/40 bg-destructive/10 p-6 text-sm text-destructive">
+          {err.message}
+        </div>
+      </Shell>
+    );
   }
 
-  function resetTrail() {
-    setChoice(null);
-    setConfirmed(false);
-    setChatOpen(false);
-    setForcedId(null);
-    setAttempts([]);
-    setSeenIds([]);
-    setPendingLevel(null);
-    setTargetLevel(missionDifficulty ?? START_LEVEL);
-    setRound((r) => r + 1);
+  if (view.kind === "bloco" && progress) {
+    return (
+      <Shell>
+        <BlockSession
+          subject={view.subject}
+          level={view.level}
+          pool={pool}
+          progress={progress}
+          onExit={() => setView({ kind: "niveis", subject: view.subject })}
+          onRefetchProgress={() => void progressQuery.refetch()}
+        />
+      </Shell>
+    );
   }
 
-  function selectMateria(next: string) {
-    setChoice(null);
-    setConfirmed(false);
-    setChatOpen(false);
-    setForcedId(null);
-    setPendingLevel(null);
-    setMateria(next);
-    setRound((r) => r + 1);
-  }
+  if (view.kind === "niveis" && progress) {
+    const theta = progress.tracks[view.subject.track];
+    return (
+      <Shell>
+        <button
+          type="button"
+          onClick={() => setView({ kind: "materias" })}
+          className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ChevronLeft className="h-4 w-4" /> Todas as matérias
+        </button>
 
-
-  function answerThis(row: HistoryRow) {
-    setChoice(null);
-    setConfirmed(false);
-    setChatOpen(false);
-    if (row.area_conhecimento) {
-      setMateria(row.area_conhecimento);
-    }
-    setForcedId(row.id);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  return (
-    <main className="flex-1 overflow-y-auto">
-      <div className="mx-auto max-w-7xl px-6 py-8 md:px-10 md:py-12">
-        <header>
-          <span className="text-xs font-medium uppercase tracking-wider text-primary">Treine com Nex</span>
-          <h1 className="mt-2 text-3xl font-semibold text-foreground">Treine com Nex</h1>
-          <p className="mt-2 max-w-xl text-muted-foreground">
-            Questão por questão. No seu nível.
+        <div className="rounded-2xl border border-border bg-card p-6 card-glow">
+          <h2 className="text-xl font-semibold text-foreground">{view.subject.label}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Proficiência atual em {TRACK_LABEL[view.subject.track]}:{" "}
+            <strong className="text-foreground">{theta}/100</strong> · cada bloco tem{" "}
+            {BLOCK_SIZE} questões inéditas.
           </p>
-          <p className="mt-2 max-w-xl text-muted-foreground">
-            Um treino adaptativo que acompanha seu desempenho e ajusta o desafio para você evoluir todos os dias.
-          </p>
-          <p className="mt-2 max-w-xl text-muted-foreground">
-            Travou? Chame o Nex. Ele dá pistas e explica o caminho — sem entregar a resposta.
-          </p>
-        </header>
-
-        {missionDifficulty ? (
-          <div className="mt-5 inline-flex flex-wrap items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-2 text-sm text-foreground">
-            <span className="font-semibold text-primary">Missão diária ativa</span>
-            <span className="text-muted-foreground">
-              {materia} · nível travado em {missionDifficulty}
-            </span>
-          </div>
-        ) : null}
-
-        <div className="mt-6 flex flex-wrap gap-2">
-          {subjects.map((s) => (
-            <button
-              key={s}
-              onClick={() => selectMateria(s)}
-              className={`rounded-xl border px-4 py-2 text-sm font-medium transition-all ${
-                materia === s
-                  ? "border-primary/50 bg-primary/15 text-foreground"
-                  : "border-border bg-background/30 text-muted-foreground hover:border-primary/30 hover:text-foreground"
-              }`}
-            >
-              {s}
-            </button>
-          ))}
         </div>
 
-        <section className="mt-6 rounded-2xl border border-border bg-card p-5 md:p-6">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-primary">
-                Nota TRI estimada da trilha
-              </p>
-              <p className="mt-1 text-4xl font-semibold text-foreground">
-                {tri.score}
-                <span className="ml-1 text-lg text-muted-foreground">/1000</span>
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {attempts.length === 0
-                  ? "Responda a primeira questão (nível Média) para começar a estimativa."
-                  : `${attempts.length} ${attempts.length === 1 ? "questão respondida" : "questões respondidas"} · ${tri.earned} de ${tri.possible} pontos · próximo nível: ${effectiveLevel}`}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-lg border border-border bg-background/40 px-3 py-1.5 text-xs text-muted-foreground">
-                Fácil 100 · Média 200 · Difícil 300
-              </span>
-              <button
-                onClick={resetTrail}
-                className="rounded-lg border border-border bg-background/40 px-4 py-2 text-sm font-medium text-muted-foreground transition-all hover:border-primary/40 hover:text-foreground"
+        <div className="mt-6 space-y-4">
+          {LEVELS.map((level) => {
+            const liberado = unlocked(level, theta);
+            const disponiveis = pool.filter((q) => {
+              const d = diffOf(q);
+              return (
+                subjectOf(q.materia, q.area_conhecimento)?.slug === view.subject.slug &&
+                d >= level.min &&
+                d <= level.max
+              );
+            }).length;
+            const semQuestoes = disponiveis === 0;
+            return (
+              <div
+                key={level.id}
+                className={`rounded-2xl border p-6 transition-all duration-500 ${
+                  liberado
+                    ? "border-border bg-card hover:border-primary/50"
+                    : "border-border/60 bg-card/40"
+                }`}
               >
-                Reiniciar trilha
-              </button>
-            </div>
-          </div>
-          {tri.inconsistent && (
-            <p className="mt-4 rounded-xl border border-warning/60 bg-warning/10 px-4 py-3 text-sm text-foreground/90">
-              ⚠️ Padrão inconsistente detectado (acertos em questões difíceis com erros em fáceis). Aplicamos
-              a penalidade de chute de 40% sobre a nota estimada.
-            </p>
-          )}
-        </section>
-
-
-
-        <div className="mt-7 flex flex-col gap-6 lg:flex-row lg:items-start">
-          <div className="min-w-0 flex-1 space-y-6">
-            {isFetching ? (
-              <div className="rounded-2xl border border-border bg-card p-6 md:p-9">
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <Loader2 className="h-5 w-5 animate-spin text-primary" aria-hidden="true" />
-                  Buscando questão na tabela {TABLE}…
-                </div>
-                <div className="mt-6 space-y-3">
-                  <div className="h-4 w-3/4 animate-pulse rounded bg-border/60" />
-                  <div className="h-4 w-full animate-pulse rounded bg-border/60" />
-                  <div className="h-4 w-5/6 animate-pulse rounded bg-border/60" />
-                </div>
-              </div>
-            ) : error ? (
-              <div className="rounded-2xl border border-destructive/40 bg-card p-6 md:p-9">
-                <p className="text-sm font-medium text-destructive">Não foi possível carregar a questão.</p>
-                <p className="mt-2 break-words text-sm text-destructive/80">{(error as Error).message}</p>
-                <p className="mt-3 text-xs text-muted-foreground">
-                  Detalhes completos no console do navegador (procure por "[Simulado]").
-                </p>
-                <button
-                  onClick={drawAnother}
-                  className="mt-4 rounded-lg border border-primary/50 bg-primary/10 px-4 py-2 text-sm font-medium text-foreground hover:bg-primary/20"
-                >
-                  Tentar novamente
-                </button>
-              </div>
-            ) : current ? (
-              <article className="rounded-2xl border border-border bg-card p-6 card-glow md:p-9">
-                <div className="flex flex-wrap items-center gap-2">
-                  {current.area_conhecimento ? (
-                    <span className="rounded-md bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                      {current.area_conhecimento}
-                    </span>
-                  ) : null}
-                  {current.materia ? (
-                    <span className="rounded-md bg-secondary px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                      {current.materia}
-                    </span>
-                  ) : null}
-                  <span className="rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">
-                    {levelOf(current.dificuldade)} · {current.dificuldade ?? 50}/100
-                  </span>
-                </div>
-
-                {current.imagem_url && /^https?:\/\//.test(current.imagem_url) ? (
-                  <img
-                    src={current.imagem_url}
-                    alt="Imagem de apoio da questão"
-                    loading="lazy"
-                    className="mt-5 max-h-80 w-auto rounded-xl border border-border bg-background/40 object-contain"
-                  />
-                ) : null}
-
-                <div className="mt-6 space-y-5">
-                  {current.enunciado.split("\n\n").map((p, i) => (
-                    <p key={i} className="text-[17px] leading-8 tracking-[0.01em] text-foreground/90">
-                      {p}
-                    </p>
-                  ))}
-                </div>
-
-                <div className="mt-8 space-y-3">
-                  {options.map((opt, i) => {
-                    const isSelected = choice === i;
-                    const isCorrectOption = i === correctIndex;
-                    let optClass: string;
-                    let badgeClass: string;
-                    if (!confirmed) {
-                      if (isSelected) {
-                        optClass = "border-accent/60 bg-accent/15";
-                        badgeClass = "bg-accent text-accent-foreground";
-                      } else {
-                        optClass = "border-border bg-background/30 hover:border-accent/40";
-                        badgeClass = "bg-secondary text-muted-foreground";
-                      }
-                    } else if (isCorrectOption) {
-                      optClass = "border-success/60 bg-success/15";
-                      badgeClass = "bg-success text-success-foreground";
-                    } else if (isSelected) {
-                      optClass = "border-destructive/60 bg-destructive/15";
-                      badgeClass = "bg-destructive text-destructive-foreground";
-                    } else {
-                      optClass = "border-border bg-background/30 opacity-60";
-                      badgeClass = "bg-secondary text-muted-foreground";
-                    }
-                    return (
-                      <button
-                        key={i}
-                        onClick={() => !confirmed && setChoice(i)}
-                        disabled={confirmed}
-                        aria-pressed={isSelected}
-                        className={`flex w-full items-start gap-4 rounded-xl border px-4 py-3.5 text-left transition-all ${optClass} ${
-                          confirmed ? "cursor-default" : ""
-                        }`}
-                      >
-                        <span
-                          className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs font-semibold ${badgeClass}`}
-                        >
-                          {LETTERS[i]}
-                        </span>
-                        <span className="text-[15px] leading-7 text-foreground/90">{opt}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-border pt-6">
-                  {!confirmed ? (
-                    <>
-                      <button
-                        onClick={confirmAnswer}
-                        disabled={choice === null}
-                        className="rounded-lg border border-primary/50 bg-primary/15 px-5 py-2.5 text-sm font-semibold text-foreground transition-all hover:bg-primary/25 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-primary/15"
-                      >
-                        Confirmar Resposta
-                      </button>
-                      {!chatOpen && (
-                        <TutorChat
-                          key={`${current.id}-btn`}
-                          open={false}
-                          onOpenChange={setChatOpen}
-                          question={current.enunciado}
-                          options={options}
-                          area="Geral"
-                        />
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        Selecione uma alternativa e confirme para ver o resultado.
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      {choice === correctIndex ? (
-                        <p className="rounded-lg border border-success/50 bg-success/10 px-4 py-2.5 text-sm font-medium text-success">
-                          ✓ Resposta correta! Mandou bem.
-                        </p>
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <p
+                      className={`flex items-center gap-2 text-base font-semibold ${
+                        liberado ? "text-foreground" : "text-muted-foreground"
+                      }`}
+                    >
+                      {liberado ? (
+                        <CheckCircle2 className="h-4 w-4 text-primary" />
                       ) : (
-                        <p className="rounded-lg border border-destructive/50 bg-destructive/10 px-4 py-2.5 text-sm font-medium text-destructive">
-                          ✗ Quase! A alternativa correta é a {current.resposta_correta}.
-                        </p>
+                        <Lock className="h-4 w-4" />
                       )}
-                      <button
-                        onClick={drawAnother}
-                        className="rounded-lg border border-primary/50 bg-primary/10 px-4 py-2 text-sm font-medium text-foreground transition-all hover:bg-primary/20"
-                      >
-                        Próxima Questão
-                      </button>
-                      {!chatOpen && (
-                        <TutorChat
-                          key={`${current.id}-btn`}
-                          open={false}
-                          onOpenChange={setChatOpen}
-                          question={current.enunciado}
-                          options={options}
-                          area="Geral"
-                        />
-                      )}
-                    </>
-                  )}
-                </div>
-
-                {confirmed && current && (
-                  <div
-                    className={`mt-6 rounded-2xl border p-5 md:p-6 ${
-                      choice === correctIndex
-                        ? "border-primary/30 bg-primary/5"
-                        : "border-warning/60 bg-warning/10"
-                    }`}
-                  >
-                    <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
-                      <span aria-hidden="true">💡</span> Explicação Detalhada do Gabarito
-                    </h2>
-                    <p className="mt-3 text-[15px] leading-7 text-foreground/85">
-                      A alternativa correta é a letra{" "}
-                      <span className="font-semibold text-primary">{current.resposta_correta}</span>.
+                      {level.label}
                     </p>
-                    {current.explicacao ? (
-                      <p className="mt-3 text-[15px] leading-7 text-foreground/85">{current.explicacao}</p>
-                    ) : (
-                      <p className="mt-3 text-sm italic text-muted-foreground">
-                        A explicação detalhada desta questão ainda não foi cadastrada na tabela {TABLE}.
+                    <p className="mt-1 text-sm text-muted-foreground">{level.descricao}</p>
+                    {!liberado && (
+                      <p className="mt-2 inline-flex rounded-full border border-destructive/40 bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive">
+                        Requer Proficiência Mínima de {level.requisito} pontos
+                      </p>
+                    )}
+                    {liberado && semQuestoes && (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Ainda não há questões desta matéria nesta faixa de dificuldade.
                       </p>
                     )}
                   </div>
-                )}
-              </article>
-            ) : (
-              <div className="rounded-2xl border border-border bg-card p-6 md:p-9">
-                <p className="text-foreground">
-                  Nenhuma questão encontrada na tabela <span className="font-mono text-primary">{TABLE}</span>.
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  A consulta foi executada com sucesso, mas a tabela retornou 0 linhas. Insira questões na
-                  tabela e tente novamente.
-                </p>
-                <button
-                  onClick={drawAnother}
-                  className="mt-4 rounded-lg border border-primary/50 bg-primary/10 px-4 py-2 text-sm font-medium text-foreground hover:bg-primary/20"
-                >
-                  Recarregar
-                </button>
+                  <button
+                    type="button"
+                    disabled={!liberado || semQuestoes}
+                    onClick={() => setView({ kind: "bloco", subject: view.subject, level })}
+                    className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Iniciar bloco de {BLOCK_SIZE}
+                  </button>
+                </div>
+                <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-background/60">
+                  <div
+                    className="h-1.5 rounded-full bg-primary transition-all duration-1000"
+                    style={{
+                      width: `${Math.min(100, Math.max(0, ((theta - level.requisito) / Math.max(1, level.max - level.requisito)) * 100))}%`,
+                    }}
+                  />
+                </div>
               </div>
-            )}
+            );
+          })}
+        </div>
+      </Shell>
+    );
+  }
+
+  return (
+    <Shell>
+      <p className="mb-6 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+        Escolha uma matéria e avance pelos três níveis em sequência. Diferente do Desafio Diário
+        (que sorteia questões de tudo), aqui o treino é vertical: você aprofunda um tema até
+        dominá-lo. Na TRI do ENEM, blocos consistentes de acertos valem mais do que acertos
+        espalhados.
+      </p>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {SUBJECTS.map((s) => {
+          const theta = progress?.tracks[s.track] ?? 50;
+          const total = contagem.get(s.slug) ?? 0;
+          const liberados = LEVELS.filter((l) => unlocked(l, theta)).length;
+          return (
+            <button
+              key={s.slug}
+              type="button"
+              disabled={total === 0}
+              onClick={() => setView({ kind: "niveis", subject: s })}
+              className="rounded-2xl border border-border bg-card p-5 text-left transition-all duration-300 hover:border-primary/50 hover:shadow-[0_0_28px_-10px_var(--neon)] disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <p className="text-base font-semibold text-foreground">{s.label}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {TRACK_LABEL[s.track]} · {total} questões
+              </p>
+              <div className="mt-4 flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Proficiência {theta}/100</span>
+                <span className="flex gap-1">
+                  {LEVELS.map((l) => (
+                    <span
+                      key={l.id}
+                      className={`h-2 w-6 rounded-full transition-all duration-700 ${
+                        unlocked(l, theta) ? "bg-primary" : "bg-background/70"
+                      }`}
+                    />
+                  ))}
+                </span>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {liberados} de {LEVELS.length} níveis liberados
+              </p>
+            </button>
+          );
+        })}
+      </div>
+    </Shell>
+  );
+}
+
+/* ----------------------------- bloco de treino ----------------------------- */
+
+function BlockSession({
+  subject,
+  level,
+  pool,
+  progress,
+  onExit,
+  onRefetchProgress,
+}: {
+  subject: Subject;
+  level: MasteryLevel;
+  pool: QuestionRow[];
+  progress: UserProgress;
+  onExit: () => void;
+  onRefetchProgress: () => void;
+}) {
+  const [questions] = useState<QuestionRow[]>(() =>
+    buildBlock(pool, subject, level, new Set(readHistory())),
+  );
+  const [index, setIndex] = useState(0);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
+  const [flash, setFlash] = useState(false);
+  const [answers, setAnswers] = useState<Answer[]>([]);
+  const [finished, setFinished] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [tutorOpen, setTutorOpen] = useState(false);
+
+  const thetaAntes = progress.tracks[subject.track];
+  const current = questions[index] ?? null;
+
+  const finalizar = useCallback(
+    async (todas: Answer[]) => {
+      setFinished(true);
+      setSaving(true);
+      const novoTheta = calibrate(
+        thetaAntes,
+        todas.map((a) => a.correto),
+      );
+      try {
+        pushHistory(todas.map((a) => a.questionId));
+        await saveProgress({
+          ...progress,
+          tracks: withTrack(progress.tracks, subject.track, novoTheta),
+        });
+        setSaved(true);
+        onRefetchProgress();
+      } catch (e) {
+        console.error("[Maestria] Falha ao salvar proficiência", e);
+      } finally {
+        setSaving(false);
+      }
+    },
+    [progress, subject.track, thetaAntes, onRefetchProgress],
+  );
+
+  const confirmar = useCallback(() => {
+    if (!current || !selected || confirmed) return;
+    const correto = selected === current.resposta_correta;
+    const dificuldade = diffOf(current);
+    const answer: Answer = {
+      questionId: String(current.id),
+      letra: selected,
+      correto,
+      dificuldade,
+    };
+    const todas = [...answers, answer];
+    setAnswers(todas);
+    setConfirmed(true);
+    if (correto) {
+      setFlash(true);
+      window.setTimeout(() => setFlash(false), 900);
+      awardXp("questao");
+    }
+
+    void registrarTentativa({
+      data: {
+        question_id: String(current.id),
+        dificuldade_questao: String(dificuldade),
+        materia_questao: subject.label,
+        foi_correto: correto,
+      },
+    }).catch((e) => console.error("[Maestria] Falha ao registrar tentativa", e));
+
+    if (todas.length >= questions.length) void finalizar(todas);
+  }, [current, selected, confirmed, answers, questions.length, subject.label, finalizar]);
+
+  const proxima = useCallback(() => {
+    setIndex((i) => i + 1);
+    setSelected(null);
+    setConfirmed(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  if (questions.length === 0) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
+        Não encontrei questões inéditas de {subject.label} nesta faixa de dificuldade.
+        <button
+          type="button"
+          onClick={onExit}
+          className="mt-4 block rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground"
+        >
+          Voltar aos níveis
+        </button>
+      </div>
+    );
+  }
+
+  if (finished) {
+    const acertos = answers.filter((a) => a.correto).length;
+    const acertosAvancados = answers.filter((a) => a.correto && a.dificuldade > 65).length;
+    const errosBasicos = answers.filter((a) => !a.correto && a.dificuldade < 41).length;
+    const consistente = !(acertosAvancados > 0 && errosBasicos > 0);
+    const novoTheta = calibrate(
+      thetaAntes,
+      answers.map((a) => a.correto),
+    );
+    const liberou = LEVELS.find((l) => l.requisito > thetaAntes && l.requisito <= novoTheta);
+
+    return (
+      <div className="space-y-6">
+        {liberou && (
+          <div className="animate-in fade-in slide-in-from-top-2 flex items-center gap-4 rounded-2xl border border-primary/50 bg-primary/10 p-6 duration-700">
+            <Trophy className="h-8 w-8 text-primary" />
+            <div>
+              <p className="text-lg font-semibold text-foreground text-glow-neon">Nível Liberado!</p>
+              <p className="text-sm text-muted-foreground">
+                {liberou.label} destravado em {subject.label}.
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="rounded-2xl border border-border bg-card p-6 card-glow">
+          <h2 className="text-lg font-semibold text-foreground">Diagnóstico do bloco</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {subject.label} · {level.label}
+          </p>
+
+          <div className="mt-5 grid gap-5 sm:grid-cols-3">
+            <Metric label="Acertos" value={`${acertos}/${answers.length}`} />
+            <Metric
+              label="Estabilidade conceitual"
+              value={consistente ? "Sólida" : "Instável"}
+              hint={
+                consistente
+                  ? "Sem padrão de chute: acertos coerentes com a dificuldade."
+                  : "Você acertou questões difíceis e errou as fáceis — na TRI isso é lido como chute."
+              }
+            />
+            <Metric label="Proficiência" value={`${thetaAntes} → ${novoTheta}`} />
           </div>
 
-          {chatOpen && current && (
-            <div className="lg:sticky lg:top-8">
-              <TutorChat
-                key={current.id}
-                open
-                onOpenChange={setChatOpen}
-                question={current.enunciado}
-                options={options}
-                area="Geral"
+          <div className="mt-6">
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{TRACK_LABEL[subject.track]}</span>
+              <span>Meta de domínio: 85</span>
+            </div>
+            <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-background/60">
+              <div
+                className="h-3 rounded-full bg-primary transition-all duration-1000"
+                style={{ width: `${Math.min(100, (novoTheta / 85) * 100)}%` }}
               />
             </div>
-          )}
-        </div>
-
-        <section className="mt-10 rounded-2xl border border-border bg-card p-6 md:p-8">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold text-foreground">Histórico de Questões</h2>
-            <span className="text-xs text-muted-foreground">
-              {history.length} {history.length === 1 ? "questão" : "questões"} no banco
-            </span>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Média geral das quatro áreas:{" "}
+              {averageOf(withTrack(progress.tracks, subject.track, novoTheta))}/100
+            </p>
           </div>
 
-          {historyQuery.isFetching ? (
-            <div className="mt-5 flex items-center gap-3 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin text-primary" aria-hidden="true" />
-              Carregando histórico…
+          <p className="mt-5 text-sm text-muted-foreground">
+            {saving
+              ? "Sincronizando sua proficiência..."
+              : saved
+                ? "Progresso salvo. O próximo bloco já parte do seu novo nível."
+                : "Não consegui salvar seu progresso agora — ele será recalculado no próximo bloco."}
+          </p>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={onExit}
+              className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90"
+            >
+              Voltar aos níveis
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          {answers.map((a, i) => (
+            <div
+              key={a.questionId}
+              className={`flex items-center justify-between gap-3 rounded-lg border px-4 py-2 text-sm ${
+                a.correto
+                  ? "border-success/50 bg-success/10"
+                  : "border-destructive/40 bg-destructive/10"
+              }`}
+            >
+              <span className="text-foreground">Questão {i + 1}</span>
+              <span className="text-xs text-muted-foreground">
+                nível {a.dificuldade} · sua resposta {a.letra}
+              </span>
             </div>
-          ) : historyQuery.error ? (
-            <div className="mt-5">
-              <p className="text-sm text-destructive">{(historyQuery.error as Error).message}</p>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!current) return null;
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-[1fr_260px]">
+      <section className="animate-in fade-in rounded-2xl border border-border bg-card p-6 duration-500 card-glow">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={onExit}
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ChevronLeft className="h-4 w-4" /> {subject.label}
+          </button>
+          <span
+            className={`rounded-full border px-3 py-1 text-xs transition-all duration-300 ${
+              flash
+                ? "scale-110 border-success bg-success/25 text-foreground shadow-[0_0_24px_-4px_var(--neon)]"
+                : "border-border bg-background/40 text-muted-foreground"
+            }`}
+          >
+            {level.label} · dificuldade {diffOf(current)}
+          </span>
+        </div>
+
+        <div className="mt-4">
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>
+              Questão {index + 1} de {questions.length}
+            </span>
+            <span>{answers.filter((a) => a.correto).length} acertos</span>
+          </div>
+          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-background/60">
+            <div
+              className="h-2 rounded-full bg-primary transition-all duration-1000"
+              style={{ width: `${(answers.length / questions.length) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        <p className="mt-5 whitespace-pre-line text-base leading-relaxed text-foreground">
+          {current.enunciado}
+        </p>
+
+        {current.imagem_url?.startsWith("http") && (
+          <div className="mt-5 flex justify-center">
+            <img
+              src={current.imagem_url}
+              alt="Imagem de apoio da questão"
+              loading="lazy"
+              className="max-h-[420px] w-auto max-w-full rounded-xl border border-border bg-background/40"
+            />
+          </div>
+        )}
+
+        <div className="mt-6 space-y-3">
+          {LETTERS.map((letter) => {
+            const isSelected = selected === letter;
+            const isCorrect = current.resposta_correta === letter;
+            let cls = "border-border bg-background/40 hover:border-primary/40";
+            if (confirmed) {
+              if (isCorrect) cls = "border-success/60 bg-success/10";
+              else if (isSelected) cls = "border-destructive/60 bg-destructive/10";
+            } else if (isSelected) {
+              cls = "border-accent bg-accent/10";
+            }
+            return (
               <button
-                onClick={() => historyQuery.refetch()}
-                className="mt-3 rounded-lg border border-primary/50 bg-primary/10 px-4 py-2 text-sm font-medium text-foreground hover:bg-primary/20"
+                key={letter}
+                type="button"
+                disabled={confirmed}
+                onClick={() => setSelected(letter)}
+                className={`flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left text-sm text-foreground transition-all duration-300 disabled:cursor-default ${cls}`}
               >
-                Tentar novamente
+                <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border text-xs font-semibold">
+                  {letter}
+                </span>
+                <span>{optionText(current, letter)}</span>
               </button>
-            </div>
-          ) : history.length === 0 ? (
-            <p className="mt-5 text-sm text-muted-foreground">
-              Nenhuma questão cadastrada na tabela {TABLE}.
+            );
+          })}
+        </div>
+
+        {confirmed && (
+          <div className="animate-in fade-in mt-6 rounded-xl border border-primary/40 bg-primary/5 p-5 duration-500">
+            <h3 className="text-sm font-semibold text-foreground">
+              💡 Explicação Detalhada do Gabarito
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              Resposta correta:{" "}
+              <strong className="text-foreground">{current.resposta_correta}</strong>.{" "}
+              {current.explicacao ?? "Esta questão ainda não tem explicação cadastrada."}
             </p>
+          </div>
+        )}
+
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          {!confirmed ? (
+            <button
+              type="button"
+              onClick={confirmar}
+              disabled={!selected}
+              className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-40"
+            >
+              Confirmar resposta
+            </button>
           ) : (
-            <ul className="mt-5 space-y-3">
-              {history.map((row) => {
-                const isCurrent = current?.id === row.id;
-                return (
-                  <li
-                    key={row.id}
-                    className={`flex flex-col gap-3 rounded-xl border p-4 transition-all sm:flex-row sm:items-center sm:justify-between ${
-                      isCurrent
-                        ? "border-primary/50 bg-primary/10"
-                        : "border-border bg-background/30 hover:border-primary/30"
-                    }`}
-                  >
-                    <div className="min-w-0">
-                      {row.materia && (
-                        <span className="inline-block rounded-md bg-secondary px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                          {row.materia}
-                        </span>
-                      )}
-                      <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-foreground/85">
-                        {row.enunciado}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => answerThis(row)}
-                      disabled={isCurrent}
-                      className="shrink-0 rounded-lg border border-primary/50 bg-primary/15 px-4 py-2 text-sm font-semibold text-foreground transition-all hover:bg-primary/25 disabled:cursor-default disabled:opacity-50"
-                    >
-                      {isCurrent ? "Em exibição" : "Responder Esta"}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            index + 1 < questions.length && (
+              <button
+                type="button"
+                onClick={proxima}
+                className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90"
+              >
+                Próxima questão
+              </button>
+            )
           )}
-        </section>
+          <button
+            type="button"
+            onClick={() => setTutorOpen(true)}
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-background/40 px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-accent/10"
+          >
+            <Sparkles className="h-4 w-4" /> Pedir ajuda ao Nex
+          </button>
+        </div>
+      </section>
+
+      <aside className="space-y-4">
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="text-sm font-semibold text-foreground">Janela das últimas 5</p>
+          <div className="mt-3 flex gap-2">
+            {Array.from({ length: BLOCK_SIZE }).map((_, i) => {
+              const a = answers[i];
+              return (
+                <span
+                  key={i}
+                  className={`h-8 flex-1 rounded-md border text-center text-xs leading-8 transition-all duration-500 ${
+                    !a
+                      ? "border-border bg-background/40 text-muted-foreground"
+                      : a.correto
+                        ? "border-success/60 bg-success/15 text-foreground"
+                        : "border-destructive/50 bg-destructive/10 text-foreground"
+                  }`}
+                >
+                  {!a ? "–" : a.correto ? "✓" : "✕"}
+                </span>
+              );
+            })}
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Acertar em sequência vale mais que acertos espalhados — é assim que a TRI lê seu
+            domínio do conteúdo.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Proficiência atual
+          </p>
+          <p className="mt-1 text-4xl font-semibold text-foreground text-glow-neon">{thetaAntes}</p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {TRACK_LABEL[subject.track]} · será recalibrada ao fim do bloco.
+          </p>
+        </div>
+      </aside>
+
+      <TutorChat
+        open={tutorOpen}
+        onOpenChange={setTutorOpen}
+        question={current.enunciado}
+        options={LETTERS.map((l) => `${l}) ${optionText(current, l)}`)}
+        area={subject.label}
+      />
+    </div>
+  );
+}
+
+function Metric({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
+      {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
+    </div>
+  );
+}
+
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <main className="flex-1 overflow-y-auto">
+      <div className="mx-auto max-w-6xl px-6 py-8 md:px-10 md:py-12">
+        <h1 className="text-2xl font-semibold text-foreground md:text-3xl">
+          Níveis de Maestria — Treine com Nex
+        </h1>
+        <p className="mb-6 mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+          Matéria por matéria, nível por nível. Travou? Chame o Nex: ele dá pistas e explica o
+          caminho — sem entregar a resposta.
+        </p>
+        {children}
       </div>
     </main>
   );
 }
+
+export type { LevelId };
