@@ -9,11 +9,13 @@ import { useXp } from "@/hooks/use-xp";
 import {
   DAILY_TOTAL,
   applyVelocity,
-  buildDailySetFromTracks,
+  buildProgressiveDailySet,
   diffOf,
   fetchDailyPool,
   gradeDaily,
   phaseOf,
+  pushHistory,
+  readHistory,
   readSession,
   todayKey,
   writeSession,
@@ -21,6 +23,7 @@ import {
   type DailyQuestion,
   type DailySession,
 } from "@/lib/daily-challenge";
+
 import {
   MASTERY_TARGET,
   TRACKS,
