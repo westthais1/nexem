@@ -124,7 +124,8 @@ function DesafioPage() {
 
   const iniciar = useCallback(() => {
     const base = progress.tracks;
-    const set = buildDailySetFromTracks(pool, base);
+    const set = buildProgressiveDailySet(pool, base, readHistory());
+
     const nova: DailySession = {
       date: todayKey(),
       theta: averageTheta(base),
