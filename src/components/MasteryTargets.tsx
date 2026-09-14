@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Target, Sparkles } from "lucide-react";
 
@@ -18,12 +19,17 @@ export function MasteryTargets() {
     staleTime: 60_000,
   });
 
-  const progress = data ?? readCachedProgress() ?? defaultProgress();
+  // Só usa o cache do navegador depois da hidratação (evita divergência com o SSR).
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
+
+  const progress = data ?? (hydrated ? readCachedProgress() : null) ?? defaultProgress();
   const hoje = new Date().toISOString().slice(0, 10);
-  const salvouHoje = progress.lastPlayedDate === hoje;
+  const salvouHoje = hydrated && progress.lastPlayedDate === hoje;
   const media = Math.round(
     TRACKS.reduce((s, t) => s + progress.tracks[t], 0) / TRACKS.length,
   );
+
 
   return (
     <section className="mt-8 rounded-2xl border border-border bg-card p-6 card-glow md:p-8">
