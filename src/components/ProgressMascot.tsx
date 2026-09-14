@@ -1,13 +1,21 @@
 import { Link } from "@tanstack/react-router";
 
 import { FoxMascot } from "@/components/FoxMascot";
+import { KnowledgeAura } from "@/components/KnowledgeAura";
 import { StreakCard } from "@/components/StreakCard";
 import { useXp } from "@/hooks/use-xp";
+import { useQuery } from "@tanstack/react-query";
+import { defaultProgress, fetchProgress } from "@/lib/progress";
 import { XP_REWARDS, foxMessage, FOX_STAGES } from "@/lib/xp";
 
 /** Widget "Progresso & Mascote" da Dashboard. */
 export function ProgressMascot() {
   const xp = useXp();
+  const { data: proficiency } = useQuery({
+    queryKey: ["nexem_user_progress"],
+    queryFn: fetchProgress,
+    staleTime: 60_000,
+  });
   const mensagem = foxMessage(
     {
       totalXp: xp.totalXp,
@@ -25,7 +33,12 @@ export function ProgressMascot() {
       <div className="relative">
         <div className="grid gap-6 p-6 md:grid-cols-[220px_1fr] md:p-8">
           <div className="flex flex-col items-center">
-            <FoxMascot stage={xp.stage.id} className="h-40 w-40" />
+            <KnowledgeAura
+              tracks={(proficiency ?? defaultProgress()).tracks}
+              className="h-48 w-48 sm:h-52 sm:w-52"
+            >
+              <FoxMascot stage={xp.stage.id} className="h-full w-full" />
+            </KnowledgeAura>
             <p className="mt-2 text-sm font-semibold text-foreground">{xp.stage.name}</p>
             <p className="text-xs text-muted-foreground">{xp.stage.title}</p>
           </div>

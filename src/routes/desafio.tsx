@@ -17,6 +17,7 @@ import {
   pushHistory,
   readHistory,
   readSession,
+  rollingAccuracy,
   todayKey,
   writeSession,
   writeTheta,
@@ -228,8 +229,18 @@ function DesafioPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, done, resultado]);
 
+  const rollingWindow = session?.answers.slice(-5) ?? [];
+  const cleanHit = useMemo(() => {
+    if (rollingWindow.length === 0) return false;
+    const latest = rollingWindow[rollingWindow.length - 1];
+    const inconsistent =
+      rollingWindow.some((answer) => answer.correto && answer.dificuldade > 75) &&
+      rollingWindow.some((answer) => !answer.correto && answer.dificuldade < 40);
+    return Boolean(latest?.correto) && rollingAccuracy(rollingWindow) >= 0.6 && !inconsistent;
+  }, [rollingWindow]);
+
   return (
-    <main className="flex-1 overflow-y-auto">
+    <main className="flex-1 overflow-y-auto motion-safe:animate-fade-in-up">
       <div className="mx-auto max-w-4xl px-6 py-8 md:px-10 md:py-12">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -294,10 +305,16 @@ function DesafioPage() {
 
             <section className="mt-6 rounded-2xl border border-border bg-card p-6 card-glow">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Questão {index + 1} de {session.questionIds.length} · nível{" "}
-                  {diffOf(current, session.theta)}/100
-                </span>
+                <div className="flex flex-wrap items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <span>Questão {index + 1} de {session.questionIds.length}</span>
+                  <span
+                    key={`${answered}-${cleanHit}`}
+                    className={`difficulty-badge relative isolate overflow-visible rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary transition-all duration-500 ease-out ${cleanHit && confirmed ? "difficulty-clean-hit" : ""}`}
+                  >
+                    nível {diffOf(current, session.theta)}/100
+                    {cleanHit && confirmed && <ParticleBurst />}
+                  </span>
+                </div>
                 <span className="rounded-full border border-border bg-background/40 px-3 py-1 text-xs text-muted-foreground">
                   {current.area_conhecimento ?? "Geral"}
                   {current.materia ? ` · ${current.materia}` : ""}
@@ -346,6 +363,10 @@ function DesafioPage() {
                   );
                 })}
               </div>
+
+              {rollingWindow.length > 0 && (
+                <RollingHistory answers={rollingWindow} />
+              )}
 
               {confirmed && (
                 <div className="mt-6 rounded-xl border border-primary/40 bg-primary/5 p-5">
@@ -448,7 +469,7 @@ function DesafioPage() {
                           </div>
                           <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-secondary">
                             <div
-                              className={`h-full rounded-full transition-[width] duration-700 ${
+                              className={`h-full rounded-full transition-all duration-1000 ease-out ${
                                 atingiu ? "bg-success" : "bg-gradient-to-r from-primary to-accent"
                               }`}
                               style={{ width: `${pct}%` }}
@@ -551,5 +572,47 @@ function ProgressRing({ done, total, phase }: { done: number; total: number; pha
         </p>
       </div>
     </div>
+  );
+}
+
+function RollingHistory({ answers }: { answers: DailySession["answers"] }) {
+  return (
+    <div className="mt-5 border-t border-border pt-5">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-semibold uppercase text-muted-foreground">Consistência · últimas 5</p>
+        <span className="text-xs text-muted-foreground">
+          {Math.round(rollingAccuracy(answers) * 100)}% de precisão
+        </span>
+      </div>
+      <div className="mt-3 grid max-w-xs grid-cols-5 gap-2" aria-label="Histórico das últimas cinco respostas">
+        {Array.from({ length: 5 }, (_, slot) => {
+          const answer = answers[slot];
+          return (
+            <span
+              key={`${answer?.questionId ?? "empty"}-${slot}`}
+              className={`flex h-9 w-full items-center justify-center rounded-md border text-sm font-bold transition-all duration-500 ease-out ${
+                answer
+                  ? answer.correto
+                    ? "border-success/50 bg-success/10 text-success"
+                    : "border-destructive/50 bg-destructive/10 text-destructive"
+                  : "border-border bg-background/40 text-muted-foreground"
+              }`}
+            >
+              {answer ? (answer.correto ? "✓" : "×") : "·"}
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ParticleBurst() {
+  return (
+    <span className="pointer-events-none absolute inset-1/2" aria-hidden="true">
+      {Array.from({ length: 8 }, (_, index) => (
+        <i key={index} className="clean-particle" />
+      ))}
+    </span>
   );
 }
