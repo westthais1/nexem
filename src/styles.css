@@ -57,6 +57,11 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --color-neon: var(--neon);
   --color-electric: var(--electric);
+  --color-aura-natureza: var(--aura-natureza);
+  --color-aura-humanas: var(--aura-humanas);
+  --color-aura-linguagens: var(--aura-linguagens);
+  --color-aura-matematica: var(--aura-matematica);
+  --color-aura-muted: var(--aura-muted);
   --font-display: "Space Grotesk", sans-serif;
   --font-sans: "Inter", sans-serif;
 }
@@ -102,6 +107,11 @@
   --sidebar-ring: oklch(0.64 0.255 295);
   --neon: oklch(0.64 0.255 295);
   --electric: oklch(0.62 0.205 244);
+  --aura-natureza: oklch(0.72 0.19 150);
+  --aura-humanas: oklch(0.72 0.2 42);
+  --aura-linguagens: oklch(0.68 0.19 244);
+  --aura-matematica: oklch(0.68 0.24 295);
+  --aura-muted: oklch(0.48 0.015 264);
 }
 
 .dark {
@@ -138,6 +148,11 @@
   --sidebar-ring: oklch(0.64 0.255 295);
   --neon: oklch(0.64 0.255 295);
   --electric: oklch(0.62 0.205 244);
+  --aura-natureza: oklch(0.72 0.19 150);
+  --aura-humanas: oklch(0.72 0.2 42);
+  --aura-linguagens: oklch(0.68 0.19 244);
+  --aura-matematica: oklch(0.68 0.24 295);
+  --aura-muted: oklch(0.48 0.015 264);
 }
 
 @layer base {
@@ -200,4 +215,87 @@
 }
 .xp-pop {
   animation: xp-pop 0.25s ease-out both;
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@utility animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out both;
+}
+
+.knowledge-aura {
+  --aura-weight: 0.6;
+}
+
+.aura-sector {
+  position: absolute;
+  inset: -8%;
+  border-radius: 9999px;
+  opacity: var(--aura-weight);
+  filter: blur(15px) saturate(1.2);
+  transition: opacity 500ms ease-out, filter 500ms ease-out, transform 500ms ease-out;
+}
+
+.aura-natureza {
+  background: radial-gradient(circle at 28% 25%, var(--aura-natureza) 0%, transparent 48%);
+}
+.aura-humanas {
+  background: radial-gradient(circle at 76% 28%, var(--aura-humanas) 0%, transparent 48%);
+}
+.aura-linguagens {
+  background: radial-gradient(circle at 28% 76%, var(--aura-linguagens) 0%, transparent 48%);
+}
+.aura-matematica {
+  background: radial-gradient(circle at 76% 76%, var(--aura-matematica) 0%, transparent 48%);
+}
+.aura-muted {
+  filter: grayscale(1) blur(18px) saturate(0.2);
+}
+.aura-mastered {
+  filter: blur(12px) saturate(1.45);
+  box-shadow: 0 0 34px color-mix(in oklab, currentColor 45%, transparent);
+}
+
+@keyframes badge-flash {
+  0% { transform: scale(0.94); filter: brightness(1); }
+  38% { transform: scale(1.08); filter: brightness(1.65); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+.difficulty-clean-hit {
+  animation: badge-flash 420ms ease-out both;
+  box-shadow: 0 0 24px color-mix(in oklab, var(--success) 65%, transparent);
+}
+
+@keyframes clean-particle-burst {
+  0% { opacity: 1; transform: rotate(var(--particle-angle)) translateX(0) scale(1); }
+  100% { opacity: 0; transform: rotate(var(--particle-angle)) translateX(34px) scale(0); }
+}
+
+.clean-particle {
+  --particle-angle: 0deg;
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--success);
+  animation: clean-particle-burst 480ms ease-out both;
+}
+.clean-particle:nth-child(2) { --particle-angle: 45deg; }
+.clean-particle:nth-child(3) { --particle-angle: 90deg; }
+.clean-particle:nth-child(4) { --particle-angle: 135deg; }
+.clean-particle:nth-child(5) { --particle-angle: 180deg; }
+.clean-particle:nth-child(6) { --particle-angle: 225deg; }
+.clean-particle:nth-child(7) { --particle-angle: 270deg; }
+.clean-particle:nth-child(8) { --particle-angle: 315deg; }
+
+@media (prefers-reduced-motion: reduce) {
+  .difficulty-clean-hit,
+  .clean-particle,
+  .animate-fade-in-up {
+    animation: none;
+  }
 }

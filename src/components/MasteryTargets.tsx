@@ -23,7 +23,9 @@ export function MasteryTargets() {
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
 
-  const progress = data ?? (hydrated ? readCachedProgress() : null) ?? defaultProgress();
+  const progress = hydrated
+    ? data ?? readCachedProgress() ?? defaultProgress()
+    : defaultProgress();
   const hoje = new Date().toISOString().slice(0, 10);
   const salvouHoje = hydrated && progress.lastPlayedDate === hoje;
   const media = Math.round(
@@ -70,7 +72,7 @@ export function MasteryTargets() {
               </div>
               <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-secondary">
                 <div
-                  className={`h-full rounded-full transition-[width] duration-700 ${
+                  className={`h-full rounded-full transition-all duration-1000 ease-out ${
                     atingiu
                       ? "bg-success"
                       : "bg-gradient-to-r from-primary to-accent"
