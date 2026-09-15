@@ -131,12 +131,12 @@ function RootShell({ children }: { children: ReactNode }) {
 const NAV_ITEMS = [
   { to: "/", label: "Inicio", icon: DashboardIcon },
   { to: "/desafio", label: "Desafio Diário", icon: SimuladoIcon },
-  { to: "/raio-x", label: "Raio-X do ENEM", icon: EstatisticasIcon },
   { to: "/simulado", label: "Treine com Tutor Nex", icon: SimuladoIcon },
   { to: "/full-simulado", label: "Simulado Adaptativo", icon: SimuladoIcon },
   { to: "/prova", label: "Prova Completa", icon: SimuladoIcon },
   { to: "/redacao", label: "Redação Inteligente", icon: RedacaoIcon },
   { to: "/estatisticas", label: "Estatísticas", icon: EstatisticasIcon },
+  { to: "/raio-x", label: "Raio-X do ENEM", icon: EstatisticasIcon },
 ] as const;
 
 function Sidebar() {
