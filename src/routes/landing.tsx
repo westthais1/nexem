@@ -112,7 +112,7 @@ const STEPS = [
 const FAQ = [
   {
     q: "Como o Nexem seleciona as questões?",
-    a: "As questões são organizadas por área, matéria, assunto e dificuldade para criar treinos adequados ao momento de cada aluno.",
+    a: "Mapeamos os padrões neurais da prova para estruturar treinos que se adaptam exatamente à zona de desenvolvimento proximal e à carga cognitiva de cada aluno.",
   },
   {
     q: "O que significa treino adaptativo?",
