@@ -67,6 +67,33 @@ export function deviceUserId(): string {
   return id;
 }
 
+/**
+ * Após o login: passa a usar o id da conta como identificador e garante que
+ * exista uma linha de proficiência inicial para o estudante.
+ */
+export async function ensureProgressForUser(userId: string): Promise<void> {
+  if (typeof window !== "undefined") window.localStorage.setItem(USER_KEY, userId);
+
+  const { data } = await questionsSupabase
+    .from("nexem_user_progress")
+    .select("user_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (data) return;
+
+  const base = defaultProgress();
+  await questionsSupabase.from("nexem_user_progress").insert({
+    user_id: userId,
+    theta_matematica: base.tracks.matematica,
+    theta_linguagens: base.tracks.linguagens,
+    theta_humanas: base.tracks.humanas,
+    theta_natureza: base.tracks.natureza,
+    streak_counter: 0,
+    tri_consistency_rate: 100,
+  });
+}
+
 /** Área do banco -> trilha. */
 export function trackOf(area: string | null | undefined): TrackKey | null {
   const a = (area ?? "").toLowerCase();

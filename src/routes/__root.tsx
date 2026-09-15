@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -237,11 +238,13 @@ function Brand() {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isLanding = pathname.startsWith("/landing");
 
   return (
     <QueryClientProvider client={queryClient}>
       <div className="flex min-h-screen bg-background">
-        <Sidebar />
+        {!isLanding && <Sidebar />}
         <div className="flex min-w-0 flex-1 flex-col">
           <Outlet />
         </div>
