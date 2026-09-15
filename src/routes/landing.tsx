@@ -192,8 +192,8 @@ function LandingPage() {
               Um treino inteligente que evolui com você.
             </p>
             <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-              Pratique questões no estilo ENEM, receba desafios adaptados ao seu desempenho e conte
-              com o Tutor Nex quando precisar de ajuda.
+              Treine com a anatomia exata da prova. Suba de nível com missões adaptativas e domine
+              cada assunto com o Tutor Nex.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button onClick={openAuth} size="lg" className="h-13 rounded-xl px-6 text-base shadow-lg shadow-primary/20 transition-transform hover:-translate-y-0.5">
