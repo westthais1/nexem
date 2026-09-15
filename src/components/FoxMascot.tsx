@@ -4,7 +4,7 @@ type Props = {
   animated?: boolean;
 };
 
-/** Raposa mascote — paleta preto/branco/roxo da marca. 4 estágios evolutivos. */
+/** Raposa mascote — paleta grafite, branco, teal e azul da marca. 4 estágios evolutivos. */
 export function FoxMascot({ stage, className, animated = true }: Props) {
   const scale = [0.78, 0.88, 0.96, 1][stage - 1];
   return (
@@ -16,16 +16,16 @@ export function FoxMascot({ stage, className, animated = true }: Props) {
     >
       <defs>
         <radialGradient id="foxGlow" cx="50%" cy="55%" r="55%">
-          <stop offset="0%" stopColor="var(--neon, #a855f7)" stopOpacity="0.4" />
-          <stop offset="100%" stopColor="var(--neon, #a855f7)" stopOpacity="0" />
+          <stop offset="0%" stopColor="var(--neon)" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="var(--neon)" stopOpacity="0" />
         </radialGradient>
         <linearGradient id="foxFur" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#2a2536" />
           <stop offset="100%" stopColor="#121018" />
         </linearGradient>
         <linearGradient id="foxPurple" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#c084fc" />
-          <stop offset="100%" stopColor="#7c3aed" />
+          <stop offset="0%" stopColor="var(--neon)" />
+          <stop offset="100%" stopColor="var(--electric)" />
         </linearGradient>
       </defs>
 
@@ -62,8 +62,8 @@ export function FoxMascot({ stage, className, animated = true }: Props) {
         {/* olhos */}
         <ellipse cx="83" cy="86" rx="6" ry="7" fill="#f7f5fc" />
         <ellipse cx="117" cy="86" rx="6" ry="7" fill="#f7f5fc" />
-        <circle cx="83" cy="87" r="3.4" fill="#7c3aed" />
-        <circle cx="117" cy="87" r="3.4" fill="#7c3aed" />
+        <circle cx="83" cy="87" r="3.4" fill="var(--electric)" />
+        <circle cx="117" cy="87" r="3.4" fill="var(--electric)" />
         <circle cx="84.5" cy="84.5" r="1.4" fill="#fff" />
         <circle cx="118.5" cy="84.5" r="1.4" fill="#fff" />
 
@@ -78,8 +78,8 @@ export function FoxMascot({ stage, className, animated = true }: Props) {
         />
 
         {/* bochechas */}
-        <ellipse cx="72" cy="99" rx="7" ry="4" fill="#a855f7" opacity="0.35" />
-        <ellipse cx="128" cy="99" rx="7" ry="4" fill="#a855f7" opacity="0.35" />
+        <ellipse cx="72" cy="99" rx="7" ry="4" fill="var(--neon)" opacity="0.35" />
+        <ellipse cx="128" cy="99" rx="7" ry="4" fill="var(--neon)" opacity="0.35" />
 
         {/* estágio 2: lenço */}
         {stage >= 2 && (
@@ -89,8 +89,8 @@ export function FoxMascot({ stage, className, animated = true }: Props) {
         {/* estágio 3: bússola de aventureira */}
         {stage >= 3 && (
           <g>
-            <circle cx="140" cy="152" r="14" fill="#f4f2fa" stroke="#7c3aed" strokeWidth="3" />
-            <path d="M140 144l4 8-4 8-4-8z" fill="#7c3aed" />
+            <circle cx="140" cy="152" r="14" fill="#f4f2fa" stroke="var(--electric)" strokeWidth="3" />
+            <path d="M140 144l4 8-4 8-4-8z" fill="var(--electric)" />
           </g>
         )}
 

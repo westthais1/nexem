@@ -20,7 +20,7 @@ export function AuthModal({ open, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm motion-safe:animate-fade-in-up"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-foreground/35 p-4 backdrop-blur-sm motion-safe:animate-fade-in-up"
       role="dialog"
       aria-modal="true"
       onClick={onClose}
@@ -72,7 +72,7 @@ export function AuthModal({ open, onClose }: Props) {
           supabaseClient={supabase}
           appearance={{ theme: ThemeSupa }}
           providers={[]}
-          theme="dark"
+          theme="light"
           localization={{
             variables: {
               sign_in: {
