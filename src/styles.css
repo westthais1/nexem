@@ -5,9 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Nexem — dark graphite design system.
- * Sophisticated near-black surfaces with neon purple + electric blue accents.
- * Inspired by Medly AI's minimalist modern aesthetic.
+ * Nexem — light, vibrant study workspace.
+ * Crisp white surfaces with teal + electric blue accents.
  */
 
 @theme inline {
@@ -68,85 +67,43 @@
 
 :root {
   --radius: 0.875rem;
-  /* Dark graphite surfaces — near-black with a faint cool tint */
-  --background: oklch(0.16 0.016 264);
-  --foreground: oklch(0.97 0.004 248);
-  --card: oklch(0.205 0.018 264);
-  --card-foreground: oklch(0.97 0.004 248);
-  --popover: oklch(0.235 0.02 264);
-  --popover-foreground: oklch(0.97 0.004 248);
-  --primary: oklch(0.64 0.255 295); /* neon purple */
-  --primary-foreground: oklch(0.99 0.002 248);
-  --secondary: oklch(0.255 0.022 264);
-  --secondary-foreground: oklch(0.95 0.004 248);
-  --muted: oklch(0.255 0.022 264);
-  --muted-foreground: oklch(0.7 0.018 260);
-  --accent: oklch(0.62 0.205 244); /* electric blue */
-  --accent-foreground: oklch(0.13 0.02 264);
+  --background: oklch(0.98 0.006 220);
+  --foreground: oklch(0.22 0.025 245);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.025 245);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.025 245);
+  --primary: oklch(0.58 0.145 182);
+  --primary-foreground: oklch(0.99 0.002 220);
+  --secondary: oklch(0.95 0.018 210);
+  --secondary-foreground: oklch(0.29 0.04 230);
+  --muted: oklch(0.955 0.01 230);
+  --muted-foreground: oklch(0.5 0.03 240);
+  --accent: oklch(0.61 0.2 251);
+  --accent-foreground: oklch(0.99 0.002 220);
   --destructive: oklch(0.65 0.22 22);
   --destructive-foreground: oklch(0.99 0.002 248);
   --success: oklch(0.72 0.19 150);
   --success-foreground: oklch(0.13 0.02 264);
   --warning: oklch(0.85 0.16 95);
   --warning-foreground: oklch(0.15 0.03 264);
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.64 0.255 295);
-  --chart-1: oklch(0.64 0.255 295);
+  --border: oklch(0.88 0.018 225);
+  --input: oklch(0.9 0.018 225);
+  --ring: oklch(0.58 0.145 182);
+  --chart-1: oklch(0.58 0.145 182);
   --chart-2: oklch(0.62 0.205 244);
   --chart-3: oklch(0.7 0.18 162);
   --chart-4: oklch(0.78 0.19 84);
   --chart-5: oklch(0.66 0.22 16);
-  --sidebar: oklch(0.135 0.015 264);
-  --sidebar-foreground: oklch(0.97 0.004 248);
-  --sidebar-primary: oklch(0.64 0.255 295);
-  --sidebar-primary-foreground: oklch(0.99 0.002 248);
-  --sidebar-accent: oklch(0.22 0.02 264);
-  --sidebar-accent-foreground: oklch(0.97 0.004 248);
-  --sidebar-border: oklch(1 0 0 / 6%);
-  --sidebar-ring: oklch(0.64 0.255 295);
-  --neon: oklch(0.64 0.255 295);
-  --electric: oklch(0.62 0.205 244);
-  --aura-natureza: oklch(0.72 0.19 150);
-  --aura-humanas: oklch(0.72 0.2 42);
-  --aura-linguagens: oklch(0.68 0.19 244);
-  --aura-matematica: oklch(0.68 0.24 295);
-  --aura-muted: oklch(0.48 0.015 264);
-}
-
-.dark {
-  --background: oklch(0.16 0.016 264);
-  --foreground: oklch(0.97 0.004 248);
-  --card: oklch(0.205 0.018 264);
-  --card-foreground: oklch(0.97 0.004 248);
-  --popover: oklch(0.235 0.02 264);
-  --popover-foreground: oklch(0.97 0.004 248);
-  --primary: oklch(0.64 0.255 295);
-  --primary-foreground: oklch(0.99 0.002 248);
-  --secondary: oklch(0.255 0.022 264);
-  --secondary-foreground: oklch(0.95 0.004 248);
-  --muted: oklch(0.255 0.022 264);
-  --muted-foreground: oklch(0.7 0.018 260);
-  --accent: oklch(0.62 0.205 244);
-  --accent-foreground: oklch(0.13 0.02 264);
-  --destructive: oklch(0.65 0.22 22);
-  --destructive-foreground: oklch(0.99 0.002 248);
-  --success: oklch(0.72 0.19 150);
-  --success-foreground: oklch(0.13 0.02 264);
-  --warning: oklch(0.85 0.16 95);
-  --warning-foreground: oklch(0.15 0.03 264);
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.64 0.255 295);
-  --sidebar: oklch(0.135 0.015 264);
-  --sidebar-foreground: oklch(0.97 0.004 248);
-  --sidebar-primary: oklch(0.64 0.255 295);
-  --sidebar-primary-foreground: oklch(0.99 0.002 248);
-  --sidebar-accent: oklch(0.22 0.02 264);
-  --sidebar-accent-foreground: oklch(0.97 0.004 248);
-  --sidebar-border: oklch(1 0 0 / 6%);
-  --sidebar-ring: oklch(0.64 0.255 295);
-  --neon: oklch(0.64 0.255 295);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.24 0.028 240);
+  --sidebar-primary: oklch(0.58 0.145 182);
+  --sidebar-primary-foreground: oklch(0.99 0.002 220);
+  --sidebar-accent: oklch(0.95 0.025 190);
+  --sidebar-accent-foreground: oklch(0.4 0.11 182);
+  --sidebar-border: oklch(0.9 0.015 225);
+  --sidebar-ring: oklch(0.58 0.145 182);
+  --neon: oklch(0.58 0.145 182);
   --electric: oklch(0.62 0.205 244);
   --aura-natureza: oklch(0.72 0.19 150);
   --aura-humanas: oklch(0.72 0.2 42);
@@ -187,8 +144,8 @@
 }
 
 @utility card-glow {
-  box-shadow: 0 18px 48px -20px oklch(0 0 0 / 0.7),
-    inset 0 1px 0 oklch(1 0 0 / 0.04);
+  box-shadow: 0 20px 50px -28px color-mix(in oklab, var(--neon) 28%, transparent),
+    0 1px 3px oklch(0.28 0.03 230 / 0.08);
 }
 
 @utility bg-aurora {

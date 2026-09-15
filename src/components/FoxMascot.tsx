@@ -4,7 +4,7 @@ type Props = {
   animated?: boolean;
 };
 
-/** Raposa mascote — paleta preto/branco/roxo da marca. 4 estágios evolutivos. */
+/** Raposa mascote — paleta grafite, branco, teal e azul da marca. 4 estágios evolutivos. */
 export function FoxMascot({ stage, className, animated = true }: Props) {
   const scale = [0.78, 0.88, 0.96, 1][stage - 1];
   return (
@@ -16,16 +16,16 @@ export function FoxMascot({ stage, className, animated = true }: Props) {
     >
       <defs>
         <radialGradient id="foxGlow" cx="50%" cy="55%" r="55%">
-          <stop offset="0%" stopColor="var(--neon, #a855f7)" stopOpacity="0.4" />
-          <stop offset="100%" stopColor="var(--neon, #a855f7)" stopOpacity="0" />
+          <stop offset="0%" stopColor="var(--neon)" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="var(--neon)" stopOpacity="0" />
         </radialGradient>
         <linearGradient id="foxFur" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#2a2536" />
           <stop offset="100%" stopColor="#121018" />
         </linearGradient>
         <linearGradient id="foxPurple" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#c084fc" />
-          <stop offset="100%" stopColor="#7c3aed" />
+          <stop offset="0%" stopColor="var(--neon)" />
+          <stop offset="100%" stopColor="var(--electric)" />
         </linearGradient>
       </defs>
 
