@@ -47,8 +47,8 @@ function HeroBanner() {
           <span className="h-1.5 w-1.5 rounded-full bg-primary" />
           Tutor de IA · Online agora
         </span>
-        <h1 className="mt-5 max-w-2xl text-4xl font-semibold leading-[1.05] text-foreground md:text-6xl" style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}>
-          <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent text-glow-neon">
+        <h1 className="mt-5 max-w-2xl text-6xl font-semibold leading-[1.05] text-foreground md:text-8xl" style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}>
+          <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Nexem.
           </span>
         </h1>
