@@ -244,10 +244,28 @@ function RootComponent() {
         {!isLanding && <Sidebar />}
         <div className="flex min-w-0 flex-1 flex-col">
           <Outlet />
+          {!isLanding && <Footer />}
         </div>
       </div>
       <XpCelebration />
     </QueryClientProvider>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="border-t border-border bg-background px-6 py-8">
+      <div className="mx-auto flex max-w-5xl flex-col items-center gap-3">
+        <img
+          src={nexemLogo.url}
+          alt="nexem"
+          className="h-7 w-auto opacity-80"
+        />
+        <p className="text-center text-xs text-muted-foreground">
+          Nexem — Estudo adaptativo para o ENEM. Pratique no seu nível e evolua todos os dias.
+        </p>
+      </div>
+    </footer>
   );
 }
 
