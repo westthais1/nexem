@@ -13,6 +13,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { XpCelebration } from "@/components/XpCelebration";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import nexemLogo from "@/assets/nexem-logo.png.asset.json";
 
 function NotFoundComponent() {
   return (
@@ -108,7 +109,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap",
       },
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.png", type: "image/png" },
     ],
   }),
   shellComponent: RootShell,
@@ -222,16 +223,12 @@ function Sidebar() {
 
 function Brand() {
   return (
-    <Link to="/" className="flex items-center gap-2.5">
-      <span className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-foreground">
-          <path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7l7-4z" />
-          <path d="M9 12l2 2 4-4" />
-        </svg>
-      </span>
-      <span className="text-base font-semibold tracking-tight text-sidebar-foreground" style={{ fontFamily: "var(--font-display)" }}>
-        nexem<span className="text-primary">.</span>
-      </span>
+    <Link to="/" className="flex items-center">
+      <img
+        src={nexemLogo.url}
+        alt="nexem"
+        className="h-7 w-auto"
+      />
     </Link>
   );
 }
@@ -247,10 +244,28 @@ function RootComponent() {
         {!isLanding && <Sidebar />}
         <div className="flex min-w-0 flex-1 flex-col">
           <Outlet />
+          {!isLanding && <Footer />}
         </div>
       </div>
       <XpCelebration />
     </QueryClientProvider>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="border-t border-border bg-background px-6 py-8">
+      <div className="mx-auto flex max-w-5xl flex-col items-center gap-3">
+        <img
+          src={nexemLogo.url}
+          alt="nexem"
+          className="h-7 w-auto opacity-80"
+        />
+        <p className="text-center text-xs text-muted-foreground">
+          Nexem — Estudo adaptativo para o ENEM. Pratique no seu nível e evolua todos os dias.
+        </p>
+      </div>
+    </footer>
   );
 }
 
