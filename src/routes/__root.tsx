@@ -13,6 +13,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { XpCelebration } from "@/components/XpCelebration";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import nexemLogo from "@/assets/nexem-logo.png.asset.json";
 
 function NotFoundComponent() {
   return (
