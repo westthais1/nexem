@@ -184,7 +184,9 @@ function LandingPage() {
               Preparação inteligente para o ENEM
             </span>
             <h1 className="mt-6 max-w-3xl text-5xl font-bold leading-[0.98] text-foreground md:text-7xl">
-              Mais precisão. Menos desperdício. Mais evolução.
+              Seu nível<br />
+              Seu ritmo<br />
+              Sua aprovação
             </h1>
             <p className="mt-6 text-xl font-semibold text-foreground md:text-2xl">
               Um treino inteligente que evolui com você.
