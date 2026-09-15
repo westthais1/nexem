@@ -49,7 +49,7 @@ function HeroBanner() {
         </span>
         <h1 className="mt-5 max-w-2xl text-6xl font-semibold leading-[1.05] text-foreground md:text-8xl" style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}>
           <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Nexem.
+            nexem
           </span>
         </h1>
         <p className="mt-3 max-w-xl text-lg font-medium text-foreground/90 md:text-xl" style={{ fontFamily: "var(--font-display)" }}>
