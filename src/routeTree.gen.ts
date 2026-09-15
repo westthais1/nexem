@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DesafioRouteImport } from './routes/desafio'
 import { Route as EstatisticasRouteImport } from './routes/estatisticas'
 import { Route as FullSimuladoRouteImport } from './routes/full-simulado'
+import { Route as LandingRouteImport } from './routes/landing'
 import { Route as RaioXRouteImport } from './routes/raio-x'
 import { Route as RedacaoRouteImport } from './routes/redacao'
 import { Route as SimuladoRouteImport } from './routes/simulado'
@@ -37,6 +38,11 @@ const EstatisticasRoute = EstatisticasRouteImport.update({
 const FullSimuladoRoute = FullSimuladoRouteImport.update({
   id: '/full-simulado',
   path: '/full-simulado',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LandingRoute = LandingRouteImport.update({
+  id: '/landing',
+  path: '/landing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RaioXRoute = RaioXRouteImport.update({
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/desafio': typeof DesafioRoute
   '/estatisticas': typeof EstatisticasRoute
   '/full-simulado': typeof FullSimuladoRoute
+  '/landing': typeof LandingRoute
   '/raio-x': typeof RaioXRoute
   '/redacao': typeof RedacaoRoute
   '/simulado': typeof SimuladoRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/desafio': typeof DesafioRoute
   '/estatisticas': typeof EstatisticasRoute
   '/full-simulado': typeof FullSimuladoRoute
+  '/landing': typeof LandingRoute
   '/raio-x': typeof RaioXRoute
   '/redacao': typeof RedacaoRoute
   '/simulado': typeof SimuladoRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/desafio': typeof DesafioRoute
   '/estatisticas': typeof EstatisticasRoute
   '/full-simulado': typeof FullSimuladoRoute
+  '/landing': typeof LandingRoute
   '/raio-x': typeof RaioXRoute
   '/redacao': typeof RedacaoRoute
   '/simulado': typeof SimuladoRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/desafio'
     | '/estatisticas'
     | '/full-simulado'
+    | '/landing'
     | '/raio-x'
     | '/redacao'
     | '/simulado'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/desafio'
     | '/estatisticas'
     | '/full-simulado'
+    | '/landing'
     | '/raio-x'
     | '/redacao'
     | '/simulado'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/desafio'
     | '/estatisticas'
     | '/full-simulado'
+    | '/landing'
     | '/raio-x'
     | '/redacao'
     | '/simulado'
@@ -140,6 +152,7 @@ export interface RootRouteChildren {
   DesafioRoute: typeof DesafioRoute
   EstatisticasRoute: typeof EstatisticasRoute
   FullSimuladoRoute: typeof FullSimuladoRoute
+  LandingRoute: typeof LandingRoute
   RaioXRoute: typeof RaioXRoute
   RedacaoRoute: typeof RedacaoRoute
   SimuladoRoute: typeof SimuladoRoute
@@ -175,6 +188,13 @@ declare module '@tanstack/react-router' {
       path: '/full-simulado'
       fullPath: '/full-simulado'
       preLoaderRoute: typeof FullSimuladoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/landing': {
+      id: '/landing'
+      path: '/landing'
+      fullPath: '/landing'
+      preLoaderRoute: typeof LandingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/raio-x': {
@@ -220,6 +240,7 @@ const rootRouteChildren: RootRouteChildren = {
   DesafioRoute: DesafioRoute,
   EstatisticasRoute: EstatisticasRoute,
   FullSimuladoRoute: FullSimuladoRoute,
+  LandingRoute: LandingRoute,
   RaioXRoute: RaioXRoute,
   RedacaoRoute: RedacaoRoute,
   SimuladoRoute: SimuladoRoute,
