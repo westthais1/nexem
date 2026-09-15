@@ -386,9 +386,6 @@ function LandingPage() {
 function ProductMockup() {
   return (
     <div className="relative motion-safe:animate-fade-in-up" style={{ animationDelay: "120ms" }} aria-label="Exemplo da experiência do Desafio Diário">
-      <div className="absolute -left-5 top-12 z-20 hidden -rotate-6 rounded-xl bg-warning px-4 py-3 text-sm font-bold text-warning-foreground shadow-lg md:block">
-        🔥 sequência: 12 dias
-      </div>
       <div className="absolute -right-3 -top-5 z-20 rounded-full bg-accent px-4 py-2 text-xs font-bold text-accent-foreground shadow-lg">
         +10 XP
       </div>
