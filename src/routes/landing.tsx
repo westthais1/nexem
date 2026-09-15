@@ -1,7 +1,22 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import {
+  ArrowDown,
+  ArrowRight,
+  BrainCircuit,
+  Check,
+  Clock3,
+  Flame,
+  Gauge,
+  GraduationCap,
+  Sparkles,
+  Target,
+  Trophy,
+  Zap,
+} from "lucide-react";
+import { useEffect, useState, type ComponentType, type MouseEvent } from "react";
 
 import { AuthModal } from "@/components/AuthModal";
+import { Button } from "@/components/ui/button";
 import {
   Accordion,
   AccordionContent,
@@ -19,7 +34,7 @@ export const Route = createFileRoute("/landing")({
       {
         name: "description",
         content:
-          "Treino inteligente para o ENEM: desafio diário de 10 questões, níveis de maestria por matéria e o Tutor Nex para orientar seu raciocínio.",
+          "Treino inteligente para o ENEM: desafio diário, níveis de maestria e o Tutor Nex para orientar seu raciocínio.",
       },
       { property: "og:title", content: "Nexem — 10 questões. 15 minutos. Todo dia." },
       {
@@ -34,42 +49,61 @@ export const Route = createFileRoute("/landing")({
   component: LandingPage,
 });
 
-const FEATURES = [
+type Feature = {
+  icon: ComponentType<{ className?: string }>;
+  title: string;
+  text: string;
+  tone: string;
+  tag: string;
+};
+
+const FEATURES: Feature[] = [
   {
-    emoji: "🔥",
+    icon: Flame,
     title: "Desafio Diário",
     text: "10 questões por dia em cerca de 15 minutos. Um micro-hábito que mantém você treinando e evoluindo.",
+    tone: "bg-primary/15 text-primary",
+    tag: "Ritmo diário",
   },
   {
-    emoji: "🧠",
+    icon: BrainCircuit,
     title: "Tutor Nex",
     text: "Uma IA que orienta seu raciocínio com pistas e perguntas, sem simplesmente entregar a resposta.",
+    tone: "bg-accent/15 text-accent",
+    tag: "Ajuda inteligente",
   },
   {
-    emoji: "📐",
+    icon: Trophy,
     title: "Níveis de Maestria",
     text: "Avance por matéria das Fundações ao Aprofundamento e ao Domínio Avançado.",
+    tone: "bg-warning/25 text-warning-foreground",
+    tag: "Evolução visível",
   },
   {
-    emoji: "⏱️",
+    icon: Clock3,
     title: "Simulado Completo",
     text: "Treine resistência e estratégia com uma experiência próxima da estrutura real do ENEM.",
+    tone: "bg-secondary text-secondary-foreground",
+    tag: "Modo prova",
   },
-] as const;
+];
 
 const STEPS = [
   {
     n: "01",
+    icon: Gauge,
     title: "Entender",
     text: "O Nexem analisa seu histórico para identificar seu nível atual.",
   },
   {
     n: "02",
+    icon: Target,
     title: "Adaptar",
     text: "Seus acertos e erros ajudam a ajustar o próximo nível de desafio.",
   },
   {
     n: "03",
+    icon: GraduationCap,
     title: "Evoluir",
     text: "Você pratica exatamente onde precisa melhorar e avança progressivamente.",
   },
@@ -125,252 +159,220 @@ function LandingPage() {
 
   const openAuth = () => setIsAuthModalOpen(true);
 
-  function scrollToHow(e: React.MouseEvent) {
-    e.preventDefault();
+  function scrollToHow(event: MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault();
     document.getElementById("como-funciona")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   return (
-    <main className="min-h-screen bg-background">
-      {/* Top bar */}
-      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
-          <img src={nexemLogo.url} alt="nexem" className="h-7 w-auto" />
-          <button
-            onClick={openAuth}
-            className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
-          >
+    <main className="min-h-screen overflow-hidden bg-background">
+      <header className="sticky top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
+          <img src={nexemLogo.url} alt="nexem" className="h-8 w-auto" />
+          <Button variant="outline" onClick={openAuth} className="rounded-full px-5">
             Entrar
-          </button>
+          </Button>
         </div>
       </header>
 
-      {/* HERO */}
-      <section className="relative overflow-hidden px-6 pb-20 pt-16 md:pb-28 md:pt-24">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10"
-          style={{
-            background:
-              "radial-gradient(55% 45% at 18% 0%, color-mix(in oklch, var(--primary) 16%, transparent), transparent 70%), radial-gradient(45% 40% at 85% 10%, color-mix(in oklch, var(--accent) 14%, transparent), transparent 70%)",
-          }}
-        />
-        <div className="mx-auto max-w-3xl text-center motion-safe:animate-fade-in-up">
-          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            Nexem • Preparação inteligente para o ENEM
-          </span>
-          <h1
-            className="mt-7 text-4xl font-bold leading-[1.05] tracking-tight text-foreground md:text-6xl"
-            style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.02em" }}
-          >
-            10 questões.{" "}
-            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              15 minutos.
-            </span>{" "}
-            Todo dia.
-          </h1>
-          <p
-            className="mt-5 text-lg font-medium text-foreground/85 md:text-xl"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            Um treino inteligente que evolui com você.
-          </p>
-          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-            Pratique questões no estilo ENEM, receba desafios adaptados ao seu desempenho e conte com
-            o Tutor Nex quando precisar de ajuda.
-          </p>
-          <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-            <button
-              onClick={openAuth}
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 ease-out hover:scale-[1.03] hover:bg-primary/90"
-            >
-              Começar meu desafio gratuito
-              <span aria-hidden="true">→</span>
-            </button>
-            <a
-              href="#como-funciona"
-              onClick={scrollToHow}
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-6 py-3.5 text-base font-medium text-foreground transition-colors hover:bg-secondary"
-            >
-              Como funciona <span aria-hidden="true">↓</span>
-            </a>
+      <section className="relative px-5 pb-20 pt-12 md:px-8 md:pb-28 md:pt-20">
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-aurora" aria-hidden="true" />
+        <div className="mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-[0.88fr_1.12fr] lg:gap-10">
+          <div className="relative z-10 motion-safe:animate-fade-in-up">
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs font-bold uppercase text-primary">
+              <Sparkles className="h-3.5 w-3.5" />
+              Preparação inteligente para o ENEM
+            </span>
+            <h1 className="mt-6 max-w-3xl text-5xl font-bold leading-[0.98] text-foreground md:text-7xl">
+              10 questões.
+              <br />
+              <span className="text-primary">15 minutos.</span>
+              <br />
+              Todo dia.
+            </h1>
+            <p className="mt-6 text-xl font-semibold text-foreground md:text-2xl">
+              Um treino inteligente que evolui com você.
+            </p>
+            <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
+              Pratique questões no estilo ENEM, receba desafios adaptados ao seu desempenho e conte
+              com o Tutor Nex quando precisar de ajuda.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button onClick={openAuth} size="lg" className="h-13 rounded-xl px-6 text-base shadow-lg shadow-primary/20 transition-transform hover:-translate-y-0.5">
+                Começar meu desafio gratuito <ArrowRight />
+              </Button>
+              <Button asChild variant="outline" size="lg" className="h-13 rounded-xl px-6 text-base">
+                <a href="#como-funciona" onClick={scrollToHow}>
+                  Como funciona <ArrowDown />
+                </a>
+              </Button>
+            </div>
+            <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium text-muted-foreground">
+              <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Comece grátis</span>
+              <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> No seu nível</span>
+              <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Evolução visível</span>
+            </div>
           </div>
+
+          <ProductMockup />
         </div>
 
-        <ProductMockup />
-      </section>
-
-      {/* FEATURES */}
-      <section id="como-funciona" className="mx-auto max-w-6xl scroll-mt-20 px-6 py-20">
-        <h2
-          className="text-center text-2xl font-bold tracking-tight text-foreground md:text-4xl"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          Quatro frentes de treino
-        </h2>
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {FEATURES.map((f, i) => (
-            <article
-              key={f.title}
-              style={{ animationDelay: `${i * 80}ms` }}
-              className="group flex flex-col rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-500 ease-out hover:-translate-y-1.5 hover:border-primary/40 hover:shadow-xl motion-safe:animate-fade-in-up"
-            >
-              <span className="text-3xl transition-transform duration-300 group-hover:scale-110">
-                {f.emoji}
-              </span>
-              <h3 className="mt-4 text-lg font-semibold text-foreground">{f.title}</h3>
-              <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{f.text}</p>
-              <button
-                onClick={openAuth}
-                className="mt-6 inline-flex items-center justify-center rounded-lg border border-primary/30 bg-primary/8 px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
-              >
-                Experimentar
-              </button>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      {/* ADAPTIVE SYSTEM — dark section */}
-      <section className="relative overflow-hidden bg-foreground px-6 py-24 text-background">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-40"
-          style={{
-            background:
-              "radial-gradient(50% 50% at 15% 10%, color-mix(in oklch, var(--primary) 45%, transparent), transparent 70%), radial-gradient(45% 45% at 88% 85%, color-mix(in oklch, var(--accent) 40%, transparent), transparent 70%)",
-          }}
-        />
-        <div className="relative mx-auto max-w-5xl">
-          <h2
-            className="max-w-2xl text-3xl font-bold leading-tight tracking-tight md:text-5xl"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            Seu treino não deveria ser igual ao de todo mundo.
-          </h2>
-
-          <ol className="mt-14 grid gap-6 md:grid-cols-3">
-            {STEPS.map((s, i) => (
-              <li
-                key={s.n}
-                style={{ animationDelay: `${i * 110}ms` }}
-                className="relative rounded-2xl border border-background/15 bg-background/8 p-6 backdrop-blur transition-all duration-500 hover:border-background/35 motion-safe:animate-fade-in-up"
-              >
-                <span className="text-sm font-semibold tracking-widest text-background/50">
-                  {s.n}
-                </span>
-                <h3
-                  className="mt-3 text-xl font-semibold"
-                  style={{ fontFamily: "var(--font-display)" }}
-                >
-                  {s.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-background/70">{s.text}</p>
-              </li>
-            ))}
-          </ol>
-
-          <p className="mt-10 text-sm font-medium tracking-wide text-background/70">
-            Mais precisão. Menos desperdício. Mais evolução.
-          </p>
-        </div>
-      </section>
-
-      {/* DAILY HABIT CTA */}
-      <section className="mx-auto max-w-4xl px-6 py-24 text-center">
-        <h2
-          className="text-3xl font-bold tracking-tight text-foreground md:text-4xl"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          15 minutos podem mudar sua preparação.
-        </h2>
-
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-          {["10 questões", "15 minutos", "todo dia"].map((label, i) => (
-            <div key={label} className="flex items-center gap-3">
-              {i > 0 && (
-                <span aria-hidden="true" className="text-xl text-muted-foreground">
-                  →
-                </span>
-              )}
-              <span className="rounded-xl border border-border bg-card px-6 py-4 text-sm font-semibold uppercase tracking-[0.12em] text-foreground shadow-sm transition-transform duration-300 hover:-translate-y-0.5">
-                {label}
-              </span>
+        <div className="mx-auto mt-16 grid max-w-5xl grid-cols-3 divide-x divide-border rounded-2xl border border-border bg-card px-3 py-5 shadow-sm md:px-8">
+          {[{ n: "10", l: "questões por dia" }, { n: "15 min", l: "para manter o ritmo" }, { n: "4", l: "áreas do ENEM" }].map((item) => (
+            <div key={item.l} className="text-center">
+              <strong className="block text-xl font-bold text-foreground md:text-3xl">{item.n}</strong>
+              <span className="mt-1 block text-[10px] font-semibold uppercase text-muted-foreground md:text-xs">{item.l}</span>
             </div>
           ))}
         </div>
-
-        <p className="mx-auto mt-8 max-w-xl text-base leading-relaxed text-muted-foreground">
-          Pequenos treinos consistentes podem ser mais úteis do que estudar horas sem saber onde
-          concentrar seu esforço.
-        </p>
-
-        <button
-          onClick={openAuth}
-          className="mt-9 inline-flex items-center gap-2 rounded-xl bg-primary px-7 py-3.5 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 hover:scale-[1.03] hover:bg-primary/90"
-        >
-          Começar meu primeiro desafio <span aria-hidden="true">→</span>
-        </button>
       </section>
 
-      {/* FAQ */}
-      <section className="mx-auto max-w-3xl px-6 pb-24">
-        <h2
-          className="text-center text-2xl font-bold tracking-tight text-foreground md:text-3xl"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          Perguntas frequentes
-        </h2>
-        <Accordion type="single" collapsible className="mt-8">
-          {FAQ.map((item) => (
-            <AccordionItem key={item.q} value={item.q}>
-              <AccordionTrigger className="text-left text-base">{item.q}</AccordionTrigger>
-              <AccordionContent className="text-sm leading-relaxed text-muted-foreground">
-                {item.a}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </section>
+      <section id="como-funciona" className="scroll-mt-20 bg-card px-5 py-20 md:px-8 md:py-28">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-6 md:grid-cols-[1.1fr_0.9fr] md:items-end">
+            <div>
+              <p className="text-sm font-bold uppercase text-accent">Feito para o seu ritmo</p>
+              <h2 className="mt-3 max-w-3xl text-4xl font-bold leading-tight text-foreground md:text-6xl">
+                Tudo que você precisa para manter o foco.
+              </h2>
+            </div>
+            <p className="max-w-md text-base leading-relaxed text-muted-foreground md:pb-2 md:text-lg">
+              Uma rotina clara, feedback útil e evolução que você consegue enxergar.
+            </p>
+          </div>
 
-      {/* FINAL CTA */}
-      <section className="relative overflow-hidden bg-foreground px-6 py-24 text-background">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-45"
-          style={{
-            background:
-              "radial-gradient(55% 60% at 50% 0%, color-mix(in oklch, var(--accent) 45%, transparent), transparent 70%)",
-          }}
-        />
-        <div className="relative mx-auto max-w-2xl text-center">
-          <h2
-            className="text-3xl font-bold leading-tight tracking-tight md:text-5xl"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            Seu próximo passo não é estudar mais.
-            <br />
-            <span className="bg-gradient-to-r from-[var(--neon)] to-[var(--electric)] bg-clip-text text-transparent">
-              É estudar melhor.
-            </span>
-          </h2>
-          <p className="mt-5 text-base text-background/75">
-            Comece com 10 questões e descubra seu próximo desafio.
-          </p>
-          <button
-            onClick={openAuth}
-            className="mt-9 inline-flex items-center gap-2 rounded-xl bg-background px-7 py-3.5 text-base font-semibold text-foreground transition-all duration-300 hover:scale-[1.03]"
-          >
-            Começar desafio gratuito <span aria-hidden="true">→</span>
-          </button>
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {FEATURES.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <article
+                  key={feature.title}
+                  style={{ animationDelay: `${index * 80}ms` }}
+                  className="group flex min-h-80 flex-col border-t-4 border-primary bg-background p-6 shadow-sm transition-all duration-500 ease-out hover:-translate-y-2 hover:shadow-xl motion-safe:animate-fade-in-up"
+                >
+                  <span className={`flex h-14 w-14 items-center justify-center rounded-2xl ${feature.tone}`}>
+                    <Icon className="h-7 w-7" />
+                  </span>
+                  <p className="mt-6 text-xs font-bold uppercase text-muted-foreground">{feature.tag}</p>
+                  <h3 className="mt-2 text-xl font-bold text-foreground">{feature.title}</h3>
+                  <p className="mt-3 flex-1 text-sm leading-7 text-muted-foreground">{feature.text}</p>
+                  <Button variant="ghost" onClick={openAuth} className="mt-5 justify-between px-0 text-primary hover:bg-transparent hover:text-primary/80">
+                    Experimentar <ArrowRight />
+                  </Button>
+                </article>
+              );
+            })}
+          </div>
         </div>
       </section>
 
-      <footer className="border-t border-border bg-background px-6 py-10">
-        <div className="mx-auto flex max-w-5xl flex-col items-center gap-3">
-          <img src={nexemLogo.url} alt="nexem" className="h-7 w-auto opacity-80" />
-          <p className="text-center text-xs text-muted-foreground">
+      <section className="relative overflow-hidden bg-foreground px-5 py-20 text-background md:px-8 md:py-28">
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-1.5 bg-primary" aria-hidden="true" />
+        <div className="relative mx-auto grid max-w-7xl gap-14 lg:grid-cols-[0.82fr_1.18fr] lg:gap-20">
+          <div className="lg:sticky lg:top-28 lg:self-start">
+            <p className="text-sm font-bold uppercase text-primary">Treino adaptativo</p>
+            <h2 className="mt-4 text-4xl font-bold leading-[1.08] md:text-6xl">
+              Seu treino não deveria ser igual ao de todo mundo.
+            </h2>
+            <p className="mt-8 text-lg text-background/70">Mais precisão. Menos desperdício. Mais evolução.</p>
+          </div>
+
+          <ol className="space-y-5">
+            {STEPS.map((step, index) => {
+              const Icon = step.icon;
+              return (
+                <li
+                  key={step.n}
+                  style={{ animationDelay: `${index * 100}ms` }}
+                  className="group grid grid-cols-[56px_1fr] gap-5 rounded-2xl border border-background/15 bg-background/5 p-6 transition-all duration-500 hover:border-primary/70 hover:bg-background/10 motion-safe:animate-fade-in-up md:p-8"
+                >
+                  <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground transition-transform group-hover:rotate-3 group-hover:scale-105">
+                    <Icon className="h-7 w-7" />
+                  </span>
+                  <div>
+                    <p className="text-xs font-bold uppercase text-primary">Passo {step.n}</p>
+                    <h3 className="mt-1 text-2xl font-bold">{step.title}</h3>
+                    <p className="mt-2 leading-relaxed text-background/65">{step.text}</p>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      </section>
+
+      <section className="px-5 py-20 md:px-8 md:py-28">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid items-center gap-12 lg:grid-cols-[1fr_0.9fr]">
+            <div>
+              <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-warning/25 text-warning-foreground">
+                <Zap className="h-7 w-7" />
+              </span>
+              <h2 className="mt-6 text-4xl font-bold leading-tight text-foreground md:text-6xl">
+                15 minutos podem mudar sua preparação.
+              </h2>
+              <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
+                Pequenos treinos consistentes podem ser mais úteis do que estudar horas sem saber onde concentrar seu esforço.
+              </p>
+              <Button onClick={openAuth} size="lg" className="mt-8 h-13 rounded-xl px-6 text-base">
+                Começar meu primeiro desafio <ArrowRight />
+              </Button>
+            </div>
+
+            <div className="relative grid gap-4">
+              {[{ n: "01", v: "10 questões", s: "um objetivo que cabe no dia" }, { n: "02", v: "15 minutos", s: "foco sem sobrecarga" }, { n: "03", v: "todo dia", s: "consistência que vira progresso" }].map((item, index) => (
+                <div key={item.n} className={`flex items-center gap-5 border border-border bg-card p-5 shadow-sm transition-transform hover:translate-x-2 ${index === 1 ? "lg:ml-10" : ""}`}>
+                  <span className="text-sm font-bold text-primary">{item.n}</span>
+                  <div>
+                    <strong className="block text-xl font-bold uppercase text-foreground">{item.v}</strong>
+                    <span className="text-sm text-muted-foreground">{item.s}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-card px-5 py-20 md:px-8 md:py-24">
+        <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.7fr_1.3fr]">
+          <div>
+            <p className="text-sm font-bold uppercase text-accent">Sem dúvida no caminho</p>
+            <h2 className="mt-3 text-4xl font-bold text-foreground md:text-5xl">Perguntas frequentes</h2>
+            <p className="mt-4 text-muted-foreground">Tudo o que você precisa saber antes de começar seu primeiro desafio.</p>
+          </div>
+          <Accordion type="single" collapsible className="border-t border-border">
+            {FAQ.map((item) => (
+              <AccordionItem key={item.q} value={item.q}>
+                <AccordionTrigger className="py-6 text-left text-lg font-semibold">{item.q}</AccordionTrigger>
+                <AccordionContent className="pb-6 text-base leading-relaxed text-muted-foreground">{item.a}</AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </section>
+
+      <section className="relative overflow-hidden bg-primary px-5 py-20 text-primary-foreground md:px-8 md:py-28">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full border-[40px] border-primary-foreground/10" aria-hidden="true" />
+        <div className="relative mx-auto max-w-4xl text-center">
+          <Sparkles className="mx-auto h-10 w-10" />
+          <h2 className="mt-5 text-4xl font-bold leading-tight md:text-6xl">
+            Seu próximo passo não é estudar mais.
+            <span className="mt-2 block text-background">É estudar melhor.</span>
+          </h2>
+          <p className="mx-auto mt-6 max-w-xl text-lg text-primary-foreground/80">
+            Comece com 10 questões e descubra seu próximo desafio.
+          </p>
+          <Button onClick={openAuth} size="lg" className="mt-9 h-13 rounded-xl bg-background px-7 text-base text-foreground hover:bg-background/90">
+            Começar desafio gratuito <ArrowRight />
+          </Button>
+        </div>
+      </section>
+
+      <footer className="border-t border-border bg-background px-5 py-10">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
+          <img src={nexemLogo.url} alt="nexem" className="h-8 w-auto" />
+          <p className="text-center text-xs text-muted-foreground sm:text-right">
             Nexem — Estudo adaptativo para o ENEM. Pratique no seu nível e evolua todos os dias.
           </p>
         </div>
@@ -383,105 +385,75 @@ function LandingPage() {
 
 function ProductMockup() {
   return (
-    <div
-      className="mx-auto mt-16 max-w-4xl motion-safe:animate-fade-in-up"
-      style={{ animationDelay: "160ms" }}
-      aria-hidden="true"
-    >
-      <div className="rounded-3xl border border-border bg-card p-4 shadow-2xl shadow-foreground/5 md:p-6">
-        <div className="flex items-center gap-2 pb-4">
-          <span className="h-2.5 w-2.5 rounded-full bg-destructive/60" />
-          <span className="h-2.5 w-2.5 rounded-full bg-warning/70" />
-          <span className="h-2.5 w-2.5 rounded-full bg-success/60" />
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-[1.4fr_1fr]">
-          {/* Daily challenge panel */}
-          <div className="rounded-2xl border border-border bg-background p-5">
-            <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                🔥 Desafio Diário
-              </span>
-              <span className="text-xs font-medium text-muted-foreground">7 / 10</span>
+    <div className="relative motion-safe:animate-fade-in-up" style={{ animationDelay: "120ms" }} aria-label="Exemplo da experiência do Desafio Diário">
+      <div className="absolute -left-5 top-12 z-20 hidden -rotate-6 rounded-xl bg-warning px-4 py-3 text-sm font-bold text-warning-foreground shadow-lg md:block">
+        🔥 sequência: 12 dias
+      </div>
+      <div className="absolute -right-3 -top-5 z-20 rounded-full bg-accent px-4 py-2 text-xs font-bold text-accent-foreground shadow-lg">
+        +10 XP
+      </div>
+      <div className="overflow-hidden rounded-[28px] border-[10px] border-foreground bg-card shadow-2xl shadow-foreground/20">
+        <div className="grid min-h-[500px] md:grid-cols-[0.38fr_1fr_0.6fr]">
+          <aside className="hidden border-r border-border bg-card p-5 md:flex md:flex-col">
+            <img src={nexemLogo.url} alt="" className="h-5 w-auto self-start" />
+            <div className="mt-10 rounded-lg bg-secondary px-3 py-2 text-xs font-semibold text-primary">Desafio diário</div>
+            <div className="mt-3 px-3 py-2 text-xs text-muted-foreground">Meu progresso</div>
+            <div className="mt-1 px-3 py-2 text-xs text-muted-foreground">Simulados</div>
+            <div className="mt-auto rounded-xl bg-primary/15 p-3">
+              <Flame className="h-5 w-5 text-primary" />
+              <p className="mt-2 text-xs font-bold text-foreground">Sequência: 12 dias</p>
+              <p className="mt-1 text-[10px] text-muted-foreground">Seu melhor ritmo até agora.</p>
             </div>
+          </aside>
 
-            <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-muted">
-              <div className="h-full w-[70%] rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-1000" />
-            </div>
-
-            <p className="mt-5 text-sm font-medium leading-relaxed text-foreground">
-              Uma população de bactérias dobra a cada 3 horas. Qual expressão representa o número de
-              indivíduos após t horas?
-            </p>
-
-            <div className="mt-4 space-y-2">
-              {[
-                { k: "A", t: "N₀ · 2^(t/3)", state: "correct" },
-                { k: "B", t: "N₀ · 3^(t/2)", state: "idle" },
-                { k: "C", t: "N₀ + 2t", state: "idle" },
-              ].map((o) => (
-                <div
-                  key={o.k}
-                  className={`flex items-center gap-3 rounded-lg border px-3 py-2 text-xs ${
-                    o.state === "correct"
-                      ? "border-success/50 bg-success/10 text-foreground"
-                      : "border-border bg-card text-muted-foreground"
-                  }`}
-                >
-                  <span className="flex h-5 w-5 items-center justify-center rounded-md border border-border text-[10px] font-semibold">
-                    {o.k}
-                  </span>
-                  {o.t}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Side stats */}
-          <div className="grid gap-4">
-            <div className="rounded-2xl border border-border bg-background p-5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Dificuldade
-              </p>
-              <p
-                className="mt-1 text-2xl font-bold text-foreground"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                62 / 100
-              </p>
-              <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                <div className="h-full w-[62%] rounded-full bg-accent" />
+          <div className="p-5 md:p-7">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase text-accent">Desafio de hoje</p>
+                <h3 className="mt-1 text-xl font-bold text-foreground">Ciências da Natureza</h3>
               </div>
-              <div className="mt-4 space-y-2">
-                {[
-                  { l: "Matemática", v: 64 },
-                  { l: "Linguagens", v: 71 },
-                  { l: "Natureza", v: 48 },
-                ].map((s) => (
-                  <div key={s.l}>
-                    <div className="flex justify-between text-[11px] text-muted-foreground">
-                      <span>{s.l}</span>
-                      <span>{s.v}/85</span>
-                    </div>
-                    <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                      <div
-                        className="h-full rounded-full bg-primary transition-all duration-1000"
-                        style={{ width: `${(s.v / 85) * 100}%` }}
-                      />
-                    </div>
+              <span className="rounded-full bg-secondary px-3 py-1 text-[10px] font-bold text-accent">4 de 10</span>
+            </div>
+            <div className="mt-5 h-2 overflow-hidden rounded-full bg-muted">
+              <div className="h-full w-[40%] rounded-full bg-gradient-to-r from-accent to-primary" />
+            </div>
+            <div className="mt-6 rounded-xl border border-border p-5">
+              <div className="flex gap-2">
+                <span className="rounded-full bg-secondary px-3 py-1 text-[10px] font-semibold text-secondary-foreground">Física</span>
+                <span className="rounded-full bg-primary/15 px-3 py-1 text-[10px] font-semibold text-primary">Nível intermediário</span>
+              </div>
+              <p className="mt-5 text-sm font-semibold leading-relaxed text-foreground">
+                Um ciclista percorre uma avenida mantendo velocidade constante. Qual grandeza permanece inalterada?
+              </p>
+              <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                {["A. Posição", "B. Velocidade", "C. Deslocamento", "D. Distância total"].map((answer, index) => (
+                  <div key={answer} className={`rounded-lg border px-3 py-3 text-xs ${index === 1 ? "border-accent bg-secondary font-bold text-accent" : "border-border text-muted-foreground"}`}>
+                    {answer}
                   </div>
                 ))}
               </div>
             </div>
-
-            <div className="rounded-2xl border border-border bg-background p-5">
-              <p className="text-xs font-semibold text-primary">🧠 Tutor Nex</p>
-              <p className="mt-2 rounded-lg bg-muted/60 p-3 text-[11px] leading-relaxed text-muted-foreground">
-                O que acontece com a quantidade a cada intervalo de 3 horas? Tente escrever isso como
-                uma potência.
-              </p>
+            <div className="mt-5 flex items-center justify-between text-xs font-semibold text-muted-foreground">
+              <span className="inline-flex items-center gap-2"><Clock3 className="h-4 w-4" /> 11 min restantes</span>
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-foreground text-background"><ArrowRight className="h-5 w-5" /></span>
             </div>
           </div>
+
+          <aside className="border-t border-border bg-secondary p-5 md:border-l md:border-t-0 md:p-6">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-accent-foreground"><BrainCircuit className="h-5 w-5" /></span>
+              <div><p className="text-sm font-bold text-foreground">Tutor Nex</p><p className="text-[10px] text-muted-foreground">Online para ajudar</p></div>
+            </div>
+            <div className="mt-6 rounded-xl bg-card p-4 text-xs leading-relaxed text-foreground shadow-sm">
+              Você já percebeu que a palavra <strong>constante</strong> é importante. O que ela diz sobre a velocidade?
+            </div>
+            <div className="ml-auto mt-3 max-w-[85%] rounded-xl bg-foreground p-4 text-xs leading-relaxed text-background">
+              Que ela não muda durante o movimento?
+            </div>
+            <div className="mt-3 rounded-xl bg-card p-4 text-xs leading-relaxed text-foreground shadow-sm">
+              <strong className="text-accent">✓ Exatamente!</strong><br />Agora compare isso com as alternativas.
+            </div>
+          </aside>
         </div>
       </div>
     </div>
