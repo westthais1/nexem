@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
@@ -170,7 +170,7 @@ function Sidebar() {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-sidebar-border bg-sidebar transition-transform duration-300 md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex h-dvh max-h-dvh w-64 flex-col border-r border-sidebar-border bg-sidebar transition-transform duration-300 md:h-screen md:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         } md:sticky md:top-0 md:z-0`}
       >
@@ -187,7 +187,7 @@ function Sidebar() {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 px-3">
+        <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 pb-3">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             return (
@@ -207,7 +207,7 @@ function Sidebar() {
           })}
         </nav>
 
-        <div className="border-t border-sidebar-border p-4">
+        <div className="shrink-0 border-t border-sidebar-border bg-sidebar p-4">
           <UserMenu />
         </div>
       </aside>
@@ -229,6 +229,7 @@ function Brand() {
 
 function UserMenu() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<{ email: string; name: string } | null>(null);
 
   useEffect(() => {
@@ -249,9 +250,11 @@ function UserMenu() {
     : "?";
 
   async function handleLogout() {
+    await queryClient.cancelQueries();
+    queryClient.clear();
     await supabase.auth.signOut();
     setUser(null);
-    navigate({ to: "/landing" });
+    navigate({ to: "/landing", replace: true });
   }
 
   if (!user) return null;
@@ -299,15 +302,15 @@ function RootComponent() {
 
     let active = true;
 
-    // Redirect to landing if no session on any app route.
-    supabase.auth.getSession().then(({ data }) => {
+    // Revalidate the stored account before deciding that the visitor is signed out.
+    supabase.auth.getUser().then(({ data, error }) => {
       if (!active) return;
-      if (!data.session) navigate({ to: "/landing" });
+      if (error || !data.user) navigate({ to: "/landing", replace: true });
     });
 
     // Redirect to landing on sign-out.
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT") navigate({ to: "/landing" });
+      if (event === "SIGNED_OUT") navigate({ to: "/landing", replace: true });
     });
 
     return () => {
