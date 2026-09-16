@@ -5,6 +5,7 @@ import {
   createRootRouteWithContext,
   useRouter,
   useRouterState,
+  useNavigate,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -14,6 +15,7 @@ import { XpCelebration } from "@/components/XpCelebration";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import nexemLogo from "@/assets/nexem-logo.png.asset.json";
+import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
   return (
@@ -206,15 +208,7 @@ function Sidebar() {
         </nav>
 
         <div className="border-t border-sidebar-border p-4">
-          <div className="flex items-center gap-3 rounded-lg px-3 py-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-sm font-semibold text-primary-foreground">
-              DW
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-sidebar-foreground">Daniel West</p>
-              <p className="truncate text-xs text-muted-foreground">Plano Pro</p>
-            </div>
-          </div>
+          <UserMenu />
         </div>
       </aside>
     </>
@@ -233,10 +227,94 @@ function Brand() {
   );
 }
 
+function UserMenu() {
+  const navigate = useNavigate();
+  const [user, setUser] = useState<{ email: string; name: string } | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const u = data.session?.user;
+      if (u) setUser({ email: u.email ?? "", name: nameOf(u) });
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      const u = session?.user;
+      if (u) setUser({ email: u.email ?? "", name: nameOf(u) });
+      else setUser(null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  const initials = user?.name
+    ? user.name.split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("")
+    : "?";
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    setUser(null);
+    navigate({ to: "/landing" });
+  }
+
+  if (!user) return null;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-3 rounded-lg px-3 py-2">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-sm font-semibold text-primary-foreground">
+          {initials}
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-sidebar-foreground">{user.name}</p>
+          <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+        </div>
+      </div>
+      <button
+        onClick={handleLogout}
+        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+      >
+        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <path d="M16 17l5-5-5-5" />
+          <path d="M21 12H9" />
+        </svg>
+        Sair
+      </button>
+    </div>
+  );
+}
+
+function nameOf(user: { email?: string; user_metadata?: Record<string, unknown> | null }): string {
+  const meta = user.user_metadata;
+  const full = (meta?.["full_name"] ?? meta?.["name"]) as string | undefined;
+  return full?.trim() || (user.email ?? "").split("@")[0] || "Estudante";
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isLanding = pathname.startsWith("/landing");
+
+  useEffect(() => {
+    if (isLanding) return;
+
+    let active = true;
+
+    // Redirect to landing if no session on any app route.
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      if (!data.session) navigate({ to: "/landing" });
+    });
+
+    // Redirect to landing on sign-out.
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") navigate({ to: "/landing" });
+    });
+
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, [isLanding, navigate]);
 
   return (
     <QueryClientProvider client={queryClient}>
