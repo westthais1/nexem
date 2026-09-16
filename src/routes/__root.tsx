@@ -208,15 +208,7 @@ function Sidebar() {
         </nav>
 
         <div className="border-t border-sidebar-border p-4">
-          <div className="flex items-center gap-3 rounded-lg px-3 py-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-sm font-semibold text-primary-foreground">
-              DW
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-sidebar-foreground">Daniel West</p>
-              <p className="truncate text-xs text-muted-foreground">Plano Pro</p>
-            </div>
-          </div>
+          <UserMenu />
         </div>
       </aside>
     </>
