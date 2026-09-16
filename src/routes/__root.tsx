@@ -148,7 +148,7 @@ function Sidebar() {
   return (
     <>
       {/* Mobile top bar */}
-      <div className="sticky top-0 z-30 flex items-center justify-between border-b border-sidebar-border bg-sidebar/90 px-4 py-3 backdrop-blur md:hidden">
+      <div className="sticky top-0 z-30 flex w-full shrink-0 items-center justify-between border-b border-sidebar-border bg-sidebar/90 px-4 py-3 backdrop-blur md:hidden">
         <Brand />
         <button
           aria-label="Abrir menu"
@@ -318,9 +318,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex min-h-screen bg-background">
+      <div className="flex min-h-screen flex-col bg-background md:flex-row">
         {!isLanding && <Sidebar />}
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex w-full min-w-0 flex-1 flex-col md:w-auto">
           <Outlet />
           {!isLanding && <Footer />}
         </div>
