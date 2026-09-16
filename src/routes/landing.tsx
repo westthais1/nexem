@@ -24,6 +24,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import nexemLogo from "@/assets/nexem-logo.png.asset.json";
+import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureProgressForUser } from "@/lib/progress";
 import { ensureProfile, markOnboarded } from "@/lib/profile";
@@ -136,9 +137,9 @@ function LandingPage() {
   useEffect(() => {
     let active = true;
 
-    async function enterApp(user: { id: string } & Record<string, unknown>) {
+    async function enterApp(user: User) {
       const [profile, progressCreated] = await Promise.all([
-        ensureProfile(user as never).catch(() => ({ isNew: false, displayName: "" })),
+        ensureProfile(user).catch(() => ({ isNew: false, displayName: "" })),
         ensureProgressForUser(user.id).catch(() => false),
       ]);
       if (!active) return;
