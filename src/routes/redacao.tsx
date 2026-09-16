@@ -108,8 +108,14 @@ function RedacaoPage() {
     setUploadError(null);
     setUploading(true);
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+      if (!userId) {
+        setUploadError("Entre na sua conta para enviar a foto da redação.");
+        return;
+      }
       const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const path = `redacoes/${crypto.randomUUID()}.${ext}`;
+      const path = `${userId}/${crypto.randomUUID()}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from("redacao-fotos")
         .upload(path, file, { contentType: file.type, upsert: false });

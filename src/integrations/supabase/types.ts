@@ -29,6 +29,7 @@ export type Database = {
           nota_total: number
           tema: string
           texto: string
+          user_id: string | null
         }
         Insert: {
           c1: number
@@ -44,6 +45,7 @@ export type Database = {
           nota_total: number
           tema: string
           texto: string
+          user_id?: string | null
         }
         Update: {
           c1?: number
@@ -59,6 +61,7 @@ export type Database = {
           nota_total?: number
           tema?: string
           texto?: string
+          user_id?: string | null
         }
         Relationships: []
       }

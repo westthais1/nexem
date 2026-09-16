@@ -183,7 +183,9 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
 
     try {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { getOptionalUserId } = await import("./auth-user.server");
       await supabaseAdmin.from("enem_essays").insert({
+        user_id: await getOptionalUserId(),
         tema: data.tema,
         texto: data.texto.trim() || correction.transcricao,
         imagem_path: data.imagem_path ?? null,

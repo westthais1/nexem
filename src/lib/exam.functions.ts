@@ -16,8 +16,10 @@ export const registrarProva = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => examAttemptSchema.parse(input))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { getOptionalUserId } = await import("./auth-user.server");
 
     const { error } = await supabaseAdmin.from("enem_exam_attempts").insert({
+      user_id: await getOptionalUserId(),
       nome_prova: data.nome_prova,
       respostas: data.respostas,
       acertos: data.acertos,
