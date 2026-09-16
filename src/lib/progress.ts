@@ -70,8 +70,9 @@ export function deviceUserId(): string {
 /**
  * Após o login: passa a usar o id da conta como identificador e garante que
  * exista uma linha de proficiência inicial para o estudante.
+ * Retorna true quando a linha acabou de ser criada (estudante novo).
  */
-export async function ensureProgressForUser(userId: string): Promise<void> {
+export async function ensureProgressForUser(userId: string): Promise<boolean> {
   if (typeof window !== "undefined") window.localStorage.setItem(USER_KEY, userId);
 
   const { data } = await questionsSupabase
@@ -80,7 +81,7 @@ export async function ensureProgressForUser(userId: string): Promise<void> {
     .eq("user_id", userId)
     .maybeSingle();
 
-  if (data) return;
+  if (data) return false;
 
   const base = defaultProgress();
   await questionsSupabase.from("nexem_user_progress").insert({
@@ -92,6 +93,7 @@ export async function ensureProgressForUser(userId: string): Promise<void> {
     streak_counter: 0,
     tri_consistency_rate: 100,
   });
+  return true;
 }
 
 /** Área do banco -> trilha. */
