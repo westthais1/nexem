@@ -24,8 +24,10 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import nexemLogo from "@/assets/nexem-logo.png.asset.json";
+import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureProgressForUser } from "@/lib/progress";
+import { ensureProfile, markOnboarded } from "@/lib/profile";
 
 export const Route = createFileRoute("/landing")({
   head: () => ({
@@ -135,19 +137,31 @@ function LandingPage() {
   useEffect(() => {
     let active = true;
 
-    async function goHomeIfLogged(userId: string) {
-      await ensureProgressForUser(userId).catch(() => undefined);
-      if (active) navigate({ to: "/" });
+    async function enterApp(user: User) {
+      const [profile, progressCreated] = await Promise.all([
+        ensureProfile(user).catch(() => ({ isNew: false, displayName: "" })),
+        ensureProgressForUser(user.id).catch(() => false),
+      ]);
+      if (!active) return;
+
+      const isNew = profile.isNew || progressCreated;
+      if (isNew) {
+        await markOnboarded(user.id).catch(() => undefined);
+        if (!active) return;
+        navigate({ to: "/desafio" });
+        return;
+      }
+      navigate({ to: "/" });
     }
 
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session?.user) void goHomeIfLogged(data.session.user.id);
+      if (data.session?.user) void enterApp(data.session.user);
     });
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if ((event === "SIGNED_IN" || event === "USER_UPDATED") && session?.user) {
         setIsAuthModalOpen(false);
-        void goHomeIfLogged(session.user.id);
+        void enterApp(session.user);
       }
     });
 
