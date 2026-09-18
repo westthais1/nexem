@@ -659,9 +659,9 @@ function BlockSession({
           <button
             type="button"
             onClick={() => setTutorOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-background/40 px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-accent/10"
+            className="inline-flex items-center gap-2 rounded-lg border border-primary/50 bg-primary/10 px-4 py-2.5 text-sm font-semibold text-foreground transition-all duration-300 hover:border-primary hover:bg-primary/25 hover:shadow-[0_0_24px_-6px_var(--primary)] active:scale-95 active:bg-primary/35 active:shadow-[0_0_32px_-4px_var(--primary)]"
           >
-            <Sparkles className="h-4 w-4" /> Pedir ajuda ao Nex
+            <Sparkles className="h-4 w-4 text-primary transition-transform duration-300 group-hover:rotate-12" /> Pedir ajuda ao Nex
           </button>
         </div>
       </section>
