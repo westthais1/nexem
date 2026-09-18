@@ -82,30 +82,54 @@ function HeroBanner() {
   );
 }
 
-/** Card "Treine com Tutor Nex" — entrada para os Níveis de Maestria por matéria. */
+/** Card "Treine com Tutor Nex" — entrada para os Níveis de Maestria por matéria, com barra de progresso total. */
 function TutorNexCard() {
+  const [total, setTotal] = useState(0);
+  useEffect(() => {
+    setTotal(readHistory().length);
+    const onChange = () => setTotal(readHistory().length);
+    window.addEventListener(DAILY_EVENT, onChange);
+    return () => window.removeEventListener(DAILY_EVENT, onChange);
+  }, []);
+
+  const goal = 250;
+  const pct = Math.min(100, Math.max(2, Math.round((total / goal) * 100)));
+  const hue = (total * 3) % 360;
+
   return (
     <section className="mt-4 overflow-hidden rounded-2xl border border-border bg-card card-glow">
       <div className="relative grid gap-6 p-6 md:grid-cols-[1fr_auto] md:items-center md:p-8">
         <div className="absolute -right-12 -top-12 h-48 w-48 rounded-full bg-accent/15 blur-3xl" />
         <div className="relative">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-accent/15 text-accent">
-              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 19V5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" /><path d="M14 3v5h5" /><path d="M9 13h6M9 17h4" />
-              </svg>
-            </span>
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2
               className="text-xl font-semibold text-foreground md:text-2xl"
               style={{ fontFamily: "var(--font-display)" }}
             >
               Treine com Tutor Nex
             </h2>
+            <p className="flex items-baseline gap-1 text-xs text-muted-foreground">
+              <span className="text-2xl font-semibold text-foreground text-glow-neon">{total}</span>
+              de {goal} questões rumo ao domínio
+            </p>
           </div>
           <p className="mt-2 max-w-xl text-sm text-muted-foreground">
             15 trilhas de matéria em três níveis — Fundações, Aprofundamento e Domínio Avançado.
             Blocos de 5 questões que calibram sua proficiência e destravam níveis mais altos, no estilo TRI do ENEM.
           </p>
+          <div className="mt-4 h-4 w-full overflow-hidden rounded-full bg-background/60">
+            <div
+              className="relative h-4 overflow-hidden rounded-full transition-all duration-1000"
+              style={{
+                width: `${pct}%`,
+                background: "linear-gradient(90deg, var(--primary), var(--accent))",
+                filter: `hue-rotate(${hue}deg)`,
+                boxShadow: "0 0 18px -4px var(--primary)",
+              }}
+            >
+              <span className="mastery-progress-shine absolute inset-y-0 w-16" />
+            </div>
+          </div>
           <div className="mt-3 flex flex-wrap gap-2">
             {["Matemática", "Natureza", "Humanas", "Linguagens"].map((t) => (
               <span key={t} className="rounded-full border border-border bg-background/40 px-3 py-1 text-xs font-medium text-muted-foreground">
