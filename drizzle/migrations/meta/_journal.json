@@ -15,6 +15,13 @@
       "when": 1789593579622,
       "tag": "0001_scope_user_data_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789738236889,
+      "tag": "0002_create_mastery_progress",
+      "breakpoints": true
     }
   ]
 }
