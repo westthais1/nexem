@@ -205,7 +205,8 @@ function MaestriaPage() {
 
 
   if (view.kind === "niveis" && progress) {
-    const theta = progress.tracks[view.subject.track];
+    const theta = subjectProgress(mastery, view.subject.slug).theta;
+
     return (
       <Shell>
         <button
@@ -305,10 +306,11 @@ function MaestriaPage() {
         dominá-lo. Na TRI do ENEM, blocos consistentes de acertos valem mais do que acertos
         espalhados.
       </p>
-      <TotalAnsweredBar />
+      <TotalAnsweredBar total={mastery?.totalRespondidas ?? 0} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {SUBJECTS.map((s) => {
-          const theta = progress?.tracks[s.track] ?? 50;
+          const theta = subjectProgress(mastery, s.slug).theta;
+
           const total = contagem.get(s.slug) ?? 0;
           const liberados = LEVELS.filter((l) => unlocked(l, theta)).length;
           return (
@@ -349,8 +351,8 @@ function MaestriaPage() {
 
 /* ----------------------- barra de questões respondidas ---------------------- */
 
-function TotalAnsweredBar() {
-  const total = readHistory().length;
+function TotalAnsweredBar({ total }: { total: number }) {
+
   const goal = 250;
   const pct = Math.min(100, Math.max(2, Math.round((total / goal) * 100)));
   const hue = (total * 3) % 360;
@@ -390,6 +392,7 @@ function BlockSession({
   level,
   pool,
   progress,
+  mastery,
   onExit,
   onRefetchProgress,
 }: {
@@ -397,6 +400,7 @@ function BlockSession({
   level: MasteryLevel;
   pool: QuestionRow[];
   progress: UserProgress;
+  mastery: MasteryProgress | null;
   onExit: () => void;
   onRefetchProgress: () => void;
 }) {
@@ -413,7 +417,8 @@ function BlockSession({
   const [saved, setSaved] = useState(false);
   const [tutorOpen, setTutorOpen] = useState(false);
 
-  const thetaAntes = progress.tracks[subject.track];
+  const atual = subjectProgress(mastery, subject.slug);
+  const thetaAntes = atual.theta;
   const current = questions[index] ?? null;
 
   const finalizar = useCallback(
@@ -426,9 +431,20 @@ function BlockSession({
       );
       try {
         pushHistory(todas.map((a) => a.questionId));
+        await saveSubjectProgress({
+          slug: subject.slug,
+          theta: novoTheta,
+          respondidas: todas.length,
+          acertos: todas.filter((a) => a.correto).length,
+          atual,
+        });
         await saveProgress({
           ...progress,
-          tracks: withTrack(progress.tracks, subject.track, novoTheta),
+          tracks: withTrack(
+            progress.tracks,
+            subject.track,
+            Math.max(progress.tracks[subject.track], novoTheta),
+          ),
         });
         setSaved(true);
         onRefetchProgress();
@@ -438,6 +454,7 @@ function BlockSession({
         setSaving(false);
       }
     },
+
     [progress, subject.track, thetaAntes, onRefetchProgress],
   );
 
