@@ -10,6 +10,14 @@ import { awardXp } from "@/lib/xp";
 import { pushHistory, readHistory } from "@/lib/daily-challenge";
 import { fetchProgress, saveProgress, TRACK_LABEL, type UserProgress } from "@/lib/progress";
 import {
+  MASTERY_QUERY_KEY,
+  fetchMasteryProgress,
+  saveSubjectProgress,
+  subjectProgress,
+  type MasteryProgress,
+} from "@/lib/mastery-progress";
+
+import {
   BLOCK_SIZE,
   LEVELS,
   SUBJECTS,
