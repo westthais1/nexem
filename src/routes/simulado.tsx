@@ -301,7 +301,7 @@ function MaestriaPage() {
             >
               <p className="text-base font-semibold text-foreground">{s.label}</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {TRACK_LABEL[s.track]} · {total} questões
+                {TRACK_LABEL[s.track]}
               </p>
               <div className="mt-4 flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">Proficiência {theta}/100</span>
@@ -421,6 +421,7 @@ function BlockSession({
     setSelected(null);
     setConfirmed(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
+    document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   if (questions.length === 0) {
