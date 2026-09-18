@@ -133,11 +133,17 @@ type View =
 function MaestriaPage() {
   const poolQuery = useQuery({ queryKey: [TABLE, "maestria"], queryFn: fetchPool });
   const progressQuery = useQuery({ queryKey: ["nexem_user_progress"], queryFn: fetchProgress });
+  const masteryQuery = useQuery({
+    queryKey: MASTERY_QUERY_KEY,
+    queryFn: fetchMasteryProgress,
+  });
 
   const [view, setView] = useState<View>({ kind: "materias" });
 
   const pool = useMemo(() => poolQuery.data ?? [], [poolQuery.data]);
   const progress = progressQuery.data ?? null;
+  const mastery = masteryQuery.data ?? null;
+
 
   const contagem = useMemo(() => {
     const map = new Map<string, number>();
