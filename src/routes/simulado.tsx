@@ -163,7 +163,7 @@ function MaestriaPage() {
     return map;
   }, [pool]);
 
-  if (poolQuery.isLoading || progressQuery.isLoading) {
+  if (poolQuery.isLoading || progressQuery.isLoading || masteryQuery.isLoading) {
     return (
       <Shell>
         <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-6 text-muted-foreground">
@@ -173,8 +173,8 @@ function MaestriaPage() {
     );
   }
 
-  if (poolQuery.isError || progressQuery.isError) {
-    const err = (poolQuery.error ?? progressQuery.error) as Error;
+  if (poolQuery.isError || progressQuery.isError || masteryQuery.isError) {
+    const err = (poolQuery.error ?? progressQuery.error ?? masteryQuery.error) as Error;
     return (
       <Shell>
         <div className="rounded-2xl border border-destructive/40 bg-destructive/10 p-6 text-sm text-destructive">
@@ -192,12 +192,17 @@ function MaestriaPage() {
           level={view.level}
           pool={pool}
           progress={progress}
+          mastery={mastery}
           onExit={() => setView({ kind: "niveis", subject: view.subject })}
-          onRefetchProgress={() => void progressQuery.refetch()}
+          onRefetchProgress={() => {
+            void progressQuery.refetch();
+            void masteryQuery.refetch();
+          }}
         />
       </Shell>
     );
   }
+
 
   if (view.kind === "niveis" && progress) {
     const theta = progress.tracks[view.subject.track];
