@@ -49,17 +49,7 @@ export function TutorChat({
     }
   }
 
-  if (!open) {
-    return (
-      <button
-        onClick={() => onOpenChange(true)}
-        className="inline-flex items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-2.5 text-sm font-semibold text-foreground transition-all hover:border-glow-neon"
-      >
-        <MessageCircleQuestion size={16} className="text-primary" />
-        Pedir ajuda ao Tutor
-      </button>
-    );
-  }
+  if (!open) return null;
 
   return (
     <aside className="flex h-[560px] w-full flex-col overflow-hidden rounded-2xl border border-border bg-card card-glow lg:h-[calc(100vh-8rem)] lg:w-[380px] lg:shrink-0">

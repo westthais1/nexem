@@ -249,10 +249,30 @@
 .clean-particle:nth-child(7) { --particle-angle: 270deg; }
 .clean-particle:nth-child(8) { --particle-angle: 315deg; }
 
+@keyframes mastery-shine {
+  0% {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(500%);
+    opacity: 0;
+  }
+}
+
+@utility mastery-progress-shine {
+  background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.45), transparent);
+  animation: mastery-shine 2.8s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .difficulty-clean-hit,
   .clean-particle,
-  .animate-fade-in-up {
+  .animate-fade-in-up,
+  .mastery-progress-shine {
     animation: none;
   }
 }

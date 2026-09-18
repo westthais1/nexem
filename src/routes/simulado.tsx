@@ -286,6 +286,7 @@ function MaestriaPage() {
         dominá-lo. Na TRI do ENEM, blocos consistentes de acertos valem mais do que acertos
         espalhados.
       </p>
+      <TotalAnsweredBar />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {SUBJECTS.map((s) => {
           const theta = progress?.tracks[s.track] ?? 50;
@@ -301,7 +302,7 @@ function MaestriaPage() {
             >
               <p className="text-base font-semibold text-foreground">{s.label}</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {TRACK_LABEL[s.track]} · {total} questões
+                {TRACK_LABEL[s.track]}
               </p>
               <div className="mt-4 flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">Proficiência {theta}/100</span>
@@ -324,6 +325,42 @@ function MaestriaPage() {
         })}
       </div>
     </Shell>
+  );
+}
+
+/* ----------------------- barra de questões respondidas ---------------------- */
+
+function TotalAnsweredBar() {
+  const total = readHistory().length;
+  const goal = 250;
+  const pct = Math.min(100, Math.max(2, Math.round((total / goal) * 100)));
+  const hue = (total * 3) % 360;
+  return (
+    <div className="mb-6 rounded-2xl border border-border bg-card p-5 card-glow">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="text-sm font-semibold text-foreground">Total de questões respondidas</p>
+        <p className="flex items-baseline gap-1 text-xs text-muted-foreground">
+          <span className="text-2xl font-semibold text-foreground text-glow-neon">{total}</span>
+          de {goal} rumo ao domínio
+        </p>
+      </div>
+      <div className="mt-3 h-4 w-full overflow-hidden rounded-full bg-background/60">
+        <div
+          className="relative h-4 overflow-hidden rounded-full transition-all duration-1000"
+          style={{
+            width: `${pct}%`,
+            background: "linear-gradient(90deg, var(--primary), var(--accent))",
+            filter: `hue-rotate(${hue}deg)`,
+            boxShadow: "0 0 18px -4px var(--primary)",
+          }}
+        >
+          <span className="mastery-progress-shine absolute inset-y-0 w-16" />
+        </div>
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        A cada resposta a barra muda de cor — volume constante é o que move sua proficiência na TRI.
+      </p>
+    </div>
   );
 }
 
@@ -421,6 +458,7 @@ function BlockSession({
     setSelected(null);
     setConfirmed(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
+    document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   if (questions.length === 0) {
@@ -659,9 +697,9 @@ function BlockSession({
           <button
             type="button"
             onClick={() => setTutorOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-background/40 px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-accent/10"
+            className="inline-flex items-center gap-2 rounded-lg border border-primary/50 bg-primary/10 px-4 py-2.5 text-sm font-semibold text-foreground transition-all duration-300 hover:border-primary hover:bg-primary/25 hover:shadow-[0_0_24px_-6px_var(--primary)] active:scale-95 active:bg-primary/35 active:shadow-[0_0_32px_-4px_var(--primary)]"
           >
-            <Sparkles className="h-4 w-4" /> Pedir ajuda ao Nex
+            <Sparkles className="h-4 w-4 text-primary transition-transform duration-300 group-hover:rotate-12" /> Pedir ajuda ao Nex
           </button>
         </div>
       </section>
