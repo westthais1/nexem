@@ -1,8 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ProgressMascot } from "@/components/ProgressMascot";
 import { DailyChallengeCard } from "@/components/DailyChallengeCard";
 import { MasteryTargets } from "@/components/MasteryTargets";
+import { DAILY_EVENT, readHistory } from "@/lib/daily-challenge";
 
 export const Route = createFileRoute("/")({
   head: () => ({
