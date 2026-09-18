@@ -454,8 +454,8 @@ function BlockSession({
         setSaving(false);
       }
     },
+    [progress, subject.track, subject.slug, atual, thetaAntes, onRefetchProgress],
 
-    [progress, subject.track, thetaAntes, onRefetchProgress],
   );
 
   const confirmar = useCallback(() => {
