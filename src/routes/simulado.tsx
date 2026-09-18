@@ -731,7 +731,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     <main className="flex-1 overflow-y-auto">
       <div className="mx-auto max-w-6xl px-6 py-8 md:px-10 md:py-12">
         <h1 className="text-2xl font-semibold text-foreground md:text-3xl">
-          Níveis de Maestria — Treine com Nex
+          Treine com Tutor Nex
         </h1>
         <p className="mb-6 mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
           Matéria por matéria, nível por nível. Travou? Chame o Nex: ele dá pistas e explica o
