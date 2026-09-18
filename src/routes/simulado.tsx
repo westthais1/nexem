@@ -10,6 +10,14 @@ import { awardXp } from "@/lib/xp";
 import { pushHistory, readHistory } from "@/lib/daily-challenge";
 import { fetchProgress, saveProgress, TRACK_LABEL, type UserProgress } from "@/lib/progress";
 import {
+  MASTERY_QUERY_KEY,
+  fetchMasteryProgress,
+  saveSubjectProgress,
+  subjectProgress,
+  type MasteryProgress,
+} from "@/lib/mastery-progress";
+
+import {
   BLOCK_SIZE,
   LEVELS,
   SUBJECTS,
@@ -133,11 +141,17 @@ type View =
 function MaestriaPage() {
   const poolQuery = useQuery({ queryKey: [TABLE, "maestria"], queryFn: fetchPool });
   const progressQuery = useQuery({ queryKey: ["nexem_user_progress"], queryFn: fetchProgress });
+  const masteryQuery = useQuery({
+    queryKey: MASTERY_QUERY_KEY,
+    queryFn: fetchMasteryProgress,
+  });
 
   const [view, setView] = useState<View>({ kind: "materias" });
 
   const pool = useMemo(() => poolQuery.data ?? [], [poolQuery.data]);
   const progress = progressQuery.data ?? null;
+  const mastery = masteryQuery.data ?? null;
+
 
   const contagem = useMemo(() => {
     const map = new Map<string, number>();
@@ -149,7 +163,7 @@ function MaestriaPage() {
     return map;
   }, [pool]);
 
-  if (poolQuery.isLoading || progressQuery.isLoading) {
+  if (poolQuery.isLoading || progressQuery.isLoading || masteryQuery.isLoading) {
     return (
       <Shell>
         <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-6 text-muted-foreground">
@@ -159,8 +173,8 @@ function MaestriaPage() {
     );
   }
 
-  if (poolQuery.isError || progressQuery.isError) {
-    const err = (poolQuery.error ?? progressQuery.error) as Error;
+  if (poolQuery.isError || progressQuery.isError || masteryQuery.isError) {
+    const err = (poolQuery.error ?? progressQuery.error ?? masteryQuery.error) as Error;
     return (
       <Shell>
         <div className="rounded-2xl border border-destructive/40 bg-destructive/10 p-6 text-sm text-destructive">
@@ -178,15 +192,21 @@ function MaestriaPage() {
           level={view.level}
           pool={pool}
           progress={progress}
+          mastery={mastery}
           onExit={() => setView({ kind: "niveis", subject: view.subject })}
-          onRefetchProgress={() => void progressQuery.refetch()}
+          onRefetchProgress={() => {
+            void progressQuery.refetch();
+            void masteryQuery.refetch();
+          }}
         />
       </Shell>
     );
   }
 
+
   if (view.kind === "niveis" && progress) {
-    const theta = progress.tracks[view.subject.track];
+    const theta = subjectProgress(mastery, view.subject.slug).theta;
+
     return (
       <Shell>
         <button
@@ -286,10 +306,11 @@ function MaestriaPage() {
         dominá-lo. Na TRI do ENEM, blocos consistentes de acertos valem mais do que acertos
         espalhados.
       </p>
-      <TotalAnsweredBar />
+      <TotalAnsweredBar total={mastery?.totalRespondidas ?? 0} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {SUBJECTS.map((s) => {
-          const theta = progress?.tracks[s.track] ?? 50;
+          const theta = subjectProgress(mastery, s.slug).theta;
+
           const total = contagem.get(s.slug) ?? 0;
           const liberados = LEVELS.filter((l) => unlocked(l, theta)).length;
           return (
@@ -330,8 +351,8 @@ function MaestriaPage() {
 
 /* ----------------------- barra de questões respondidas ---------------------- */
 
-function TotalAnsweredBar() {
-  const total = readHistory().length;
+function TotalAnsweredBar({ total }: { total: number }) {
+
   const goal = 250;
   const pct = Math.min(100, Math.max(2, Math.round((total / goal) * 100)));
   const hue = (total * 3) % 360;
@@ -371,6 +392,7 @@ function BlockSession({
   level,
   pool,
   progress,
+  mastery,
   onExit,
   onRefetchProgress,
 }: {
@@ -378,6 +400,7 @@ function BlockSession({
   level: MasteryLevel;
   pool: QuestionRow[];
   progress: UserProgress;
+  mastery: MasteryProgress | null;
   onExit: () => void;
   onRefetchProgress: () => void;
 }) {
@@ -394,7 +417,8 @@ function BlockSession({
   const [saved, setSaved] = useState(false);
   const [tutorOpen, setTutorOpen] = useState(false);
 
-  const thetaAntes = progress.tracks[subject.track];
+  const atual = subjectProgress(mastery, subject.slug);
+  const thetaAntes = atual.theta;
   const current = questions[index] ?? null;
 
   const finalizar = useCallback(
@@ -407,9 +431,20 @@ function BlockSession({
       );
       try {
         pushHistory(todas.map((a) => a.questionId));
+        await saveSubjectProgress({
+          slug: subject.slug,
+          theta: novoTheta,
+          respondidas: todas.length,
+          acertos: todas.filter((a) => a.correto).length,
+          atual,
+        });
         await saveProgress({
           ...progress,
-          tracks: withTrack(progress.tracks, subject.track, novoTheta),
+          tracks: withTrack(
+            progress.tracks,
+            subject.track,
+            Math.max(progress.tracks[subject.track], novoTheta),
+          ),
         });
         setSaved(true);
         onRefetchProgress();
@@ -419,7 +454,8 @@ function BlockSession({
         setSaving(false);
       }
     },
-    [progress, subject.track, thetaAntes, onRefetchProgress],
+    [progress, subject.track, subject.slug, atual, thetaAntes, onRefetchProgress],
+
   );
 
   const confirmar = useCallback(() => {

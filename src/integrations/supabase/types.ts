@@ -176,6 +176,39 @@ export type Database = {
         }
         Relationships: []
       }
+      mastery_progress: {
+        Row: {
+          acertos: number
+          created_at: string
+          id: string
+          respondidas: number
+          subject_slug: string
+          theta: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          acertos?: number
+          created_at?: string
+          id?: string
+          respondidas?: number
+          subject_slug: string
+          theta?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          acertos?: number
+          created_at?: string
+          id?: string
+          respondidas?: number
+          subject_slug?: string
+          theta?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

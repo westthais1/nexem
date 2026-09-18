@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { ProgressMascot } from "@/components/ProgressMascot";
 import { DailyChallengeCard } from "@/components/DailyChallengeCard";
 import { MasteryTargets } from "@/components/MasteryTargets";
-import { DAILY_EVENT, readHistory } from "@/lib/daily-challenge";
+import { MASTERY_QUERY_KEY, fetchMasteryProgress } from "@/lib/mastery-progress";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -85,13 +86,9 @@ function HeroBanner() {
 
 /** Card "Treine com Tutor Nex" — entrada para os Níveis de Maestria por matéria, com barra de progresso total. */
 function TutorNexCard() {
-  const [total, setTotal] = useState(0);
-  useEffect(() => {
-    setTotal(readHistory().length);
-    const onChange = () => setTotal(readHistory().length);
-    window.addEventListener(DAILY_EVENT, onChange);
-    return () => window.removeEventListener(DAILY_EVENT, onChange);
-  }, []);
+  const masteryQuery = useQuery({ queryKey: MASTERY_QUERY_KEY, queryFn: fetchMasteryProgress });
+  const total = masteryQuery.data?.totalRespondidas ?? 0;
+
 
   const goal = 250;
   const pct = Math.min(100, Math.max(2, Math.round((total / goal) * 100)));
