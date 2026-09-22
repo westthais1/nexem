@@ -416,7 +416,7 @@ function ProductMockup() {
   ] as const;
 
   return (
-    <div className="relative motion-safe:animate-fade-in-up" style={{ animationDelay: "120ms" }} aria-label="Exemplo da experiência do Desafio Diário">
+    <div className="relative mx-auto w-full max-w-[640px] motion-safe:animate-fade-in-up" style={{ animationDelay: "120ms" }} aria-label="Exemplo da experiência do Desafio Diário">
       <div className="absolute -right-3 -top-5 z-20 rounded-full bg-accent px-4 py-2 text-xs font-bold text-accent-foreground shadow-lg" aria-live="polite">
         {confirmed ? "+10 XP" : "Treino ao vivo"}
       </div>
