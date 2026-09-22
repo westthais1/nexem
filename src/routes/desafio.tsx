@@ -318,7 +318,7 @@ function DesafioPage() {
               disabled={pool.length === 0 || montando || answeredQuery.isLoading}
               className="mt-6 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-[0_0_28px_-6px_var(--neon)] disabled:opacity-40"
             >
-              Começar desafio de hoje
+              {montando ? "Selecionando suas questões..." : "Começar desafio de hoje"}
             </button>
             {pool.length === 0 && (
               <p className="mt-3 text-xs text-muted-foreground">
