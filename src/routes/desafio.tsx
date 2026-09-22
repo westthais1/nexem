@@ -208,6 +208,9 @@ function DesafioPage() {
     setIndex((i) => i + 1);
     setSelected(null);
     setConfirmed(false);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   }, []);
 
   const resultado = useMemo(
