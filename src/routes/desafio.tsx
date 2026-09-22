@@ -99,11 +99,22 @@ function DesafioPage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [savedTracks, setSavedTracks] = useState<UserProgress["tracks"] | null>(null);
+  const [userId, setUserId] = useState<string>("");
+  const [montando, setMontando] = useState(false);
 
   useEffect(() => {
     setSession(readSession());
+    setUserId(deviceUserId());
     setHydrated(true);
   }, []);
+
+  // Anti-repetição: tudo que este estudante já respondeu fica travado para sempre.
+  const answeredQuery = useQuery({
+    queryKey: ["historico_desafios", userId],
+    queryFn: () => fetchAnsweredQuestionIds(userId),
+    enabled: Boolean(userId),
+    staleTime: 60_000,
+  });
 
   const tracks = session?.thetas ?? progress.tracks;
   const theta = averageTheta(tracks);
