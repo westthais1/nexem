@@ -128,6 +128,14 @@ const FAQ = [
     q: "Preciso estudar horas por dia?",
     a: "Não. O Desafio Diário foi criado para transformar cerca de 15 minutos em um hábito consistente.",
   },
+  {
+    q: "Por que o Nexem é diferente de um simulado tradicional?",
+    a: "Um simulado tradicional é estático e passivo: você responde a uma lista fixa de perguntas e recebe apenas uma nota fria dias depois. O Nexem funciona como um organismo vivo. Nosso motor de Inteligência Adaptativa recalibrado via TRI recalibra o nível de cada questão em tempo real à medida que você avança, entregando um diagnóstico preciso e imediato dos seus pontos cegos sem desperdiçar seu tempo.",
+  },
+  {
+    q: "Como o Nexem se posiciona como um modelo de aprendizagem completo e atualizado para o ENEM?",
+    a: "Nós unimos engenharia de dados, neurociência cognitiva e inteligência artificial socrática em quatro verticais complementares. Você cria consistência diária com o Desafio de 10 Questões, aprofunda conteúdos específicos de forma cirúrgica nos Níveis de Maestria, corrige lacunas ativamente conversando com o Tutor Nex (Claude AI) e treina sua resistência mental no Simulado Completo. É um ciclo contínuo e fechado de diagnóstico, prática e evolução focado no seu 800+.",
+  },
 ] as const;
 
 function LandingPage() {
@@ -356,8 +364,8 @@ function LandingPage() {
           <Accordion type="single" collapsible className="border-t border-border">
             {FAQ.map((item) => (
               <AccordionItem key={item.q} value={item.q}>
-                <AccordionTrigger className="py-6 text-left text-lg font-semibold">{item.q}</AccordionTrigger>
-                <AccordionContent className="pb-6 text-base leading-relaxed text-muted-foreground">{item.a}</AccordionContent>
+                <AccordionTrigger className="py-7 text-left text-xl font-semibold leading-snug md:text-2xl">{item.q}</AccordionTrigger>
+                <AccordionContent className="pb-7 text-lg leading-relaxed text-muted-foreground md:text-xl">{item.a}</AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>
