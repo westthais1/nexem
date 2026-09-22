@@ -114,6 +114,9 @@ export function diffOf(q: DailyQuestion, fallback = DEFAULT_THETA): number {
   return Number.isFinite(d) && d > 0 ? clampTheta(d) : fallback;
 }
 
+/** Banco unificado de questões: só buscamos linhas desta prova. */
+export const BANCO_GERAL = "Banco Geral Nexem";
+
 export async function fetchDailyPool(): Promise<DailyQuestion[]> {
   const { data, error } = await questionsSupabase
     .from("enem_provas")
