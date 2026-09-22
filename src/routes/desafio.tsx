@@ -9,7 +9,9 @@ import { useXp } from "@/hooks/use-xp";
 import {
   DAILY_TOTAL,
   applyVelocity,
-  buildProgressiveDailySet,
+  buildDailySetFromDb,
+  fetchAnsweredQuestionIds,
+  recordAnsweredQuestion,
   diffOf,
   fetchDailyPool,
   gradeDaily,
@@ -32,6 +34,7 @@ import {
   averageTheta,
   defaultProgress,
   defaultTracks,
+  deviceUserId,
   fetchProgress,
   saveProgress,
   trackOf,
