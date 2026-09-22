@@ -278,6 +278,168 @@ export function buildProgressiveDailySet(
   return picked;
 }
 
+/* ------------------------------------------------------------------ *
+ * Anti-repetição persistente (public.historico_desafios)
+ * ------------------------------------------------------------------ */
+
+/** Todas as questões que este estudante já respondeu (qualquer dia). */
+export async function fetchAnsweredQuestionIds(userId: string): Promise<string[]> {
+  if (!userId) return [];
+  const { data, error } = await questionsSupabase
+    .from("historico_desafios")
+    .select("question_id")
+    .eq("user_id", userId);
+  if (error) {
+    console.error("[Desafio] Falha ao ler o histórico", error.message);
+    return [];
+  }
+  return (data ?? []).map((r: { question_id: number | string }) => String(r.question_id));
+}
+
+/** Trava a questão para sempre assim que o estudante a conclui. */
+export async function recordAnsweredQuestion(
+  userId: string,
+  questionId: string | number,
+  acertou: boolean,
+): Promise<void> {
+  if (!userId) return;
+  const { error } = await questionsSupabase.from("historico_desafios").insert({
+    user_id: userId,
+    question_id: Number(questionId),
+    acertou,
+  });
+  if (error) console.error("[Desafio] Falha ao gravar o histórico", error.message);
+}
+
+/* ------------------------------------------------------------------ *
+ * Seleção progressiva com faixas de dificuldade garantidas
+ * ------------------------------------------------------------------ */
+
+const TRACK_PATTERN: Record<TrackKey, string> = {
+  matematica: "%Matem%",
+  linguagens: "%Linguagens%",
+  humanas: "%Humanas%",
+  natureza: "%Natureza%",
+};
+
+const MIN_BRACKET_ROWS = 3;
+
+function idList(ids: Iterable<string>): string {
+  const arr = [...ids].map((v) => Number(v)).filter((n) => Number.isFinite(n));
+  return `(${arr.join(",")})`;
+}
+
+/** Busca dentro de uma faixa fechada de dificuldade, excluindo o que já foi visto. */
+async function queryBracket(
+  target: number,
+  width: number,
+  excluded: Set<string>,
+  track: TrackKey | null,
+): Promise<DailyQuestion[]> {
+  let q = questionsSupabase
+    .from("enem_provas")
+    .select(COLUMNS)
+    .gte("dificuldade", clampTheta(target - width))
+    .lte("dificuldade", clampTheta(target + width));
+
+  if (track) q = q.ilike("area_conhecimento", TRACK_PATTERN[track]);
+  if (excluded.size > 0) q = q.not("id", "in", idList(excluded));
+
+  const { data, error } = await q.limit(80);
+  if (error) {
+    console.error("[Desafio] Falha na busca por faixa", error.message);
+    return [];
+  }
+  return (data ?? []) as DailyQuestion[];
+}
+
+/** Sorteio global de segurança quando nem a faixa larga tem questões. */
+async function queryGlobal(excluded: Set<string>, track: TrackKey | null) {
+  let q = questionsSupabase.from("enem_provas").select(COLUMNS);
+  if (track) q = q.ilike("area_conhecimento", TRACK_PATTERN[track]);
+  if (excluded.size > 0) q = q.not("id", "in", idList(excluded));
+  const { data } = await q.limit(80);
+  return (data ?? []) as DailyQuestion[];
+}
+
+function randomOf<T>(list: T[]): T | null {
+  if (list.length === 0) return null;
+  return list[Math.floor(Math.random() * list.length)] ?? null;
+}
+
+/**
+ * Escolhe UMA questão para o slot: faixa ±5 → se tiver menos de 3 opções,
+ * abre para ±15 → só então cai no sorteio global.
+ */
+async function pickForTarget(
+  target: number,
+  excluded: Set<string>,
+  track: TrackKey | null,
+): Promise<DailyQuestion | null> {
+  const estreita = await queryBracket(target, 5, excluded, track);
+  if (estreita.length >= MIN_BRACKET_ROWS) return randomOf(estreita);
+
+  const larga = await queryBracket(target, 15, excluded, track);
+  if (larga.length >= MIN_BRACKET_ROWS) return randomOf(larga);
+  if (estreita.length > 0) return randomOf(estreita);
+  if (larga.length > 0) return randomOf(larga);
+
+  const global = await queryGlobal(excluded, track);
+  if (global.length > 0) {
+    return global.reduce((melhor, q) =>
+      Math.abs(diffOf(q, target) - target) < Math.abs(diffOf(melhor, target) - target) ? q : melhor,
+    );
+  }
+  // Sem a trilha: tenta qualquer área.
+  if (track) return pickForTarget(target, excluded, null);
+  return null;
+}
+
+/** Alvo de dificuldade de cada slot: 1–2 θ−15, 3–8 θ, 9–10 θ+15. */
+export function slotTarget(index: number, tracks: Tracks, track: TrackKey | null): number {
+  const base =
+    track != null
+      ? (tracks[track] ?? DEFAULT_THETA)
+      : TRACKS.reduce((s, t) => s + (tracks[t] ?? DEFAULT_THETA), 0) / TRACKS.length;
+  return clampTrack(base + offsetOf(index));
+}
+
+const SLOT_TRACKS: Array<TrackKey | null> = [
+  "natureza",
+  "humanas",
+  "linguagens",
+  "matematica",
+  "natureza",
+  "humanas",
+  "linguagens",
+  "matematica",
+  null,
+  null,
+];
+
+/**
+ * Monta as 10 questões do dia direto no banco: nenhuma questão já respondida
+ * volta, e cada slot respeita a faixa de dificuldade do seu estágio.
+ */
+export async function buildDailySetFromDb(
+  tracks: Tracks,
+  answeredIds: string[],
+): Promise<DailyQuestion[]> {
+  const bloqueadas = new Set(answeredIds.map(String));
+  const escolhidas: DailyQuestion[] = [];
+
+  for (let i = 0; i < DAILY_TOTAL; i += 1) {
+    const track = SLOT_TRACKS[i] ?? null;
+    const alvo = slotTarget(i, tracks, track);
+    const q = await pickForTarget(alvo, bloqueadas, track);
+    if (!q) continue;
+    bloqueadas.add(String(q.id));
+    escolhidas.push(q);
+  }
+
+  return escolhidas;
+}
+
 /** Precisão das últimas 5 respostas (janela móvel). */
 export function rollingAccuracy(answers: DailyAnswer[]): number {
   const janela = answers.slice(-5);
