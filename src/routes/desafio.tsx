@@ -196,7 +196,13 @@ function DesafioPage() {
         foi_correto: correto,
       },
     }).catch((e) => console.error("[Desafio] Falha ao registrar tentativa", e));
-  }, [session, current, selected, confirmed]);
+
+    // Trava permanente: a questão nunca mais aparece em sessões futuras.
+    pushHistory([String(current.id)]);
+    void recordAnsweredQuestion(userId, current.id, correto).then(() => {
+      void answeredQuery.refetch();
+    });
+  }, [session, current, selected, confirmed, userId, answeredQuery]);
 
   const proxima = useCallback(() => {
     setIndex((i) => i + 1);
