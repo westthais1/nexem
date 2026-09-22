@@ -364,8 +364,8 @@ function LandingPage() {
           <Accordion type="single" collapsible className="border-t border-border">
             {FAQ.map((item) => (
               <AccordionItem key={item.q} value={item.q}>
-                <AccordionTrigger className="py-6 text-left text-lg font-semibold">{item.q}</AccordionTrigger>
-                <AccordionContent className="pb-6 text-base leading-relaxed text-muted-foreground">{item.a}</AccordionContent>
+                <AccordionTrigger className="py-7 text-left text-xl font-semibold leading-snug md:text-2xl">{item.q}</AccordionTrigger>
+                <AccordionContent className="pb-7 text-lg leading-relaxed text-muted-foreground md:text-xl">{item.a}</AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>
