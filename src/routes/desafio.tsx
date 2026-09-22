@@ -9,7 +9,9 @@ import { useXp } from "@/hooks/use-xp";
 import {
   DAILY_TOTAL,
   applyVelocity,
-  buildProgressiveDailySet,
+  buildDailySetFromDb,
+  fetchAnsweredQuestionIds,
+  recordAnsweredQuestion,
   diffOf,
   fetchDailyPool,
   gradeDaily,
@@ -32,6 +34,7 @@ import {
   averageTheta,
   defaultProgress,
   defaultTracks,
+  deviceUserId,
   fetchProgress,
   saveProgress,
   trackOf,
@@ -96,11 +99,22 @@ function DesafioPage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [savedTracks, setSavedTracks] = useState<UserProgress["tracks"] | null>(null);
+  const [userId, setUserId] = useState<string>("");
+  const [montando, setMontando] = useState(false);
 
   useEffect(() => {
     setSession(readSession());
+    setUserId(deviceUserId());
     setHydrated(true);
   }, []);
+
+  // Anti-repetição: tudo que este estudante já respondeu fica travado para sempre.
+  const answeredQuery = useQuery({
+    queryKey: ["historico_desafios", userId],
+    queryFn: () => fetchAnsweredQuestionIds(userId),
+    enabled: Boolean(userId),
+    staleTime: 60_000,
+  });
 
   const tracks = session?.thetas ?? progress.tracks;
   const theta = averageTheta(tracks);
@@ -123,26 +137,35 @@ function DesafioPage() {
   const total = session?.questionIds.length ?? 0;
   const done = session != null && total > 0 && answered >= total && index >= total;
 
-  const iniciar = useCallback(() => {
-    const base = progress.tracks;
-    const set = buildProgressiveDailySet(pool, base, readHistory());
+  const iniciar = useCallback(async () => {
+    if (montando) return;
+    setMontando(true);
+    try {
+      const base = progress.tracks;
+      const jaRespondidas = [
+        ...new Set([...(answeredQuery.data ?? []), ...readHistory()].map(String)),
+      ];
+      const set = await buildDailySetFromDb(base, jaRespondidas);
 
-    const nova: DailySession = {
-      date: todayKey(),
-      theta: averageTheta(base),
-      thetas: base,
-      questionIds: set.map((q) => String(q.id)),
-      answers: [],
-      completed: false,
-      rewarded: false,
-      saved: false,
-    };
-    writeSession(nova);
-    setSession(nova);
-    setIndex(0);
-    setSelected(null);
-    setConfirmed(false);
-  }, [pool, progress.tracks]);
+      const nova: DailySession = {
+        date: todayKey(),
+        theta: averageTheta(base),
+        thetas: base,
+        questionIds: set.map((q) => String(q.id)),
+        answers: [],
+        completed: false,
+        rewarded: false,
+        saved: false,
+      };
+      writeSession(nova);
+      setSession(nova);
+      setIndex(0);
+      setSelected(null);
+      setConfirmed(false);
+    } finally {
+      setMontando(false);
+    }
+  }, [answeredQuery.data, montando, progress.tracks]);
 
   const confirmar = useCallback(() => {
     if (!session || !current || !selected || confirmed) return;
@@ -173,7 +196,13 @@ function DesafioPage() {
         foi_correto: correto,
       },
     }).catch((e) => console.error("[Desafio] Falha ao registrar tentativa", e));
-  }, [session, current, selected, confirmed]);
+
+    // Trava permanente: a questão nunca mais aparece em sessões futuras.
+    pushHistory([String(current.id)]);
+    void recordAnsweredQuestion(userId, current.id, correto).then(() => {
+      void answeredQuery.refetch();
+    });
+  }, [session, current, selected, confirmed, userId, answeredQuery]);
 
   const proxima = useCallback(() => {
     setIndex((i) => i + 1);
@@ -285,11 +314,11 @@ function DesafioPage() {
             </p>
             <button
               type="button"
-              onClick={iniciar}
-              disabled={pool.length === 0}
+              onClick={() => void iniciar()}
+              disabled={pool.length === 0 || montando || answeredQuery.isLoading}
               className="mt-6 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-[0_0_28px_-6px_var(--neon)] disabled:opacity-40"
             >
-              Começar desafio de hoje
+              {montando ? "Selecionando suas questões..." : "Começar desafio de hoje"}
             </button>
             {pool.length === 0 && (
               <p className="mt-3 text-xs text-muted-foreground">
