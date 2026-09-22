@@ -137,26 +137,35 @@ function DesafioPage() {
   const total = session?.questionIds.length ?? 0;
   const done = session != null && total > 0 && answered >= total && index >= total;
 
-  const iniciar = useCallback(() => {
-    const base = progress.tracks;
-    const set = buildProgressiveDailySet(pool, base, readHistory());
+  const iniciar = useCallback(async () => {
+    if (montando) return;
+    setMontando(true);
+    try {
+      const base = progress.tracks;
+      const jaRespondidas = [
+        ...new Set([...(answeredQuery.data ?? []), ...readHistory()].map(String)),
+      ];
+      const set = await buildDailySetFromDb(base, jaRespondidas);
 
-    const nova: DailySession = {
-      date: todayKey(),
-      theta: averageTheta(base),
-      thetas: base,
-      questionIds: set.map((q) => String(q.id)),
-      answers: [],
-      completed: false,
-      rewarded: false,
-      saved: false,
-    };
-    writeSession(nova);
-    setSession(nova);
-    setIndex(0);
-    setSelected(null);
-    setConfirmed(false);
-  }, [pool, progress.tracks]);
+      const nova: DailySession = {
+        date: todayKey(),
+        theta: averageTheta(base),
+        thetas: base,
+        questionIds: set.map((q) => String(q.id)),
+        answers: [],
+        completed: false,
+        rewarded: false,
+        saved: false,
+      };
+      writeSession(nova);
+      setSession(nova);
+      setIndex(0);
+      setSelected(null);
+      setConfirmed(false);
+    } finally {
+      setMontando(false);
+    }
+  }, [answeredQuery.data, montando, progress.tracks]);
 
   const confirmar = useCallback(() => {
     if (!session || !current || !selected || confirmed) return;
