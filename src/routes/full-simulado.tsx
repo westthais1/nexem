@@ -50,7 +50,10 @@ const COLUMNS =
   "id,enunciado,opcao_a,opcao_b,opcao_c,opcao_d,opcao_e,resposta_correta,area_conhecimento,materia,dificuldade,explicacao,imagem_url";
 
 async function fetchAdaptivePool(): Promise<AdaptiveQuestion[]> {
-  const { data, error } = await questionsSupabase.from("enem_provas").select(COLUMNS);
+  const { data, error } = await questionsSupabase
+    .from("enem_provas")
+    .select(COLUMNS)
+    .eq("nome_prova", "Banco Geral Nexem");
   if (error) throw new Error(`Erro ao carregar as questões: ${error.message}`);
   return (data ?? []) as AdaptiveQuestion[];
 }

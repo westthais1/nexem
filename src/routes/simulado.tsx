@@ -78,7 +78,10 @@ type QuestionRow = {
 };
 
 async function fetchPool(): Promise<QuestionRow[]> {
-  const { data, error } = await questionsSupabase.from(TABLE).select(COLUMNS);
+  const { data, error } = await questionsSupabase
+    .from(TABLE)
+    .select(COLUMNS)
+    .eq("nome_prova", "Banco Geral Nexem");
   if (error) throw new Error(`Erro ao carregar o banco de questões: ${error.message}`);
   return (data ?? []) as QuestionRow[];
 }

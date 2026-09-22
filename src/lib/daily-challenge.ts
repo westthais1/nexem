@@ -114,8 +114,14 @@ export function diffOf(q: DailyQuestion, fallback = DEFAULT_THETA): number {
   return Number.isFinite(d) && d > 0 ? clampTheta(d) : fallback;
 }
 
+/** Banco unificado de questões: só buscamos linhas desta prova. */
+export const BANCO_GERAL = "Banco Geral Nexem";
+
 export async function fetchDailyPool(): Promise<DailyQuestion[]> {
-  const { data, error } = await questionsSupabase.from("enem_provas").select(COLUMNS);
+  const { data, error } = await questionsSupabase
+    .from("enem_provas")
+    .select(COLUMNS)
+    .eq("nome_prova", BANCO_GERAL);
   if (error) throw new Error(`Erro ao carregar as questões do desafio: ${error.message}`);
   return (data ?? []) as DailyQuestion[];
 }
@@ -339,6 +345,7 @@ async function queryBracket(
   let q = questionsSupabase
     .from("enem_provas")
     .select(COLUMNS)
+    .eq("nome_prova", BANCO_GERAL)
     .gte("dificuldade", clampTheta(target - width))
     .lte("dificuldade", clampTheta(target + width));
 
@@ -355,7 +362,7 @@ async function queryBracket(
 
 /** Sorteio global de segurança quando nem a faixa larga tem questões. */
 async function queryGlobal(excluded: Set<string>, track: TrackKey | null) {
-  let q = questionsSupabase.from("enem_provas").select(COLUMNS);
+  let q = questionsSupabase.from("enem_provas").select(COLUMNS).eq("nome_prova", BANCO_GERAL);
   if (track) q = q.ilike("area_conhecimento", TRACK_PATTERN[track]);
   if (excluded.size > 0) q = q.not("id", "in", idList(excluded));
   const { data } = await q.limit(80);
