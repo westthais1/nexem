@@ -396,10 +396,29 @@ function LandingPage() {
 }
 
 function ProductMockup() {
+  const [demoStep, setDemoStep] = useState(0);
+  const selected = demoStep >= 1 ? "B" : null;
+  const confirmed = demoStep >= 3;
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setDemoStep((step) => (step + 1) % 5);
+    }, 2200);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const answers = [
+    ["A", "1,53 kWh"],
+    ["B", "7,65 kWh"],
+    ["C", "9,00 kWh"],
+    ["D", "15,30 kWh"],
+    ["E", "76,50 kWh"],
+  ] as const;
+
   return (
     <div className="relative motion-safe:animate-fade-in-up" style={{ animationDelay: "120ms" }} aria-label="Exemplo da experiência do Desafio Diário">
-      <div className="absolute -right-3 -top-5 z-20 rounded-full bg-accent px-4 py-2 text-xs font-bold text-accent-foreground shadow-lg">
-        +10 XP
+      <div className="absolute -right-3 -top-5 z-20 rounded-full bg-accent px-4 py-2 text-xs font-bold text-accent-foreground shadow-lg" aria-live="polite">
+        {confirmed ? "+10 XP" : "Treino ao vivo"}
       </div>
       <div className="overflow-hidden rounded-[28px] border-[10px] border-foreground bg-card shadow-2xl shadow-foreground/20">
         <div className="grid min-h-[500px] md:grid-cols-[0.38fr_1fr_0.6fr]">
@@ -418,33 +437,62 @@ function ProductMockup() {
           <div className="p-5 md:p-7">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-[10px] font-bold uppercase text-accent">Desafio de hoje</p>
-                <h3 className="mt-1 text-xl font-bold text-foreground">Ciências da Natureza</h3>
+                <p className="text-[10px] font-bold uppercase text-accent">Treine com Tutor Nex</p>
+                <h3 className="mt-1 text-xl font-bold text-foreground">Física · Fundações</h3>
               </div>
-              <span className="rounded-full bg-secondary px-3 py-1 text-[10px] font-bold text-accent">4 de 10</span>
+              <span className="rounded-full bg-secondary px-3 py-1 text-[10px] font-bold text-accent">{confirmed ? "5" : "4"} de 5</span>
             </div>
             <div className="mt-5 h-2 overflow-hidden rounded-full bg-muted">
-              <div className="h-full w-[40%] rounded-full bg-gradient-to-r from-accent to-primary" />
+              <div className={`h-full rounded-full bg-gradient-to-r from-accent to-primary transition-all duration-1000 ${confirmed ? "w-full" : "w-4/5"}`} />
             </div>
-            <div className="mt-6 rounded-xl border border-border p-5">
+            <div key={confirmed ? "answered" : "question"} className="mt-6 animate-fade-in-up rounded-xl border border-border p-5">
               <div className="flex gap-2">
                 <span className="rounded-full bg-secondary px-3 py-1 text-[10px] font-semibold text-secondary-foreground">Física</span>
-                <span className="rounded-full bg-primary/15 px-3 py-1 text-[10px] font-semibold text-primary">Nível intermediário</span>
+                <span className="rounded-full bg-primary/15 px-3 py-1 text-[10px] font-semibold text-primary">Dificuldade 38</span>
               </div>
               <p className="mt-5 text-sm font-semibold leading-relaxed text-foreground">
-                Um ciclista percorre uma avenida mantendo velocidade constante. Qual grandeza permanece inalterada?
+                Uma lâmpada de 60 W é substituída por uma LED de 9 W, usada 5 horas por dia. Em 30 dias, qual é a redução no consumo?
               </p>
               <div className="mt-5 grid gap-2 sm:grid-cols-2">
-                {["A. Posição", "B. Velocidade", "C. Deslocamento", "D. Distância total"].map((answer, index) => (
-                  <div key={answer} className={`rounded-lg border px-3 py-3 text-xs ${index === 1 ? "border-accent bg-secondary font-bold text-accent" : "border-border text-muted-foreground"}`}>
-                    {answer}
-                  </div>
-                ))}
+                {answers.map(([letter, text]) => {
+                  const active = selected === letter;
+                  const correct = confirmed && letter === "B";
+                  return (
+                    <button
+                      key={letter}
+                      type="button"
+                      disabled={confirmed}
+                      onClick={() => setDemoStep(letter === "B" ? 1 : 0)}
+                      className={`flex items-center gap-2 rounded-lg border px-3 py-3 text-left text-xs transition-all duration-500 ${
+                        correct
+                          ? "scale-[1.02] border-success bg-success/10 font-bold text-foreground"
+                          : active
+                            ? "border-accent bg-secondary font-bold text-accent shadow-sm"
+                            : "border-border text-muted-foreground hover:border-primary/50"
+                      }`}
+                    >
+                      <span className="font-bold">{letter}.</span> {text}
+                    </button>
+                  );
+                })}
               </div>
+              {confirmed && (
+                <p className="mt-3 animate-fade-in-up text-xs font-semibold text-success">
+                  Correto: (60 − 9) × 5 × 30 = 7,65 kWh.
+                </p>
+              )}
             </div>
-            <div className="mt-5 flex items-center justify-between text-xs font-semibold text-muted-foreground">
-              <span className="inline-flex items-center gap-2"><Clock3 className="h-4 w-4" /> 11 min restantes</span>
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-foreground text-background"><ArrowRight className="h-5 w-5" /></span>
+            <div className="mt-5 flex items-center justify-between gap-3 text-xs font-semibold text-muted-foreground">
+              <span className="inline-flex items-center gap-2"><Clock3 className="h-4 w-4" /> Sem cronômetro</span>
+              <Button
+                type="button"
+                size="sm"
+                disabled={!selected || confirmed}
+                onClick={() => setDemoStep(3)}
+                className="h-9 rounded-lg px-3 text-xs"
+              >
+                Confirmar <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
             </div>
           </div>
 
@@ -454,14 +502,32 @@ function ProductMockup() {
               <div><p className="text-sm font-bold text-foreground">Tutor Nex</p><p className="text-[10px] text-muted-foreground">Online para ajudar</p></div>
             </div>
             <div className="mt-6 rounded-xl bg-card p-4 text-xs leading-relaxed text-foreground shadow-sm">
-              Você já percebeu que a palavra <strong>constante</strong> é importante. O que ela diz sobre a velocidade?
+              Não vou entregar a resposta. Primeiro: qual é a diferença de potência entre as duas lâmpadas?
             </div>
-            <div className="ml-auto mt-3 max-w-[85%] rounded-xl bg-foreground p-4 text-xs leading-relaxed text-background">
-              Que ela não muda durante o movimento?
-            </div>
-            <div className="mt-3 rounded-xl bg-card p-4 text-xs leading-relaxed text-foreground shadow-sm">
-              <strong className="text-accent">✓ Exatamente!</strong><br />Agora compare isso com as alternativas.
-            </div>
+            {demoStep >= 1 && (
+              <div className="ml-auto mt-3 max-w-[88%] animate-fade-in-up rounded-xl bg-foreground p-4 text-xs leading-relaxed text-background">
+                51 W. Depois multiplico pelas horas de uso?
+              </div>
+            )}
+            {demoStep >= 2 && (
+              <div className="mt-3 animate-fade-in-up rounded-xl bg-card p-4 text-xs leading-relaxed text-foreground shadow-sm">
+                <strong className="text-accent">Isso.</strong> Multiplique por 5 horas e 30 dias. No fim, lembre de converter Wh para kWh.
+              </div>
+            )}
+            {confirmed && (
+              <div className="mt-3 animate-fade-in-up rounded-xl border border-success/40 bg-success/10 p-4 text-xs leading-relaxed text-foreground">
+                <strong>Raciocínio consistente.</strong><br />Você chegou a 7,65 kWh sem depender do gabarito.
+              </div>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setDemoStep((step) => Math.max(2, step))}
+              className="mt-4 w-full rounded-lg text-xs"
+            >
+              <Sparkles className="h-3.5 w-3.5" /> Pedir uma pista
+            </Button>
           </aside>
         </div>
       </div>
