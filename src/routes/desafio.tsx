@@ -314,8 +314,8 @@ function DesafioPage() {
             </p>
             <button
               type="button"
-              onClick={iniciar}
-              disabled={pool.length === 0}
+              onClick={() => void iniciar()}
+              disabled={pool.length === 0 || montando || answeredQuery.isLoading}
               className="mt-6 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-[0_0_28px_-6px_var(--neon)] disabled:opacity-40"
             >
               Começar desafio de hoje
