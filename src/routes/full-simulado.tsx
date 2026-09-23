@@ -146,7 +146,7 @@ function diffOf(q: ExamQuestion) {
   return Number.isFinite(d) ? Math.min(100, Math.max(1, d)) : 50;
 }
 
-function gradeArea(items: { q: ExamQuestion; letra?: string }[]) {
+function gradeArea(items: { q: ExamQuestion; letra: string | undefined }[]) {
   const corretos = items.filter((i) => i.letra === i.q.resposta_correta?.trim().toUpperCase());
   const avancados = corretos.filter((i) => diffOf(i.q) > 75).length;
   const errosBase = items.filter(
