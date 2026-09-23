@@ -54,7 +54,7 @@ function themeOfTheWeek(now = new Date()): string {
   const brt = now.getTime() - 3 * 3600 * 1000;
   const MONDAY_EPOCH = Date.UTC(1970, 0, 5); // primeira segunda-feira
   const week = Math.floor((brt - MONDAY_EPOCH) / (7 * 24 * 3600 * 1000));
-  return WEEKLY_THEMES[((week % WEEKLY_THEMES.length) + WEEKLY_THEMES.length) % WEEKLY_THEMES.length];
+  return WEEKLY_THEMES[((week % WEEKLY_THEMES.length) + WEEKLY_THEMES.length) % WEEKLY_THEMES.length] ?? WEEKLY_THEMES[0]!;
 }
 
 const THEME_OF_THE_WEEK = themeOfTheWeek();
