@@ -30,8 +30,34 @@ export const Route = createFileRoute("/redacao")({
   component: RedacaoPage,
 });
 
-const THEME_OF_THE_WEEK =
-  "Os caminhos para combater a intolerância religiosa no Brasil";
+const WEEKLY_THEMES = [
+  "Os caminhos para combater a intolerância religiosa no Brasil",
+  "Desafios para a valorização da saúde mental dos jovens no Brasil",
+  "Os impactos da inteligência artificial na sociedade brasileira",
+  "Os riscos das apostas esportivas online para a população brasileira",
+  "Caminhos para enfrentar a solidão e o isolamento social no Brasil",
+  "O desafio do acesso à moradia digna nas cidades brasileiras",
+  "Os efeitos das mudanças climáticas na vida da população brasileira",
+  "Desafios para garantir o acesso à água potável no Brasil",
+  "Os impactos da desinformação digital na democracia brasileira",
+  "Caminhos para combater a evasão escolar no Brasil",
+  "Desafios para a inclusão de pessoas com deficiência no mercado de trabalho",
+  "O combate ao desperdício de alimentos no Brasil",
+  "A persistência da violência contra a mulher na sociedade brasileira",
+  "Os desafios da mobilidade urbana nas grandes cidades brasileiras",
+  "A valorização dos povos indígenas e de sua cultura no Brasil",
+  "Os impactos do uso excessivo de telas na infância e adolescência",
+];
+
+/** Tema muda toda segunda-feira (semana contada em horário de Brasília). */
+function themeOfTheWeek(now = new Date()): string {
+  const brt = now.getTime() - 3 * 3600 * 1000;
+  const MONDAY_EPOCH = Date.UTC(1970, 0, 5); // primeira segunda-feira
+  const week = Math.floor((brt - MONDAY_EPOCH) / (7 * 24 * 3600 * 1000));
+  return WEEKLY_THEMES[((week % WEEKLY_THEMES.length) + WEEKLY_THEMES.length) % WEEKLY_THEMES.length] ?? WEEKLY_THEMES[0]!;
+}
+
+const THEME_OF_THE_WEEK = themeOfTheWeek();
 const MAX_LINES = 30;
 const MIN_LINES_TO_SEND = 8;
 
