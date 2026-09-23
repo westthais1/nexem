@@ -76,12 +76,12 @@ export function ProgressMascot() {
             <div className="mt-5 flex flex-wrap gap-2">
               <RewardChip to="/simulado" label="Questão no Simulado" xp={XP_REWARDS.questao} />
               <RewardChip
-                to="/full-simulado"
+                to="/adaptativo"
                 label="Simulado Adaptativo"
                 xp={XP_REWARDS.simuladoAdaptativo}
               />
               <RewardChip to="/redacao" label="Redação" xp={XP_REWARDS.redacao} />
-              <RewardChip to="/prova" label="Prova Completa" xp={XP_REWARDS.provaCompleta} />
+              <RewardChip to="/full-simulado" label="Prova Completa" xp={XP_REWARDS.provaCompleta} />
             </div>
 
             <div className="mt-5 flex flex-wrap gap-1.5">
@@ -105,7 +105,7 @@ export function ProgressMascot() {
   );
 }
 
-type RewardTo = "/simulado" | "/full-simulado" | "/redacao" | "/prova";
+type RewardTo = "/simulado" | "/adaptativo" | "/full-simulado" | "/redacao" | "/prova";
 
 function RewardChip({ to, label, xp }: { to: RewardTo; label: string; xp: number }) {
   return (
