@@ -7,7 +7,7 @@ import { questionsSupabase } from "@/lib/external-supabase";
 import { registrarTentativa } from "@/lib/attempts.functions";
 import { XP_REWARDS, awardXp } from "@/lib/xp";
 
-export const Route = createFileRoute("/full-simulado")({
+export const Route = createFileRoute("/adaptativo")({
   head: () => ({
     meta: [
       { title: "Simulado Adaptativo por Área — Nexem" },
