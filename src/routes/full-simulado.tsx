@@ -109,7 +109,12 @@ async function fetchAttemptedIds(): Promise<Set<string>> {
     .eq("user_id", auth.user.id);
   for (const row of data ?? []) {
     const r = row.respostas as Record<string, unknown> | null;
-    const qids = (r?.["__question_ids"] as string[] | undefined) ?? [];
+    const raw = r?.["__question_ids"];
+    const qids: unknown[] = Array.isArray(raw)
+      ? raw
+      : typeof raw === "string"
+        ? raw.split(",").map((s) => s.trim()).filter(Boolean)
+        : [];
     qids.forEach((id) => ids.add(String(id)));
   }
   return ids;
