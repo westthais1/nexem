@@ -623,7 +623,8 @@ function BlockSession({
 
   return (
     <div className="flex items-start gap-6">
-    <div className="grid min-w-0 flex-1 gap-6 transition-all duration-500 ease-out lg:grid-cols-[1fr_260px]">
+    <div className="min-w-0 flex-1 space-y-6 transition-all duration-500 ease-out">
+
 
       <section className="animate-in fade-in rounded-2xl border border-border bg-card p-6 duration-500 card-glow">
         <div className="flex flex-wrap items-center justify-between gap-3">
