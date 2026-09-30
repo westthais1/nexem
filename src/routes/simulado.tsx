@@ -497,6 +497,7 @@ function BlockSession({
     setIndex((i) => i + 1);
     setSelected(null);
     setConfirmed(false);
+    setTutorOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
     document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
