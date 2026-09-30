@@ -419,6 +419,7 @@ function BlockSession({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [tutorOpen, setTutorOpen] = useState(false);
+  const [hintToken, setHintToken] = useState(0);
 
   const atual = subjectProgress(mastery, subject.slug);
   const thetaAntes = atual.theta;
@@ -496,6 +497,7 @@ function BlockSession({
     setIndex((i) => i + 1);
     setSelected(null);
     setConfirmed(false);
+    setTutorOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
     document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
@@ -620,7 +622,9 @@ function BlockSession({
   if (!current) return null;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_260px]">
+    <div className="flex items-start gap-6">
+    <div className="grid min-w-0 flex-1 gap-6 transition-all duration-500 ease-out lg:grid-cols-[1fr_260px]">
+
       <section className="animate-in fade-in rounded-2xl border border-border bg-card p-6 duration-500 card-glow">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <button
@@ -733,14 +737,19 @@ function BlockSession({
               </button>
             )
           )}
-          <button
-            type="button"
-            onClick={() => setTutorOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg border border-primary/50 bg-primary/10 px-4 py-2.5 text-sm font-semibold text-foreground transition-all duration-300 hover:border-primary hover:bg-primary/25 hover:shadow-[0_0_24px_-6px_var(--primary)] active:scale-95 active:bg-primary/35 active:shadow-[0_0_32px_-4px_var(--primary)]"
-          >
-            <Sparkles className="h-4 w-4 text-primary transition-transform duration-300 group-hover:rotate-12" /> Pedir ajuda ao Nex
-          </button>
         </div>
+        <button
+          type="button"
+          onClick={() => {
+            setTutorOpen(true);
+            setHintToken((t) => t + 1);
+          }}
+          className="group relative mt-5 inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-primary to-accent px-5 py-3 text-sm font-semibold text-primary-foreground shadow-[0_10px_30px_-10px_var(--accent)] transition-all duration-300 hover:scale-105 hover:shadow-[0_14px_40px_-8px_var(--accent)] active:scale-95 sm:w-auto"
+        >
+          <span className="absolute inset-0 animate-pulse bg-primary-foreground/10" />
+          <Sparkles className="relative h-4 w-4 transition-transform duration-300 group-hover:rotate-12" />
+          <span className="relative">Pedir Ajuda ao Tutor Nex</span>
+        </button>
       </section>
 
       <aside className="space-y-4">
@@ -782,12 +791,16 @@ function BlockSession({
         </div>
       </aside>
 
+      </div>
       <TutorChat
+        key={current.id}
         open={tutorOpen}
         onOpenChange={setTutorOpen}
         question={current.enunciado}
         options={LETTERS.map((l) => `${l}) ${optionText(current, l)}`)}
         area={subject.label}
+        explicacao={current.explicacao}
+        hintToken={hintToken}
       />
     </div>
   );
