@@ -8,6 +8,8 @@ import {
   Flame,
   Gauge,
   GraduationCap,
+  Menu,
+  X,
   Sparkles,
   Target,
   Trophy,
@@ -40,17 +42,17 @@ export const Route = createFileRoute("/landing")({
   }),
   head: () => ({
     meta: [
-      { title: "Nexem — 10 questões. 15 minutos. Todo dia." },
+      { title: "Nexem — Treino para o ENEM, Tutor Nex e guia da TRI" },
       {
         name: "description",
         content:
-          "Treino inteligente para o ENEM: desafio diário, níveis de maestria e o Tutor Nex para orientar seu raciocínio.",
+          "Conheça o Nexem: treino adaptativo, Tutor Nex, redação e prova completa. Entenda a TRI do ENEM e tire suas dúvidas antes de começar.",
       },
-      { property: "og:title", content: "Nexem — 10 questões. 15 minutos. Todo dia." },
+      { property: "og:title", content: "Nexem — Seu nível. Seu ritmo. Sua preparação para o ENEM." },
       {
         property: "og:description",
         content:
-          "Um treino que evolui com você: questões no estilo ENEM adaptadas ao seu nível e o Tutor Nex quando precisar de ajuda.",
+          "Descubra como funciona o treino com Tutor Nex, entenda a TRI e explore as perguntas frequentes sobre sua preparação para o ENEM.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -144,12 +146,44 @@ const FAQ = [
     q: "Como o Nexem se posiciona como um modelo de aprendizagem completo e atualizado para o ENEM?",
     a: "Nós unimos engenharia de dados, neurociência cognitiva e inteligência artificial socrática em quatro verticais complementares. Você cria consistência diária com o Desafio de 10 Questões, aprofunda conteúdos específicos de forma cirúrgica nos Níveis de Maestria, corrige lacunas ativamente conversando com o Tutor Nex (Claude AI) e treina sua resistência mental no Simulado Completo. É um ciclo contínuo e fechado de diagnóstico, prática e evolução focado no seu 800+.",
   },
+  {
+    q: "O que acontece depois que eu crio minha conta?",
+    a: "Na primeira entrada, você responde um questionário sobre sua série, objetivo e nota desejada. Depois, pode começar o Desafio Diário ou escolher uma matéria no Treine com Tutor Nex. Essas respostas ficam salvas na sua conta.",
+  },
+  {
+    q: "Meu progresso fica salvo se eu trocar de aparelho?",
+    a: "Sim. O progresso concluído no treino é salvo na sua conta. Entre com a mesma conta no celular ou no computador para continuar acompanhando sua evolução.",
+  },
+  {
+    q: "A nota estimada pelo Nexem é a nota oficial do ENEM?",
+    a: "Não. Ela é uma referência de treino, não um resultado oficial. A nota do ENEM é calculada pelo Inep com os parâmetros dos itens da prova. Não é possível converter um número de acertos em uma nota oficial exata apenas com uma regra de três.",
+  },
+  {
+    q: "O Nexem consegue saber se eu chutei?",
+    a: "Não com certeza. Um padrão de respostas pode sugerir inconsistência, mas também pode refletir lacunas de conteúdo. O diagnóstico aponta possibilidades e orienta a revisão; não prova que você chutou.",
+  },
+  {
+    q: "Como funciona a Redação Inteligente?",
+    a: "Você pratica uma redação e recebe uma avaliação de treino nas cinco competências do ENEM: domínio da escrita formal, compreensão do tema, argumentação, coesão e proposta de intervenção. A devolutiva da IA ajuda a revisar o texto, mas não substitui a correção oficial ou a orientação de um professor.",
+  },
+  {
+    q: "O Nexem garante aprovação ou uma nota acima de 800?",
+    a: "Não. O Nexem oferece prática, orientação e acompanhamento, mas o resultado depende da sua preparação e do desempenho no exame. Sua meta ajuda a direcionar o estudo; não é uma promessa de nota.",
+  },
+] as const;
+
+const LANDING_MENU = [
+  { href: "#como-funciona", label: "Como funciona" },
+  { href: "#entenda-tri", label: "Entenda a TRI" },
+  { href: "#guia-enem", label: "Guia do ENEM" },
+  { href: "#perguntas-frequentes", label: "Perguntas frequentes" },
 ] as const;
 
 function LandingPage() {
   const navigate = useNavigate();
   const { preview } = Route.useSearch();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     // Explicit preview keeps the landing visible without signing the student out.
@@ -199,7 +233,13 @@ function LandingPage() {
 
   function scrollToHow(event: MouseEvent<HTMLAnchorElement>) {
     event.preventDefault();
-    document.getElementById("como-funciona")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const target = event.currentTarget.getAttribute("href")?.slice(1);
+    setMenuOpen(false);
+    if (!target) return;
+    document.getElementById(target)?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+      block: "start",
+    });
   }
 
   return (
@@ -207,10 +247,29 @@ function LandingPage() {
       <header className="sticky top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
           <img src={nexemLogo.url} alt="nexem" className="h-8 w-auto" />
-          <Button variant="outline" onClick={openAuth} className="rounded-full px-5">
-            Entrar
-          </Button>
+          <nav aria-label="Menu da landing" className="hidden items-center gap-1 lg:flex">
+            {LANDING_MENU.map((item) => (
+              <Button key={item.href} asChild variant="ghost" className="text-foreground hover:bg-primary/10 hover:text-primary">
+                <a href={item.href} onClick={scrollToHow}>{item.label}</a>
+              </Button>
+            ))}
+          </nav>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={openAuth} className="rounded-full px-5">Entrar</Button>
+            <Button variant="ghost" size="icon" className="lg:hidden" aria-label={menuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={menuOpen} aria-controls="landing-mobile-menu" onClick={() => setMenuOpen((open) => !open)}>
+              {menuOpen ? <X /> : <Menu />}
+            </Button>
+          </div>
         </div>
+        {menuOpen && (
+          <nav id="landing-mobile-menu" aria-label="Menu da landing no celular" className="grid gap-1 border-t border-border px-5 py-3 lg:hidden">
+            {LANDING_MENU.map((item) => (
+              <Button key={item.href} asChild variant="ghost" className="h-11 justify-start text-foreground hover:bg-primary/10 hover:text-primary">
+                <a href={item.href} onClick={scrollToHow}>{item.label}</a>
+              </Button>
+            ))}
+          </nav>
+        )}
       </header>
 
       <section className="px-3 pt-4 md:px-6 md:pt-6">
@@ -335,11 +394,11 @@ function LandingPage() {
             <div>
               <p className="text-sm font-bold uppercase text-accent">Feito para o seu ritmo</p>
               <h2 className="mt-3 max-w-3xl text-4xl font-bold leading-tight text-foreground md:text-6xl">
-                Tudo que você precisa para manter o foco.
+                Como funciona o Nexem.
               </h2>
             </div>
             <p className="max-w-md text-base leading-relaxed text-muted-foreground md:pb-2 md:text-lg">
-              Uma rotina clara, feedback útil e evolução que você consegue enxergar.
+              Crie sua conta, conte sua série e sua meta no questionário inicial e escolha por onde começar. Seu treino e seu progresso ficam ligados à sua conta.
             </p>
           </div>
 
@@ -364,6 +423,57 @@ function LandingPage() {
                 </article>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      <section id="entenda-tri" className="scroll-mt-24 border-y border-border bg-secondary/40 px-5 py-20 md:px-8 md:py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-8 lg:grid-cols-2 lg:items-end">
+            <div>
+              <p className="text-sm font-bold uppercase text-primary">Além do número de acertos</p>
+              <h2 className="mt-3 text-4xl font-bold text-foreground md:text-5xl">Como funciona a TRI?</h2>
+            </div>
+            <p className="text-lg leading-relaxed text-muted-foreground">A Teoria de Resposta ao Item estima sua proficiência pelo conjunto de respostas e pelas características de cada questão. Por isso, dois alunos com o mesmo total de acertos podem ter notas diferentes.</p>
+          </div>
+          <div className="mt-12 grid gap-8 md:grid-cols-3">
+            {[
+              { n: "01", title: "Cada questão tem características próprias", text: "O modelo considera dificuldade, capacidade de diferenciar níveis de conhecimento e probabilidade de acerto casual. Não existe uma pontuação fixa por questão." },
+              { n: "02", title: "O conjunto de respostas importa", text: "Acertar itens difíceis e errar muitos fáceis pode produzir uma estimativa diferente. Isso não prova um chute nem gera uma multa fixa na nota." },
+              { n: "03", title: "Base sólida, treino mais estratégico", text: "Consolide os fundamentos e avance para desafios maiores. Uma questão difícil não vale automaticamente mais, e acertos consecutivos não recebem um bônus oficial." },
+            ].map((item) => (
+              <article key={item.n} className="border-t-2 border-primary pt-6">
+                <span className="font-display text-3xl font-bold text-primary">{item.n}</span>
+                <h3 className="mt-4 text-xl font-bold text-foreground">{item.title}</h3>
+                <p className="mt-3 leading-relaxed text-muted-foreground">{item.text}</p>
+              </article>
+            ))}
+          </div>
+          <div className="mt-10 border-l-4 border-accent pl-5">
+            <p className="font-semibold text-foreground">No Nexem: estimativa para orientar, não nota oficial.</p>
+            <p className="mt-2 leading-relaxed text-muted-foreground">O treino adaptativo ajusta seus desafios a partir do desempenho. Isso é diferente do cálculo oficial da TRI do Inep: use o diagnóstico para decidir o que revisar, não como garantia da sua nota no ENEM.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="guia-enem" className="scroll-mt-24 px-5 py-20 md:px-8 md:py-24">
+        <div className="mx-auto max-w-6xl">
+          <p className="text-sm font-bold uppercase text-accent">O que vale conhecer</p>
+          <h2 className="mt-3 text-4xl font-bold text-foreground md:text-5xl">Sua preparação, de ponta a ponta.</h2>
+          <div className="mt-12 grid gap-10 md:grid-cols-2">
+            <article className="border-t border-border pt-6">
+              <Clock3 className="h-7 w-7 text-primary" />
+              <h3 className="mt-4 text-2xl font-bold">Dois dias. Quatro áreas.</h3>
+              <p className="mt-4 leading-relaxed text-muted-foreground"><strong className="text-foreground">Dia 1 · 5h30:</strong> 45 questões de Linguagens, 45 de Ciências Humanas e a redação.</p>
+              <p className="mt-3 leading-relaxed text-muted-foreground"><strong className="text-foreground">Dia 2 · 5h:</strong> 45 questões de Ciências da Natureza e 45 de Matemática.</p>
+              <p className="mt-4 leading-relaxed text-muted-foreground">Na Prova Completa, pratique o tempo e o cartão-resposta sem revelar correções antes da entrega.</p>
+            </article>
+            <article className="border-t border-border pt-6">
+              <GraduationCap className="h-7 w-7 text-accent" />
+              <h3 className="mt-4 text-2xl font-bold">Redação também é treino.</h3>
+              <p className="mt-4 leading-relaxed text-muted-foreground">A redação tem uma avaliação própria, separada da TRI: são cinco competências de até 200 pontos, totalizando até 1.000. Pratique argumentação, coesão e uma proposta de intervenção que respeite os direitos humanos.</p>
+              <p className="mt-4 leading-relaxed text-muted-foreground">Combine questões, escrita e revisão. Use o Raio-X do ENEM para conhecer conteúdos historicamente frequentes e as Estatísticas para acompanhar seu desempenho; frequência passada não garante o que cairá na próxima prova.</p>
+            </article>
           </div>
         </div>
       </section>
@@ -436,7 +546,7 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="bg-card px-5 py-20 md:px-8 md:py-24">
+      <section id="perguntas-frequentes" className="scroll-mt-24 bg-card px-5 py-20 md:px-8 md:py-24">
         <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[0.7fr_1.3fr]">
           <div>
             <p className="text-sm font-bold uppercase text-accent">Sem dúvida no caminho</p>
