@@ -300,7 +300,11 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isLanding = pathname.startsWith("/landing");
+  const isLanding =
+    pathname.startsWith("/landing") ||
+    pathname.startsWith("/entenda-tri") ||
+    pathname.startsWith("/guia-enem") ||
+    pathname.startsWith("/perguntas-frequentes");
   const [quizUserId, setQuizUserId] = useState<string | null>(null);
   const [profileReady, setProfileReady] = useState(false);
   const [profileError, setProfileError] = useState(false);
