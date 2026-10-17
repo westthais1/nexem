@@ -35,6 +35,9 @@ import { ensureProgressForUser } from "@/lib/progress";
 import { ensureProfile, markOnboarded } from "@/lib/profile";
 
 export const Route = createFileRoute("/landing")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    preview: search.preview === true || search.preview === "true" || search.preview === "1",
+  }),
   head: () => ({
     meta: [
       { title: "Nexem — 10 questões. 15 minutos. Todo dia." },
@@ -145,9 +148,12 @@ const FAQ = [
 
 function LandingPage() {
   const navigate = useNavigate();
+  const { preview } = Route.useSearch();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   useEffect(() => {
+    // Explicit preview keeps the landing visible without signing the student out.
+    if (preview) return;
     let active = true;
 
     async function enterApp(user: User) {
@@ -182,7 +188,7 @@ function LandingPage() {
       active = false;
       sub.subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, preview]);
 
   const openAuth = () => setIsAuthModalOpen(true);
 
