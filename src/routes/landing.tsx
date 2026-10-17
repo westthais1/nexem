@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/accordion";
 import nexemLogo from "@/assets/nexem-logo.png.asset.json";
 import heroVideo from "@/assets/landing/nexem-hero.mp4.asset.json";
+import heroPoster from "@/assets/landing/nexem-hero-poster.jpg.asset.json";
 import student1 from "@/assets/landing/student-1.jpg.asset.json";
 import student2 from "@/assets/landing/student-2.jpg.asset.json";
 import student3 from "@/assets/landing/student-3.jpg.asset.json";
@@ -206,6 +207,7 @@ function LandingPage() {
           <video
             className="absolute inset-0 h-full w-full object-cover"
             src={heroVideo.url}
+            poster={heroPoster.url}
             autoPlay
             muted
             loop
