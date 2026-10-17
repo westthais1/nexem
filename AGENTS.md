@@ -13,3 +13,4 @@
 - Gate the existing study workspace in the root shell on the persisted profile quiz completion before mounting study pages; keep this separate from challenge onboarding so both new and existing students answer once.
 - Keep student quiz validation in a browser-safe shared schema and save its answers atomically with completion through the owner-scoped profile client.
 - Keep daily challenge diagnosis in a pure browser-safe module shared by the results UI, rewards and saved consistency metric so these cannot disagree; test it without database dependencies.
+- Keep the uploaded question mascot and speech bubble in a daily-challenge-only presentation component so other practice modules retain their layouts.

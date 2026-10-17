@@ -6,6 +6,7 @@ import { Loader2, Flame } from "lucide-react";
 import { registrarTentativa } from "@/lib/attempts.functions";
 import { awardXp, XP_REWARDS } from "@/lib/xp";
 import { useXp } from "@/hooks/use-xp";
+import { DailyFoxQuestion } from "@/components/DailyFoxQuestion";
 import {
   DAILY_TOTAL,
   applyVelocity,
@@ -353,9 +354,7 @@ function DesafioPage() {
                 </span>
               </div>
 
-              <p className="mt-5 whitespace-pre-line text-base leading-relaxed text-foreground">
-                {current.enunciado}
-              </p>
+              <DailyFoxQuestion text={current.enunciado} />
 
               {current.imagem_url && (
                 <div className="mt-5 flex justify-center">
