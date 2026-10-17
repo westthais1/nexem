@@ -24,6 +24,10 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import nexemLogo from "@/assets/nexem-logo.png.asset.json";
+import heroVideo from "@/assets/landing/nexem-hero.mp4.asset.json";
+import student1 from "@/assets/landing/student-1.jpg.asset.json";
+import student2 from "@/assets/landing/student-2.jpg.asset.json";
+import student3 from "@/assets/landing/student-3.jpg.asset.json";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureProgressForUser } from "@/lib/progress";
