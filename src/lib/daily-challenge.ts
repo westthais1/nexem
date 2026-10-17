@@ -471,46 +471,4 @@ export function applyVelocity(tracks: Tracks, answers: DailyAnswer[]): Tracks {
 }
 
 
-export type DailyResult = {
-  acertos: number;
-  total: number;
-  pontos: number;
-  pontosPossiveis: number;
-  nota: number;
-  /** true quando NÃO houve padrão de chute (difícil certo + fácil errado). */
-  consistente: boolean;
-  acertosAvancados: number;
-  errosBasicos: number;
-  novoTheta: number;
-};
-
-/** Avaliação final com a mesma lógica TRI usada no simulado adaptativo. */
-export function gradeDaily(answers: DailyAnswer[], theta: number): DailyResult {
-  const acertosAvancados = answers.filter((a) => a.correto && a.dificuldade > 75).length;
-  const errosBasicos = answers.filter((a) => !a.correto && a.dificuldade < 40).length;
-  const erratico = acertosAvancados > 0 && errosBasicos > 0;
-
-  let pontos = 0;
-  let pontosPossiveis = 0;
-  for (const a of answers) {
-    pontosPossiveis += a.dificuldade;
-    if (!a.correto) continue;
-    pontos += erratico && a.dificuldade > 75 ? a.dificuldade * 0.6 : a.dificuldade;
-  }
-
-  const acertos = answers.filter((a) => a.correto).length;
-  const taxa = answers.length > 0 ? acertos / answers.length : 0;
-  const novoTheta = clampTheta(theta + Math.round((taxa - 0.6) * 20));
-
-  return {
-    acertos,
-    total: answers.length,
-    pontos: Math.round(pontos),
-    pontosPossiveis: Math.round(pontosPossiveis),
-    nota: pontosPossiveis > 0 ? Math.round((pontos / pontosPossiveis) * 1000) : 0,
-    consistente: !erratico,
-    acertosAvancados,
-    errosBasicos,
-    novoTheta,
-  };
-}
+export { gradeDaily, type DailyResult } from "./daily-diagnosis";
