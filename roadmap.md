@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Ampliar os menus da landing, explicar o funcionamento e a TRI, acrescentar dúvidas frequentes e verificar a navegação.
+- [x] Ampliar os menus da landing, explicar o funcionamento e a TRI, acrescentar dúvidas frequentes e verificar a navegação.
 
 - [x] Corrigir o diagnóstico de consistência e possíveis chutes do Desafio Diário e testar os resultados pedidos.
 
