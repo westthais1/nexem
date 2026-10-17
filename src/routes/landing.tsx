@@ -35,8 +35,8 @@ import { ensureProgressForUser } from "@/lib/progress";
 import { ensureProfile, markOnboarded } from "@/lib/profile";
 
 export const Route = createFileRoute("/landing")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    preview: search.preview === true || search.preview === "true" || search.preview === "1",
+  validateSearch: (search: Record<string, unknown>): { preview?: boolean } => ({
+    preview: search["preview"] === true || search["preview"] === "true" || search["preview"] === "1",
   }),
   head: () => ({
     meta: [
