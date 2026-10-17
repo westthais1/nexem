@@ -218,14 +218,14 @@ function DesafioPage() {
     [session],
   );
 
-  // Conclusão: credita XP (dobrado quando não houve padrão de chute) e atualiza o theta.
+  // Bônus somente por alto desempenho em uma sessão completa e coerente.
   useEffect(() => {
     if (!session || !done || session.rewarded || !resultado) return;
     const base = XP_REWARDS.desafioDiario;
     awardXp("desafioDiario", {
       amount: resultado.consistente ? base * 2 : base,
       label: resultado.consistente
-        ? "Desafio Diário — consistência TRI perfeita"
+        ? "Desafio Diário — ótimo desempenho"
         : "Desafio Diário Nexem",
     });
     writeTheta(resultado.novoTheta);
@@ -245,7 +245,7 @@ function DesafioPage() {
       tracks: novosTracks,
       streakCounter: streak,
       lastPlayedDate: hoje,
-      triConsistencyRate: resultado.consistente ? 100 : 60,
+      triConsistencyRate: resultado.taxaConsistencia,
     };
     setSavedTracks(novosTracks);
     // Anti-repetição: as questões do dia não voltam em sessões futuras.
@@ -312,8 +312,8 @@ function DesafioPage() {
               <li>• Questões 9–10: chefe final (nível {Math.min(100, theta + 15)})</li>
             </ul>
             <p className="mt-4 text-sm text-muted-foreground">
-              Concluir as 10 vale +{XP_REWARDS.desafioDiario} XP — e o dobro se você mantiver
-              consistência TRI (nada de acertar difíceis errando as fáceis).
+              Concluir as 10 vale +{XP_REWARDS.desafioDiario} XP — e o dobro com 9 ou 10 acertos,
+              sem acertar difíceis errando as fáceis.
             </p>
             <button
               type="button"
@@ -439,7 +439,17 @@ function DesafioPage() {
 
         {session && done && resultado && (
           <section className="mt-8 space-y-6">
-            {resultado.consistente && (
+            {resultado.precisaMelhorar ? (
+              <div className="rounded-2xl border border-primary/40 bg-primary/5 p-6 text-center">
+                <p className="text-xl font-semibold text-foreground">
+                  Tem que melhorar um pouquinho
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Você acertou {resultado.acertos} de {resultado.total}. Revise as explicações e
+                  pratique os assuntos em que teve dificuldade.
+                </p>
+              </div>
+            ) : (
               <div className="animate-in fade-in zoom-in relative overflow-hidden rounded-2xl border border-success/50 bg-success/10 p-6 text-center duration-700">
                 <div className="pointer-events-none absolute inset-0 bg-aurora opacity-40" />
                 <p className="relative text-3xl">🎉</p>
@@ -447,10 +457,11 @@ function DesafioPage() {
                   className="relative mt-2 text-xl font-semibold text-foreground"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
-                  Consistência TRI Perfeita!
+                  Ótimo desempenho!
                 </p>
                 <p className="relative mt-1 text-sm text-muted-foreground">
-                  Sem padrão de chute — XP em dobro: +{XP_REWARDS.desafioDiario * 2} XP.
+                  {resultado.acertos} de {resultado.total} acertos — XP em dobro:
+                  +{XP_REWARDS.desafioDiario * 2} XP. Continue assim!
                 </p>
               </div>
             )}
@@ -523,7 +534,14 @@ function DesafioPage() {
                 <Stat label="Nota estimada (TRI)" value={`${resultado.nota}`} />
                 <Stat label="Novo nível" value={`${resultado.novoTheta}/100`} />
               </div>
-              {!resultado.consistente && (
+              {resultado.possivelChute && (
+                <p className="mt-5 rounded-xl border border-primary/40 bg-primary/5 p-4 text-sm text-foreground">
+                  Há indícios de possíveis chutes ou dúvidas no conteúdo. Só pelas respostas não
+                  dá para confirmar se você chutou; tente explicar seu raciocínio antes de escolher
+                  uma alternativa.
+                </p>
+              )}
+              {resultado.padraoInconsistente && (
                 <p className="mt-5 rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-foreground">
                   Padrão inconsistente: {resultado.acertosAvancados} acerto(s) em questões difíceis
                   com {resultado.errosBasicos} erro(s) em questões fáceis. No ENEM real, a TRI reduz
