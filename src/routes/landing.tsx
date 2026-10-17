@@ -201,47 +201,112 @@ function LandingPage() {
         </div>
       </header>
 
-      <section className="relative px-5 pb-20 pt-12 md:px-8 md:pb-28 md:pt-20">
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-aurora" aria-hidden="true" />
-        <div className="mx-auto grid max-w-7xl items-center gap-14 lg:grid-cols-[0.88fr_1.12fr] lg:gap-10">
-          <div className="relative z-10 motion-safe:animate-fade-in-up">
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs font-bold uppercase text-primary">
+      <section className="px-3 pt-4 md:px-6 md:pt-6">
+        <div className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[32px] shadow-2xl shadow-foreground/10">
+          <video
+            className="absolute inset-0 h-full w-full object-cover"
+            src={heroVideo.url}
+            autoPlay
+            muted
+            loop
+            playsInline
+            aria-hidden="true"
+          />
+          <div className="absolute inset-0 bg-foreground/45" aria-hidden="true" />
+          <div className="relative flex min-h-[78vh] flex-col items-center justify-center px-6 py-24 text-center md:min-h-[84vh]">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm motion-safe:animate-fade-in-up">
               <Sparkles className="h-3.5 w-3.5" />
               Preparação inteligente para o ENEM
             </span>
-            <h1 className="mt-6 max-w-3xl text-5xl font-bold leading-[0.98] text-foreground md:text-7xl">
-              Seu nível<br />
-              Seu ritmo<br />
-              Sua aprovação
+            <h1 className="mt-7 max-w-4xl text-5xl font-bold leading-[0.98] text-white motion-safe:animate-fade-in-up md:text-7xl" style={{ animationDelay: "80ms" }}>
+              Seu nível. Seu ritmo.<br />Sua aprovação.
             </h1>
-            <p className="mt-6 text-xl font-semibold text-foreground md:text-2xl">
-              Um treino inteligente que evolui com você.
-            </p>
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
+            <p className="mt-6 max-w-xl text-base leading-relaxed text-white/85 motion-safe:animate-fade-in-up md:text-lg" style={{ animationDelay: "160ms" }}>
               Treine com a anatomia exata da prova. Suba de nível com missões adaptativas e domine
               cada assunto com o Tutor Nex.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button onClick={openAuth} size="lg" className="h-13 rounded-xl px-6 text-base shadow-lg shadow-primary/20 transition-transform hover:-translate-y-0.5">
+            <div className="mt-9 flex flex-col gap-3 motion-safe:animate-fade-in-up sm:flex-row" style={{ animationDelay: "240ms" }}>
+              <Button onClick={openAuth} size="lg" className="h-13 rounded-full px-7 text-base shadow-lg shadow-primary/30 transition-transform hover:-translate-y-0.5">
                 Começar meu desafio gratuito <ArrowRight />
               </Button>
-              <Button asChild variant="outline" size="lg" className="h-13 rounded-xl px-6 text-base">
+              <Button asChild size="lg" variant="outline" className="h-13 rounded-full border-white/40 bg-white/10 px-7 text-base text-white backdrop-blur-sm hover:bg-white/20 hover:text-white">
                 <a href="#como-funciona" onClick={scrollToHow}>
                   Como funciona <ArrowDown />
                 </a>
               </Button>
             </div>
-            <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium text-muted-foreground">
-              <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Comece grátis</span>
-              <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> No seu nível</span>
-              <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Evolução visível</span>
+            <div className="mt-9 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm font-medium text-white/80 motion-safe:animate-fade-in-up" style={{ animationDelay: "320ms" }}>
+              <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-primary-foreground" /> Comece grátis</span>
+              <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-primary-foreground" /> No seu nível</span>
+              <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-primary-foreground" /> Evolução visível</span>
             </div>
           </div>
-
-          <ProductMockup />
         </div>
+      </section>
 
-        <div className="mx-auto mt-16 grid max-w-5xl grid-cols-3 divide-x divide-border rounded-2xl border border-border bg-card px-3 py-5 shadow-sm md:px-8">
+      <div className="mt-10 overflow-hidden border-y border-border bg-card py-4" aria-hidden="true">
+        <div className="flex w-max animate-marquee gap-10 pr-10">
+          {[0, 1].map((copy) => (
+            <div key={copy} className="flex items-center gap-10 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
+              {["Desafio Diário", "Tutor Nex", "Níveis de Maestria", "Simulado Completo", "Redação Inteligente", "Estatísticas TRI"].map((item) => (
+                <span key={item} className="inline-flex items-center gap-10">
+                  {item} <Sparkles className="h-3.5 w-3.5 text-primary" />
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <section className="px-5 py-16 md:px-8 md:py-24">
+        <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-sm font-bold uppercase text-accent">Quem estuda com o Nexem</p>
+            <h2 className="mt-3 text-4xl font-bold leading-tight text-foreground md:text-5xl">
+              Estudo de verdade, no seu dia a dia.
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-muted-foreground md:text-lg">
+              Em casa, na biblioteca ou com os amigos: 15 minutos por dia cabem em qualquer rotina.
+            </p>
+          </div>
+          <div className="mt-12 grid gap-5 sm:grid-cols-3">
+            {[
+              { src: student1.url, alt: "Estudante escrevendo no caderno em casa" },
+              { src: student2.url, alt: "Estudante fazendo anotações na biblioteca" },
+              { src: student3.url, alt: "Dois estudantes treinando questões juntos no tablet" },
+            ].map((photo, index) => (
+              <figure
+                key={photo.src}
+                style={{ animationDelay: `${index * 100}ms` }}
+                className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm motion-safe:animate-fade-in-up"
+              >
+                <img
+                  src={photo.src}
+                  alt={photo.alt}
+                  loading="lazy"
+                  width={1024}
+                  height={1280}
+                  className="aspect-[4/5] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                />
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-card px-5 py-16 md:px-8 md:py-24">
+        <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-sm font-bold uppercase text-primary">Veja o treino em ação</p>
+            <h2 className="mt-3 text-4xl font-bold leading-tight text-foreground md:text-5xl">
+              Uma questão. Uma pista. Um passo a mais.
+            </h2>
+          </div>
+          <div className="mt-12">
+            <ProductMockup />
+          </div>
+        </div>
+        <div className="mx-auto mt-16 grid max-w-5xl grid-cols-3 divide-x divide-border rounded-2xl border border-border bg-background px-3 py-5 shadow-sm md:px-8">
           {[{ n: "10", l: "questões por dia" }, { n: "15 min", l: "para manter o ritmo" }, { n: "4", l: "áreas do ENEM" }].map((item) => (
             <div key={item.l} className="text-center">
               <strong className="block text-xl font-bold text-foreground md:text-3xl">{item.n}</strong>
