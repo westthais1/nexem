@@ -1,0 +1,18 @@
+{
+  "id": "d83ba3ab-eadc-47a0-849e-4c72c39802cd",
+  "prevId": "ce990298-d895-4658-ada3-ae72adfde212",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {},
+  "enums": {},
+  "schemas": {},
+  "views": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
