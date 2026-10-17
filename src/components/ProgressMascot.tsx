@@ -6,7 +6,7 @@ import { StreakCard } from "@/components/StreakCard";
 import { useXp } from "@/hooks/use-xp";
 import { useQuery } from "@tanstack/react-query";
 import { defaultProgress, fetchProgress } from "@/lib/progress";
-import { XP_REWARDS, foxMessage, FOX_STAGES } from "@/lib/xp";
+import { XP_REWARDS, foxMessage } from "@/lib/xp";
 
 /** Widget "Progresso & Mascote" da Dashboard. */
 export function ProgressMascot() {
@@ -82,21 +82,6 @@ export function ProgressMascot() {
               />
               <RewardChip to="/redacao" label="Redação" xp={XP_REWARDS.redacao} />
               <RewardChip to="/full-simulado" label="Prova Completa" xp={XP_REWARDS.provaCompleta} />
-            </div>
-
-            <div className="mt-5 flex flex-wrap gap-1.5">
-              {FOX_STAGES.map((s) => (
-                <span
-                  key={s.id}
-                  className={`rounded-full border px-2.5 py-1 text-[11px] ${
-                    xp.level >= s.minLevel
-                      ? "border-primary/50 bg-primary/10 text-primary"
-                      : "border-border bg-background/40 text-muted-foreground"
-                  }`}
-                >
-                  {s.name} · nv {s.minLevel}
-                </span>
-              ))}
             </div>
           </div>
         </div>
