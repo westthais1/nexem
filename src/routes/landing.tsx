@@ -15,10 +15,11 @@ import {
   Trophy,
   Zap,
 } from "lucide-react";
-import { useEffect, useState, type ComponentType, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type ComponentType, type MouseEvent } from "react";
 
 import { AuthModal } from "@/components/AuthModal";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import nexemLogo from "@/assets/nexem-logo.png.asset.json";
 import heroVideo from "@/assets/landing/nexem-hero.mp4.asset.json";
 import heroPoster from "@/assets/landing/nexem-hero-poster.jpg.asset.json";
@@ -127,6 +128,23 @@ function LandingPage() {
   const { preview } = Route.useSearch();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = true;
+    const resume = () => { video.play().catch(() => {}); };
+    video.play().catch(() => {
+      document.addEventListener("pointerdown", resume, { once: true });
+      document.addEventListener("touchstart", resume, { once: true });
+    });
+    return () => {
+      document.removeEventListener("pointerdown", resume);
+      document.removeEventListener("touchstart", resume);
+    };
+  }, []);
+
 
   useEffect(() => {
     // Explicit preview keeps the landing visible without signing the student out.
@@ -203,36 +221,45 @@ function LandingPage() {
           </nav>
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={openAuth} className="rounded-full px-5">Entrar</Button>
-            <Button variant="ghost" size="icon" className="lg:hidden" aria-label={menuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={menuOpen} aria-controls="landing-mobile-menu" onClick={() => setMenuOpen((open) => !open)}>
-              {menuOpen ? <X /> : <Menu />}
+            <Button variant="ghost" size="icon" aria-label="Abrir menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}>
+              <Menu />
             </Button>
           </div>
         </div>
-        {menuOpen && (
-          <nav id="landing-mobile-menu" aria-label="Menu da landing no celular" className="grid gap-1 border-t border-border px-5 py-3 lg:hidden">
-            {LANDING_MENU.map((item) => (
-              <Button key={item.label} asChild variant="ghost" className="h-11 justify-start text-foreground hover:bg-primary/10 hover:text-primary">
-                {"to" in item ? (
-                  <Link to={item.to} onClick={() => setMenuOpen(false)}>{item.label}</Link>
-                ) : (
-                  <a href={item.href} onClick={scrollToHow}>{item.label}</a>
-                )}
-              </Button>
-            ))}
-          </nav>
-        )}
+        <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+          <SheetContent side="right" className="w-[45vw] min-w-[280px] sm:max-w-none">
+            <SheetHeader>
+              <SheetTitle>Menu</SheetTitle>
+            </SheetHeader>
+            <nav aria-label="Menu lateral da landing" className="mt-6 grid gap-1">
+              {LANDING_MENU.map((item) => (
+                <Button key={item.label} asChild variant="ghost" className="h-11 justify-start text-base text-foreground hover:bg-primary/10 hover:text-primary">
+                  {"to" in item ? (
+                    <Link to={item.to} onClick={() => setMenuOpen(false)}>{item.label}</Link>
+                  ) : (
+                    <a href={item.href} onClick={(e) => { setMenuOpen(false); scrollToHow(e); }}>{item.label}</a>
+                  )}
+                </Button>
+              ))}
+              <Button className="mt-4 rounded-full" onClick={() => { setMenuOpen(false); openAuth(); }}>Entrar</Button>
+            </nav>
+          </SheetContent>
+        </Sheet>
       </header>
 
       <section className="px-3 pt-4 md:px-6 md:pt-6">
         <div className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[32px] shadow-2xl shadow-foreground/10">
           <video
+            ref={videoRef}
             className="absolute inset-0 h-full w-full object-cover"
             src={heroVideo.url}
             poster={heroPoster.url}
             autoPlay
             muted
             loop
+            preload="auto"
             playsInline
+            {...{ "webkit-playsinline": "true" }}
             aria-hidden="true"
           />
           <div className="absolute inset-0 bg-foreground/45" aria-hidden="true" />
@@ -267,7 +294,7 @@ function LandingPage() {
         </div>
       </section>
 
-      <div className="mt-10 overflow-hidden border-y border-border bg-card py-4" aria-hidden="true">
+      <div className="mt-10 overflow-hidden bg-background py-4" aria-hidden="true">
         <div className="flex w-max animate-marquee gap-10 pr-10">
           {[0, 1].map((copy) => (
             <div key={copy} className="flex items-center gap-10 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
