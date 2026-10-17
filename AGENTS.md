@@ -14,4 +14,4 @@
 - Keep student quiz validation in a browser-safe shared schema and save its answers atomically with completion through the owner-scoped profile client.
 - Keep daily challenge diagnosis in a pure browser-safe module shared by the results UI, rewards and saved consistency metric so these cannot disagree; test it without database dependencies.
 - Keep the uploaded question mascot and speech bubble in a daily-challenge-only presentation component so other practice modules retain their layouts.
-- Keep landing navigation in a shared section-link list for desktop and mobile, with same-page anchors and a closable mobile menu, so both layouts reach the same public information without changing authentication behavior.
+- Landing navigation uses a shared link list for desktop and mobile (closable mobile menu); "Como funciona" is a same-page anchor, while Entenda a TRI, Guia do ENEM and Perguntas frequentes are separate public routes (/entenda-tri, /guia-enem, /perguntas-frequentes) rendered inside PublicPageShell and whitelisted in the root session guard like /landing.
