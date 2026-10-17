@@ -12,6 +12,7 @@ export type ProfileState = {
   /** true quando é a primeira entrada do estudante (ainda não fez o primeiro desafio). */
   isNew: boolean;
   displayName: string;
+  quizCompletedAt: string | null;
 };
 
 function nameOf(user: User): string {
@@ -24,20 +25,23 @@ function nameOf(user: User): string {
 export async function ensureProfile(user: User): Promise<ProfileState> {
   const displayName = nameOf(user);
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
-    .select("id, onboarded_at, display_name")
+    .select("id, onboarded_at, display_name, quiz_completed_at")
     .eq("id", user.id)
     .maybeSingle();
 
+  if (error) throw error;
+
   if (!data) {
-    await supabase
+    const { error: insertError } = await supabase
       .from("profiles")
       .insert({ id: user.id, email: user.email ?? null, display_name: displayName });
-    return { isNew: true, displayName };
+    if (insertError) throw insertError;
+    return { isNew: true, displayName, quizCompletedAt: null };
   }
 
-  return { isNew: data.onboarded_at === null, displayName: data.display_name ?? displayName };
+  return { isNew: data.onboarded_at === null, displayName: data.display_name ?? displayName, quizCompletedAt: data.quiz_completed_at };
 }
 
 /** Marca que o estudante já foi levado ao primeiro desafio. */

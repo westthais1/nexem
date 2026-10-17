@@ -215,7 +215,11 @@ export type Database = {
           display_name: string | null
           email: string | null
           id: string
+          learning_goal: string | null
           onboarded_at: string | null
+          quiz_completed_at: string | null
+          school_grade: string | null
+          target_score: number | null
           updated_at: string
         }
         Insert: {
@@ -223,7 +227,11 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id: string
+          learning_goal?: string | null
           onboarded_at?: string | null
+          quiz_completed_at?: string | null
+          school_grade?: string | null
+          target_score?: number | null
           updated_at?: string
         }
         Update: {
@@ -231,7 +239,11 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id?: string
+          learning_goal?: string | null
           onboarded_at?: string | null
+          quiz_completed_at?: string | null
+          school_grade?: string | null
+          target_score?: number | null
           updated_at?: string
         }
         Relationships: []

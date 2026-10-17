@@ -158,10 +158,15 @@ function LandingPage() {
 
     async function enterApp(user: User) {
       const [profile, progressCreated] = await Promise.all([
-        ensureProfile(user).catch(() => ({ isNew: false, displayName: "" })),
+        ensureProfile(user).catch(() => ({ isNew: false, displayName: "", quizCompletedAt: null })),
         ensureProgressForUser(user.id).catch(() => false),
       ]);
       if (!active) return;
+
+      if (!profile.quizCompletedAt) {
+        navigate({ to: "/", replace: true });
+        return;
+      }
 
       const isNew = profile.isNew || progressCreated;
       if (isNew) {

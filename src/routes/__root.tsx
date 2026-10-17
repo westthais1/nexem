@@ -13,6 +13,10 @@ import {
 import { useEffect, useState, type ReactNode } from "react";
 
 import { XpCelebration } from "@/components/XpCelebration";
+import { StudentQuiz } from "@/components/StudentQuiz";
+import { Button } from "@/components/ui/button";
+import { ensureProfile, markOnboarded } from "@/lib/profile";
+import { needsStudentQuiz } from "@/lib/student-quiz";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import nexemLogo from "@/assets/nexem-logo.png.asset.json";
@@ -297,28 +301,57 @@ function RootComponent() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isLanding = pathname.startsWith("/landing");
+  const [quizUserId, setQuizUserId] = useState<string | null>(null);
+  const [profileReady, setProfileReady] = useState(false);
+  const [profileError, setProfileError] = useState(false);
+  const [retry, setRetry] = useState(0);
 
   useEffect(() => {
     if (isLanding) return;
 
     let active = true;
+    setProfileReady(false);
+    setProfileError(false);
 
     // Revalidate the stored account before deciding that the visitor is signed out.
-    supabase.auth.getUser().then(({ data, error }) => {
+    supabase.auth.getUser().then(async ({ data, error }) => {
       if (!active) return;
-      if (error || !data.user) navigate({ to: "/landing", replace: true });
-    });
+      if (error || !data.user) { navigate({ to: "/landing", replace: true }); return; }
+      const profile = await ensureProfile(data.user);
+      if (!active) return;
+      setQuizUserId(needsStudentQuiz({ quiz_completed_at: profile.quizCompletedAt }) ? data.user.id : null);
+      setProfileReady(true);
+    }).catch(() => { if (active) setProfileError(true); });
 
     // Redirect to landing on sign-out.
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT") navigate({ to: "/landing", replace: true });
+      if (event === "SIGNED_OUT") {
+        setQuizUserId(null);
+        setProfileReady(false);
+        navigate({ to: "/landing", replace: true });
+      }
+      if (event === "SIGNED_IN") setRetry((value) => value + 1);
     });
 
     return () => {
       active = false;
       sub.subscription.unsubscribe();
     };
-  }, [isLanding, navigate]);
+  }, [isLanding, navigate, retry]);
+
+  if (!isLanding && !profileReady) return (
+    <main className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-background px-6 text-center">
+      <img src={nexemLogo.url} alt="nexem" className="h-8 w-auto" />
+      <p role={profileError ? "alert" : "status"} className="text-muted-foreground">{profileError ? "Não conseguimos carregar seu perfil." : "Preparando sua jornada…"}</p>
+      {profileError && <Button onClick={() => setRetry((value) => value + 1)}>Tentar novamente</Button>}
+    </main>
+  );
+
+  if (!isLanding && quizUserId) return <StudentQuiz key={quizUserId} userId={quizUserId} onComplete={() => {
+    setQuizUserId(null);
+    void markOnboarded(quizUserId);
+    navigate({ to: "/desafio", replace: true });
+  }} />;
 
   return (
     <QueryClientProvider client={queryClient}>
