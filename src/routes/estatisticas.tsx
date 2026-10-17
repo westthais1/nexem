@@ -9,6 +9,8 @@ export const Route = createFileRoute("/estatisticas")({
       { name: "description", content: "Veja seu desempenho por área do conhecimento, evolução e pontos de melhoria no ENEM." },
       { property: "og:title", content: "Estatísticas — Nexem" },
       { property: "og:description", content: "Estatísticas de desempenho no Nexem." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: EstatisticasPage,
