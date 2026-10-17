@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Corrigir o diagnóstico de consistência e possíveis chutes do Desafio Diário e testar os resultados pedidos.
+- [x] Corrigir o diagnóstico de consistência e possíveis chutes do Desafio Diário e testar os resultados pedidos.
 
 - [x] Adicionar questionário de primeira entrada com série, objetivo e nota desejada, salvar na conta e validar o fluxo.
 
