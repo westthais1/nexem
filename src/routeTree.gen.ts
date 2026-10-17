@@ -12,9 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdaptativoRouteImport } from './routes/adaptativo'
 import { Route as DesafioRouteImport } from './routes/desafio'
+import { Route as EntendaTriRouteImport } from './routes/entenda-tri'
 import { Route as EstatisticasRouteImport } from './routes/estatisticas'
 import { Route as FullSimuladoRouteImport } from './routes/full-simulado'
+import { Route as GuiaEnemRouteImport } from './routes/guia-enem'
 import { Route as LandingRouteImport } from './routes/landing'
+import { Route as PerguntasFrequentesRouteImport } from './routes/perguntas-frequentes'
 import { Route as RaioXRouteImport } from './routes/raio-x'
 import { Route as RedacaoRouteImport } from './routes/redacao'
 import { Route as SimuladoRouteImport } from './routes/simulado'
@@ -36,6 +39,11 @@ const DesafioRoute = DesafioRouteImport.update({
   path: '/desafio',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EntendaTriRoute = EntendaTriRouteImport.update({
+  id: '/entenda-tri',
+  path: '/entenda-tri',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EstatisticasRoute = EstatisticasRouteImport.update({
   id: '/estatisticas',
   path: '/estatisticas',
@@ -46,9 +54,19 @@ const FullSimuladoRoute = FullSimuladoRouteImport.update({
   path: '/full-simulado',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuiaEnemRoute = GuiaEnemRouteImport.update({
+  id: '/guia-enem',
+  path: '/guia-enem',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LandingRoute = LandingRouteImport.update({
   id: '/landing',
   path: '/landing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerguntasFrequentesRoute = PerguntasFrequentesRouteImport.update({
+  id: '/perguntas-frequentes',
+  path: '/perguntas-frequentes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RaioXRoute = RaioXRouteImport.update({
@@ -81,9 +99,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/adaptativo': typeof AdaptativoRoute
   '/desafio': typeof DesafioRoute
+  '/entenda-tri': typeof EntendaTriRoute
   '/estatisticas': typeof EstatisticasRoute
   '/full-simulado': typeof FullSimuladoRoute
+  '/guia-enem': typeof GuiaEnemRoute
   '/landing': typeof LandingRoute
+  '/perguntas-frequentes': typeof PerguntasFrequentesRoute
   '/raio-x': typeof RaioXRoute
   '/redacao': typeof RedacaoRoute
   '/simulado': typeof SimuladoRoute
@@ -94,9 +115,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/adaptativo': typeof AdaptativoRoute
   '/desafio': typeof DesafioRoute
+  '/entenda-tri': typeof EntendaTriRoute
   '/estatisticas': typeof EstatisticasRoute
   '/full-simulado': typeof FullSimuladoRoute
+  '/guia-enem': typeof GuiaEnemRoute
   '/landing': typeof LandingRoute
+  '/perguntas-frequentes': typeof PerguntasFrequentesRoute
   '/raio-x': typeof RaioXRoute
   '/redacao': typeof RedacaoRoute
   '/simulado': typeof SimuladoRoute
@@ -108,9 +132,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/adaptativo': typeof AdaptativoRoute
   '/desafio': typeof DesafioRoute
+  '/entenda-tri': typeof EntendaTriRoute
   '/estatisticas': typeof EstatisticasRoute
   '/full-simulado': typeof FullSimuladoRoute
+  '/guia-enem': typeof GuiaEnemRoute
   '/landing': typeof LandingRoute
+  '/perguntas-frequentes': typeof PerguntasFrequentesRoute
   '/raio-x': typeof RaioXRoute
   '/redacao': typeof RedacaoRoute
   '/simulado': typeof SimuladoRoute
@@ -123,9 +150,12 @@ export interface FileRouteTypes {
     | '/'
     | '/adaptativo'
     | '/desafio'
+    | '/entenda-tri'
     | '/estatisticas'
     | '/full-simulado'
+    | '/guia-enem'
     | '/landing'
+    | '/perguntas-frequentes'
     | '/raio-x'
     | '/redacao'
     | '/simulado'
@@ -136,9 +166,12 @@ export interface FileRouteTypes {
     | '/'
     | '/adaptativo'
     | '/desafio'
+    | '/entenda-tri'
     | '/estatisticas'
     | '/full-simulado'
+    | '/guia-enem'
     | '/landing'
+    | '/perguntas-frequentes'
     | '/raio-x'
     | '/redacao'
     | '/simulado'
@@ -149,9 +182,12 @@ export interface FileRouteTypes {
     | '/'
     | '/adaptativo'
     | '/desafio'
+    | '/entenda-tri'
     | '/estatisticas'
     | '/full-simulado'
+    | '/guia-enem'
     | '/landing'
+    | '/perguntas-frequentes'
     | '/raio-x'
     | '/redacao'
     | '/simulado'
@@ -163,9 +199,12 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdaptativoRoute: typeof AdaptativoRoute
   DesafioRoute: typeof DesafioRoute
+  EntendaTriRoute: typeof EntendaTriRoute
   EstatisticasRoute: typeof EstatisticasRoute
   FullSimuladoRoute: typeof FullSimuladoRoute
+  GuiaEnemRoute: typeof GuiaEnemRoute
   LandingRoute: typeof LandingRoute
+  PerguntasFrequentesRoute: typeof PerguntasFrequentesRoute
   RaioXRoute: typeof RaioXRoute
   RedacaoRoute: typeof RedacaoRoute
   SimuladoRoute: typeof SimuladoRoute
@@ -196,6 +235,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DesafioRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/entenda-tri': {
+      id: '/entenda-tri'
+      path: '/entenda-tri'
+      fullPath: '/entenda-tri'
+      preLoaderRoute: typeof EntendaTriRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/estatisticas': {
       id: '/estatisticas'
       path: '/estatisticas'
@@ -210,11 +256,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FullSimuladoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/guia-enem': {
+      id: '/guia-enem'
+      path: '/guia-enem'
+      fullPath: '/guia-enem'
+      preLoaderRoute: typeof GuiaEnemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/landing': {
       id: '/landing'
       path: '/landing'
       fullPath: '/landing'
       preLoaderRoute: typeof LandingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perguntas-frequentes': {
+      id: '/perguntas-frequentes'
+      path: '/perguntas-frequentes'
+      fullPath: '/perguntas-frequentes'
+      preLoaderRoute: typeof PerguntasFrequentesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/raio-x': {
@@ -259,9 +319,12 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdaptativoRoute: AdaptativoRoute,
   DesafioRoute: DesafioRoute,
+  EntendaTriRoute: EntendaTriRoute,
   EstatisticasRoute: EstatisticasRoute,
   FullSimuladoRoute: FullSimuladoRoute,
+  GuiaEnemRoute: GuiaEnemRoute,
   LandingRoute: LandingRoute,
+  PerguntasFrequentesRoute: PerguntasFrequentesRoute,
   RaioXRoute: RaioXRoute,
   RedacaoRoute: RedacaoRoute,
   SimuladoRoute: SimuladoRoute,
