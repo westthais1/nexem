@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import nexemLogo from "@/assets/nexem-logo.png.asset.json";
 import heroVideo from "@/assets/landing/teen-hero.mp4.asset.json";
+import heroWebVideo from "@/assets/landing/teen-hero.webm.asset.json";
 import heroPoster from "@/assets/landing/teen-hero.jpg";
 import student1 from "@/assets/landing/teen-student-1.jpg";
 import student2 from "@/assets/landing/teen-student-2.jpg";
@@ -252,7 +253,6 @@ function LandingPage() {
           <video
             ref={videoRef}
             className="absolute inset-0 h-full w-full object-cover"
-            src={heroVideo.url}
             poster={heroPoster}
             autoPlay
             muted
@@ -261,7 +261,10 @@ function LandingPage() {
             playsInline
             {...{ "webkit-playsinline": "true" }}
             aria-hidden="true"
-          />
+          >
+            <source src={heroWebVideo.url} type="video/webm" />
+            <source src={heroVideo.url} type="video/mp4" />
+          </video>
           <div className="absolute inset-0 bg-foreground/45" aria-hidden="true" />
           <div className="relative flex min-h-[78vh] flex-col items-center justify-center px-6 py-24 text-center md:min-h-[84vh]">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm motion-safe:animate-fade-in-up">
