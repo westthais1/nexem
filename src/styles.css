@@ -61,12 +61,25 @@
   --color-aura-linguagens: var(--aura-linguagens);
   --color-aura-matematica: var(--aura-matematica);
   --color-aura-muted: var(--aura-muted);
+  --color-pro-text: var(--pro-text);
+  --color-pro-muted: var(--pro-muted);
+  --color-pro-panel: var(--pro-panel);
+  --color-pro-border: var(--pro-border);
+  --color-pro-highlight: var(--pro-highlight);
   --font-display: "Space Grotesk", sans-serif;
   --font-sans: "Inter", sans-serif;
 }
 
 :root {
   --radius: 0.875rem;
+  --pro-background: oklch(0.18 0.018 280 / 0.96);
+  --pro-text: oklch(0.98 0.005 280);
+  --pro-muted: oklch(0.77 0.025 280);
+  --pro-panel: oklch(0.26 0.032 285 / 0.8);
+  --pro-border: oklch(0.6 0.07 290 / 0.45);
+  --pro-highlight: oklch(0.8 0.15 305);
+  --pro-violet: oklch(0.6 0.24 295);
+  --pro-fuchsia: oklch(0.63 0.24 330);
   --background: oklch(0.98 0.006 220);
   --foreground: oklch(0.22 0.025 245);
   --card: oklch(1 0 0);
@@ -129,6 +142,19 @@
     letter-spacing: -0.02em;
   }
 }
+
+.premium-surface {
+  color: var(--pro-text);
+  background: linear-gradient(var(--pro-background), var(--pro-background)) padding-box, linear-gradient(135deg, var(--pro-violet), var(--pro-fuchsia)) border-box;
+  border: 1px solid transparent;
+  backdrop-filter: blur(24px);
+  box-shadow: 0 24px 100px color-mix(in oklab, var(--pro-violet) 25%, transparent);
+}
+.pro-popular, .pro-checkout {
+  background: linear-gradient(110deg, var(--pro-violet), var(--pro-fuchsia));
+  color: var(--pro-text);
+}
+.pro-checkout:hover { filter: brightness(1.12); }
 
 @utility text-glow-neon {
   text-shadow: 0 0 24px color-mix(in oklab, var(--neon) 45%, transparent);

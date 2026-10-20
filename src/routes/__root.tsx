@@ -21,6 +21,8 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import nexemLogo from "@/assets/nexem-logo.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
+import { SubscriptionProvider, useSubscription } from '@/hooks/use-subscription';
+import { PremiumGate } from '@/components/PremiumGate';
 
 function NotFoundComponent() {
   return (
@@ -233,6 +235,7 @@ function Brand() {
 }
 
 function UserMenu() {
+  const { isPremium, openUpgrade } = useSubscription();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [user, setUser] = useState<{ email: string; name: string } | null>(null);
@@ -266,6 +269,7 @@ function UserMenu() {
 
   return (
     <div className="space-y-2">
+      <Button variant="outline" className="w-full" onClick={openUpgrade}>{isPremium ? 'Nexem Pro' : 'Conhecer Nexem Pro'}</Button>
       <div className="flex items-center gap-3 rounded-lg px-3 py-2">
         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-sm font-semibold text-primary-foreground">
           {initials}
@@ -309,6 +313,7 @@ function RootComponent() {
   const [profileReady, setProfileReady] = useState(false);
   const [profileError, setProfileError] = useState(false);
   const [retry, setRetry] = useState(0);
+  const [subscriptionUserId, setSubscriptionUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isLanding) return;
@@ -321,6 +326,7 @@ function RootComponent() {
     supabase.auth.getUser().then(async ({ data, error }) => {
       if (!active) return;
       if (error || !data.user) { navigate({ to: "/landing", replace: true }); return; }
+      setSubscriptionUserId(data.user.id);
       const profile = await ensureProfile(data.user);
       if (!active) return;
       setQuizUserId(needsStudentQuiz({ quiz_completed_at: profile.quizCompletedAt }) ? data.user.id : null);
@@ -330,6 +336,7 @@ function RootComponent() {
     // Redirect to landing on sign-out.
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT") {
+        setSubscriptionUserId(null);
         setQuizUserId(null);
         setProfileReady(false);
         navigate({ to: "/landing", replace: true });
@@ -359,14 +366,16 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <SubscriptionProvider userId={isLanding ? null : subscriptionUserId}>
       <div className="flex min-h-screen flex-col bg-background md:flex-row">
         {!isLanding && <Sidebar />}
         <div className="flex w-full min-w-0 flex-1 flex-col md:w-auto">
-          <Outlet />
+          {pathname.startsWith('/prova') ? <PremiumGate><Outlet /></PremiumGate> : <Outlet />}
           {!isLanding && <Footer />}
         </div>
       </div>
       <XpCelebration />
+      </SubscriptionProvider>
     </QueryClientProvider>
   );
 }
