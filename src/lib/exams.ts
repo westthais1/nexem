@@ -1,4 +1,5 @@
 import { questionsSupabase } from "@/lib/external-supabase";
+import { getPremiumQuestionPool } from './subscription.functions';
 
 export const EXAM_TABLE = "enem_provas";
 export const EXAM_DURATION_SECONDS = 5 * 3600 + 30 * 60; // 5h30
@@ -43,17 +44,9 @@ export async function fetchExams(): Promise<ExamSummary[]> {
 }
 
 export async function fetchExamQuestions(nomeProva: string): Promise<ExamQuestion[]> {
-  const { data, error } = await questionsSupabase
-    .from(EXAM_TABLE)
-    .select(COLUMNS)
-    .eq("nome_prova", nomeProva)
-    .order("numero_questao", { ascending: true });
-
-  if (error) {
-    console.error("[Prova] Falha ao carregar questões", error);
-    throw new Error(`Erro ao carregar as questões da prova: ${error.message}`);
-  }
-  return (data ?? []) as ExamQuestion[];
+  if (nomeProva !== 'Banco Geral Nexem') throw new Error('Esta prova não faz parte do Banco Geral Nexem.');
+  const data = await getPremiumQuestionPool();
+  return data.map((row, index) => ({ ...row, nome_prova: nomeProva, numero_questao: index + 1 })) as ExamQuestion[];
 }
 
 export function formatClock(totalSeconds: number): string {

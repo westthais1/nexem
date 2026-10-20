@@ -56,11 +56,11 @@ export function TutorChat({
 
   // Pista proativa: ao clicar no botão, se ainda não houver conversa, o Nex começa sozinho.
   useEffect(() => {
-    if (hintToken === 0 || hintToken === lastToken.current) return;
+    if (!open || hintToken === 0 || hintToken === lastToken.current) return;
     lastToken.current = hintToken;
     if (messages.length === 0 && !loading) void request([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hintToken]);
+  }, [hintToken, open]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -142,8 +142,8 @@ export function TutorChat({
             </p>
           )}
           {limitReached && !isPremium && <div role="alert" className="animate-fade-in-up rounded-lg border border-primary/40 bg-primary/10 p-4 text-sm text-foreground">
-            Você atingiu o limite gratuito de 3 consultas diárias. Faça o upgrade para o Nexem Pro para ter ajuda socrática ilimitada!
-            <Button variant="link" className="mt-2 px-0" onClick={openUpgrade}>Assinar Agora</Button>
+            <p>Você atingiu o limite gratuito de 3 consultas diárias. Faça o upgrade para o Nexem Pro para ter ajuda socrática ilimitada!</p>
+            <Button variant="link" className="mt-2 block px-0" onClick={openUpgrade}>Assinar Agora</Button>
           </div>}
         </div>
 

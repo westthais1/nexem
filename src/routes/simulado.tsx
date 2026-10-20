@@ -491,6 +491,7 @@ function BlockSession({
   }, [current, selected, confirmed, answers, questions.length, subject.label, finalizar]);
 
   const proxima = useCallback(() => {
+    setHintToken(0);
     setIndex((i) => i + 1);
     setSelected(null);
     setConfirmed(false);
