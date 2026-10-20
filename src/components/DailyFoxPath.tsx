@@ -66,8 +66,9 @@ export function DailyFoxPath({ className }: { className?: string }) {
         <div className="relative flex items-start justify-between">
           <svg
             aria-hidden
+            overflow="visible"
             className="pointer-events-none absolute top-0 h-14"
-            style={{ left: 28, right: 28 }}
+            style={{ left: 28, width: "calc(100% - 56px)" }}
             viewBox="0 0 100 56"
             preserveAspectRatio="none"
           >
