@@ -331,6 +331,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_nexem_premium: { Args: never; Returns: boolean }
       reserve_nexem_tutor_consultation: {
         Args: { p_request_id: string }
         Returns: boolean

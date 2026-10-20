@@ -43,6 +43,13 @@
       "when": 1792534534991,
       "tag": "0005_tighten_subscription_and_usage_grants",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792534575959,
+      "tag": "0006_enforce_premium_mastery_writes",
+      "breakpoints": true
     }
   ]
 }
