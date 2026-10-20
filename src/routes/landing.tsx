@@ -122,6 +122,7 @@ const LANDING_MENU = [
   { to: "/entenda-tri", label: "Entenda a TRI" },
   { to: "/guia-enem", label: "Guia do ENEM" },
   { to: "/perguntas-frequentes", label: "Perguntas frequentes" },
+  { to: "/nexem-pro", label: "Nexem Pro" },
 ] as const;
 
 function LandingPage() {
