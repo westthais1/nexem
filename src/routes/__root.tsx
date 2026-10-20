@@ -308,7 +308,8 @@ function RootComponent() {
     pathname.startsWith("/landing") ||
     pathname.startsWith("/entenda-tri") ||
     pathname.startsWith("/guia-enem") ||
-    pathname.startsWith("/perguntas-frequentes");
+    pathname.startsWith("/perguntas-frequentes") ||
+    pathname.startsWith("/nexem-pro");
   const [quizUserId, setQuizUserId] = useState<string | null>(null);
   const [profileReady, setProfileReady] = useState(false);
   const [profileError, setProfileError] = useState(false);
