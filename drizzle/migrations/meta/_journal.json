@@ -36,6 +36,13 @@
       "when": 1792534286155,
       "tag": "0004_subscription_entitlements_and_tutor_usage",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792534534991,
+      "tag": "0005_tighten_subscription_and_usage_grants",
+      "breakpoints": true
     }
   ]
 }
