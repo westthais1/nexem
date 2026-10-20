@@ -1,8 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ProgressMascot } from "@/components/ProgressMascot";
 import { DailyChallengeCard } from "@/components/DailyChallengeCard";
-import { MasteryTargets } from "@/components/MasteryTargets";
 import { MASTERY_QUERY_KEY, fetchMasteryProgress } from "@/lib/mastery-progress";
 
 
@@ -33,8 +31,6 @@ function DashboardPage() {
         <HeroBanner />
         <DailyChallengeCard />
         <TutorNexCard />
-        <MasteryTargets />
-        <ProgressMascot />
         <QuickActions />
       </div>
     </main>
@@ -154,7 +150,6 @@ function QuickActions() {
   const items = [
     { to: "/simulado", title: "Simulado adaptativo", desc: "Questões selecionadas pela IA com base no seu desempenho.", icon: SimuladoIconSmall },
     { to: "/redacao", title: "Redação Inteligente", desc: "Correção competência por competência com sugestões de melhoria.", icon: RedacaoIconSmall },
-    { to: "/estatisticas", title: "Estatísticas detalhadas", desc: "Mapa de acertos e erros por área do conhecimento.", icon: EstatisticasIconSmall },
   ] as const;
 
   return (
