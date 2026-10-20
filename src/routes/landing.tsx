@@ -21,11 +21,12 @@ import { AuthModal } from "@/components/AuthModal";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import nexemLogo from "@/assets/nexem-logo.png.asset.json";
-import heroVideo from "@/assets/landing/nexem-hero.mp4.asset.json";
-import heroPoster from "@/assets/landing/nexem-hero-poster.jpg.asset.json";
-import student1 from "@/assets/landing/student-1.jpg.asset.json";
-import student2 from "@/assets/landing/student-2.jpg.asset.json";
-import student3 from "@/assets/landing/student-3.jpg.asset.json";
+import heroVideo from "@/assets/landing/teen-hero.mp4.asset.json";
+import heroWebVideo from "@/assets/landing/teen-hero.webm.asset.json";
+import heroPoster from "@/assets/landing/teen-hero.jpg";
+import student1 from "@/assets/landing/teen-student-1.jpg";
+import student2 from "@/assets/landing/teen-student-2.jpg";
+import student3 from "@/assets/landing/teen-student-3.jpg";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureProgressForUser } from "@/lib/progress";
@@ -252,8 +253,7 @@ function LandingPage() {
           <video
             ref={videoRef}
             className="absolute inset-0 h-full w-full object-cover"
-            src={heroVideo.url}
-            poster={heroPoster.url}
+            poster={heroPoster}
             autoPlay
             muted
             loop
@@ -261,7 +261,10 @@ function LandingPage() {
             playsInline
             {...{ "webkit-playsinline": "true" }}
             aria-hidden="true"
-          />
+          >
+            <source src={heroWebVideo.url} type="video/webm" />
+            <source src={heroVideo.url} type="video/mp4" />
+          </video>
           <div className="absolute inset-0 bg-foreground/45" aria-hidden="true" />
           <div className="relative flex min-h-[78vh] flex-col items-center justify-center px-6 py-24 text-center md:min-h-[84vh]">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm motion-safe:animate-fade-in-up">
@@ -321,9 +324,9 @@ function LandingPage() {
           </div>
           <div className="mt-12 grid gap-5 sm:grid-cols-3">
             {[
-              { src: student1.url, alt: "Estudante escrevendo no caderno em casa" },
-              { src: student2.url, alt: "Estudante fazendo anotações na biblioteca" },
-              { src: student3.url, alt: "Dois estudantes treinando questões juntos no tablet" },
+              { src: student1, alt: "Adolescente estudando para o ENEM e escrevendo no caderno em casa" },
+              { src: student2, alt: "Adolescente revisando um livro e fazendo anotações na biblioteca" },
+              { src: student3, alt: "Dois adolescentes estudando juntos com caderno e notebook" },
             ].map((photo, index) => (
               <figure
                 key={photo.src}
@@ -334,8 +337,8 @@ function LandingPage() {
                   src={photo.src}
                   alt={photo.alt}
                   loading="lazy"
-                  width={1024}
-                  height={1280}
+                  width={1280}
+                  height={960}
                   className="aspect-[4/5] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 />
               </figure>
