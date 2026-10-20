@@ -17,6 +17,7 @@ import { Route as EstatisticasRouteImport } from './routes/estatisticas'
 import { Route as FullSimuladoRouteImport } from './routes/full-simulado'
 import { Route as GuiaEnemRouteImport } from './routes/guia-enem'
 import { Route as LandingRouteImport } from './routes/landing'
+import { Route as NexemProRouteImport } from './routes/nexem-pro'
 import { Route as PerguntasFrequentesRouteImport } from './routes/perguntas-frequentes'
 import { Route as RaioXRouteImport } from './routes/raio-x'
 import { Route as RedacaoRouteImport } from './routes/redacao'
@@ -64,6 +65,11 @@ const LandingRoute = LandingRouteImport.update({
   path: '/landing',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NexemProRoute = NexemProRouteImport.update({
+  id: '/nexem-pro',
+  path: '/nexem-pro',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PerguntasFrequentesRoute = PerguntasFrequentesRouteImport.update({
   id: '/perguntas-frequentes',
   path: '/perguntas-frequentes',
@@ -104,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/full-simulado': typeof FullSimuladoRoute
   '/guia-enem': typeof GuiaEnemRoute
   '/landing': typeof LandingRoute
+  '/nexem-pro': typeof NexemProRoute
   '/perguntas-frequentes': typeof PerguntasFrequentesRoute
   '/raio-x': typeof RaioXRoute
   '/redacao': typeof RedacaoRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/full-simulado': typeof FullSimuladoRoute
   '/guia-enem': typeof GuiaEnemRoute
   '/landing': typeof LandingRoute
+  '/nexem-pro': typeof NexemProRoute
   '/perguntas-frequentes': typeof PerguntasFrequentesRoute
   '/raio-x': typeof RaioXRoute
   '/redacao': typeof RedacaoRoute
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/full-simulado': typeof FullSimuladoRoute
   '/guia-enem': typeof GuiaEnemRoute
   '/landing': typeof LandingRoute
+  '/nexem-pro': typeof NexemProRoute
   '/perguntas-frequentes': typeof PerguntasFrequentesRoute
   '/raio-x': typeof RaioXRoute
   '/redacao': typeof RedacaoRoute
@@ -155,6 +164,7 @@ export interface FileRouteTypes {
     | '/full-simulado'
     | '/guia-enem'
     | '/landing'
+    | '/nexem-pro'
     | '/perguntas-frequentes'
     | '/raio-x'
     | '/redacao'
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/full-simulado'
     | '/guia-enem'
     | '/landing'
+    | '/nexem-pro'
     | '/perguntas-frequentes'
     | '/raio-x'
     | '/redacao'
@@ -187,6 +198,7 @@ export interface FileRouteTypes {
     | '/full-simulado'
     | '/guia-enem'
     | '/landing'
+    | '/nexem-pro'
     | '/perguntas-frequentes'
     | '/raio-x'
     | '/redacao'
@@ -204,6 +216,7 @@ export interface RootRouteChildren {
   FullSimuladoRoute: typeof FullSimuladoRoute
   GuiaEnemRoute: typeof GuiaEnemRoute
   LandingRoute: typeof LandingRoute
+  NexemProRoute: typeof NexemProRoute
   PerguntasFrequentesRoute: typeof PerguntasFrequentesRoute
   RaioXRoute: typeof RaioXRoute
   RedacaoRoute: typeof RedacaoRoute
@@ -270,6 +283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LandingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/nexem-pro': {
+      id: '/nexem-pro'
+      path: '/nexem-pro'
+      fullPath: '/nexem-pro'
+      preLoaderRoute: typeof NexemProRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/perguntas-frequentes': {
       id: '/perguntas-frequentes'
       path: '/perguntas-frequentes'
@@ -324,6 +344,7 @@ const rootRouteChildren: RootRouteChildren = {
   FullSimuladoRoute: FullSimuladoRoute,
   GuiaEnemRoute: GuiaEnemRoute,
   LandingRoute: LandingRoute,
+  NexemProRoute: NexemProRoute,
   PerguntasFrequentesRoute: PerguntasFrequentesRoute,
   RaioXRoute: RaioXRoute,
   RedacaoRoute: RedacaoRoute,
