@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      daily_path_progress: {
+        Row: {
+          box: number
+          last_awarded_day: string | null
+          last_jump: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          box?: number
+          last_awarded_day?: string | null
+          last_jump?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          box?: number
+          last_awarded_day?: string | null
+          last_jump?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       enem_essays: {
         Row: {
           c1: number
@@ -331,6 +355,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      advance_daily_path: {
+        Args: { p_acertos: number; p_day: string }
+        Returns: {
+          jumped: number
+          new_box: number
+        }[]
+      }
       has_nexem_premium: { Args: never; Returns: boolean }
       reserve_nexem_tutor_consultation: {
         Args: { p_request_id: string }
