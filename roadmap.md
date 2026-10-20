@@ -1,6 +1,7 @@
 # Roadmap
 
 - [x] Ampliar os menus da landing, explicar o funcionamento e a TRI, acrescentar dúvidas frequentes e verificar a navegação.
+- [x] Deixar a homepage mais limpa, removendo as estatísticas (Meta de Domínio, Progresso & Mascote e cartão Estatísticas).
 
 - [x] Corrigir o diagnóstico de consistência e possíveis chutes do Desafio Diário e testar os resultados pedidos.
 

@@ -1,8 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ProgressMascot } from "@/components/ProgressMascot";
 import { DailyChallengeCard } from "@/components/DailyChallengeCard";
-import { MasteryTargets } from "@/components/MasteryTargets";
 import { MASTERY_QUERY_KEY, fetchMasteryProgress } from "@/lib/mastery-progress";
 
 
@@ -33,8 +31,6 @@ function DashboardPage() {
         <HeroBanner />
         <DailyChallengeCard />
         <TutorNexCard />
-        <MasteryTargets />
-        <ProgressMascot />
         <QuickActions />
       </div>
     </main>
@@ -154,13 +150,12 @@ function QuickActions() {
   const items = [
     { to: "/simulado", title: "Simulado adaptativo", desc: "Questões selecionadas pela IA com base no seu desempenho.", icon: SimuladoIconSmall },
     { to: "/redacao", title: "Redação Inteligente", desc: "Correção competência por competência com sugestões de melhoria.", icon: RedacaoIconSmall },
-    { to: "/estatisticas", title: "Estatísticas detalhadas", desc: "Mapa de acertos e erros por área do conhecimento.", icon: EstatisticasIconSmall },
   ] as const;
 
   return (
     <section className="mt-8">
       <h2 className="text-lg font-semibold text-foreground">Continue de onde parou</h2>
-      <div className="mt-4 grid gap-4 md:grid-cols-3">
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
         {items.map((item) => {
           const Icon = item.icon;
           return (
@@ -198,13 +193,6 @@ function RedacaoIconSmall({ className }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d="M16 3l5 5L8 21l-5 1 1-5L16 3z" /><path d="M14 5l5 5" />
-    </svg>
-  );
-}
-function EstatisticasIconSmall({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 3v18h18" /><path d="M7 15l4-4 3 3 5-6" />
     </svg>
   );
 }
