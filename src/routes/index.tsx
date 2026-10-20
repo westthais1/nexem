@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { DailyChallengeCard } from "@/components/DailyChallengeCard";
+import { DailyFoxPath } from "@/components/DailyFoxPath";
 import { MASTERY_QUERY_KEY, fetchMasteryProgress } from "@/lib/mastery-progress";
 import { useSubscription } from '@/hooks/use-subscription';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ function DashboardPage() {
       <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8 md:px-10 md:py-12">
         <HeroBanner />
         <DailyChallengeCard />
+        <DailyFoxPath className="mt-8" />
         <TutorNexCard />
         <QuickActions />
       </div>
