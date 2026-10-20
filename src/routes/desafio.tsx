@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Flame } from "lucide-react";
+import { Loader2, Flame, Sparkles } from "lucide-react";
+import { TutorChat } from '@/components/TutorChat';
+import { Button } from '@/components/ui/button';
 
 import { registrarTentativa } from "@/lib/attempts.functions";
 import { awardXp, XP_REWARDS } from "@/lib/xp";
@@ -102,6 +104,8 @@ function DesafioPage() {
   const [savedTracks, setSavedTracks] = useState<UserProgress["tracks"] | null>(null);
   const [userId, setUserId] = useState<string>("");
   const [montando, setMontando] = useState(false);
+  const [tutorOpen, setTutorOpen] = useState(false);
+  const [hintToken, setHintToken] = useState(0);
 
   useEffect(() => {
     setSession(readSession());
@@ -206,6 +210,8 @@ function DesafioPage() {
   }, [session, current, selected, confirmed, userId, answeredQuery]);
 
   const proxima = useCallback(() => {
+    setTutorOpen(false);
+    setHintToken(0);
     setIndex((i) => i + 1);
     setSelected(null);
     setConfirmed(false);
@@ -413,6 +419,7 @@ function DesafioPage() {
               )}
 
               <div className="mt-6">
+                <Button variant="outline" className="mb-4 mr-3" onClick={() => { setTutorOpen(true); setHintToken(value => value + 1); }}><Sparkles /> Pedir Ajuda ao Tutor Nex</Button>
                 {!confirmed ? (
                   <button
                     type="button"
@@ -433,6 +440,7 @@ function DesafioPage() {
                 )}
               </div>
             </section>
+            <TutorChat key={current.id} open={tutorOpen} onOpenChange={setTutorOpen} question={current.enunciado} options={LETTERS.map(letter => `${letter}) ${optionText(current, letter)}`)} area={current.area_conhecimento ?? 'ENEM'} explicacao={current.explicacao} hintToken={hintToken} />
           </>
         )}
 

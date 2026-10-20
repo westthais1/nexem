@@ -103,13 +103,13 @@ export function TutorChat({
               <p className="text-[11px] text-muted-foreground">Dicas, nunca a resposta</p>
             </div>
           </div>
-          <button
+          <Button variant="ghost" size="icon"
             onClick={() => onOpenChange(false)}
             aria-label="Fechar chat do tutor"
             className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           >
             <X size={16} />
-          </button>
+          </Button>
         </header>
 
         <div ref={scrollRef} className="min-w-[280px] flex-1 space-y-4 overflow-y-auto px-4 py-4">
