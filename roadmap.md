@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Substituir vídeo e três fotos da landing por adolescentes distintos estudando, com aspecto natural, e conferir a apresentação.
+- [x] Substituir vídeo e três fotos da landing por adolescentes distintos estudando, com aspecto natural, e conferir a apresentação e reprodução.
 
 - [x] Ampliar os menus da landing, explicar o funcionamento e a TRI, acrescentar dúvidas frequentes e verificar a navegação.
 - [x] Deixar a homepage mais limpa, removendo as estatísticas (Meta de Domínio, Progresso & Mascote e cartão Estatísticas).
