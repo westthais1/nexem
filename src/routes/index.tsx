@@ -2,6 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { DailyChallengeCard } from "@/components/DailyChallengeCard";
 import { MASTERY_QUERY_KEY, fetchMasteryProgress } from "@/lib/mastery-progress";
+import { useSubscription } from '@/hooks/use-subscription';
+import { Button } from '@/components/ui/button';
+import { Lock } from 'lucide-react';
 
 
 export const Route = createFileRoute("/")({
@@ -84,6 +87,7 @@ function HeroBanner() {
 
 /** Card "Treine com Tutor Nex" — entrada para os Níveis de Maestria por matéria, com barra de progresso total. */
 function TutorNexCard() {
+  const { isPremium, openUpgrade } = useSubscription();
   const masteryQuery = useQuery({ queryKey: MASTERY_QUERY_KEY, queryFn: fetchMasteryProgress });
   const total = masteryQuery.data?.totalRespondidas ?? 0;
 
@@ -134,13 +138,14 @@ function TutorNexCard() {
             ))}
           </div>
         </div>
-        <Link
+        {isPremium ? <Link
           to="/simulado"
           className="relative inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground transition-all hover:bg-accent/90 hover:shadow-[0_0_28px_-6px_var(--electric)]"
         >
           Começar treino
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
         </Link>
+        : <Button className="relative" size="lg" onClick={openUpgrade}><Lock /> Desbloquear Nexem Pro</Button>}
       </div>
     </section>
   );

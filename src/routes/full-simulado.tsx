@@ -3,7 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, Clock, Loader2, Lock } from "lucide-react";
 
-import { questionsSupabase } from "@/lib/external-supabase";
+import { getPremiumQuestionPool } from '@/lib/subscription.functions';
+import { useSubscription } from '@/hooks/use-subscription';
+import { Button } from '@/components/ui/button';
 import { supabase } from "@/integrations/supabase/client";
 import { registrarProva } from "@/lib/exam.functions";
 import { corrigirRedacao, type EssayCorrection } from "@/lib/essay.functions";
@@ -121,14 +123,8 @@ async function fetchAttemptedIds(): Promise<Set<string>> {
 }
 
 /** Monta 90 questões: 45 da 1ª área + 45 da 2ª, priorizando não tentadas. */
-async function buildDay(day: Day): Promise<{ questions: ExamQuestion[]; faltantes: number }> {
+async function buildDay(day: Day, pool: ExamQuestion[]): Promise<{ questions: ExamQuestion[]; faltantes: number }> {
   const [areaA, areaB] = DAY_CONFIG[day].areas;
-  const { data, error } = await questionsSupabase
-    .from("enem_provas")
-    .select(COLUMNS)
-    .eq("nome_prova", BANCO);
-  if (error) throw new Error(`Erro ao carregar questões: ${error.message}`);
-  const pool = (data ?? []) as ExamQuestion[];
   const attempted = await fetchAttemptedIds();
 
   let faltantes = 0;
@@ -183,6 +179,8 @@ function loadSession(): Session | null {
 }
 
 function ProvaCompletaPage() {
+  const { isPremium, isLoading, openUpgrade } = useSubscription();
+  const getPool = useServerFn(getPremiumQuestionPool);
   const [session, setSession] = useState<Session | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [loadingDay, setLoadingDay] = useState<Day | null>(null);
@@ -203,12 +201,13 @@ function ProvaCompletaPage() {
   const activeDay1 = session && session.day === 1 && !session.submittedAt;
 
   const start = async (day: Day) => {
+    if (!isPremium) { openUpgrade(); return; }
     if (day === 2 && activeDay1) return;
     setError(null);
     setAviso(null);
     setLoadingDay(day);
     try {
-      const { questions, faltantes } = await buildDay(day);
+      const { questions, faltantes } = await buildDay(day, await getPool() as ExamQuestion[]);
       if (faltantes > 0)
         setAviso(`O banco ainda não tem questões suficientes: ${faltantes} posição(ões) ficaram vazias.`);
       setSession({ day, startedAt: Date.now(), questions, respostas: {}, redacao: "", submittedAt: null });
@@ -220,9 +219,9 @@ function ProvaCompletaPage() {
     }
   };
 
-  if (!hydrated) return <Shell><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></Shell>;
+  if (!hydrated || isLoading) return <Shell><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></Shell>;
 
-  if (session) {
+  if (session && isPremium) {
     return (
       <ExamRoom
         session={session}
@@ -250,12 +249,13 @@ function ProvaCompletaPage() {
           const cfg = DAY_CONFIG[d];
           const blocked = d === 2 && !!activeDay1;
           return (
-            <button
+            <Button
               key={d}
               type="button"
               disabled={blocked || loadingDay !== null}
               onClick={() => start(d)}
-              className="rounded-2xl border border-border bg-card p-6 text-left transition-all hover:border-primary/50 disabled:cursor-not-allowed disabled:opacity-50"
+              variant="ghost"
+              className="h-auto flex-col items-start whitespace-normal rounded-lg border border-border bg-card p-6 text-left transition-all hover:border-primary/50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <p className="text-lg font-semibold text-foreground">{cfg.title}</p>
               <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
@@ -266,6 +266,7 @@ function ProvaCompletaPage() {
                   <Clock className="h-4 w-4" /> {cfg.minutes === 330 ? "5h30" : "5h"} de prova
                 </li>
               </ul>
+              {!isPremium && <span className="mt-4 inline-flex items-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-sm font-semibold text-primary"><Lock className="h-4 w-4" /> Desbloquear com Nexem Pro</span>}
               {blocked && (
                 <p className="mt-3 flex items-center gap-1.5 text-xs font-medium text-destructive">
                   <Lock className="h-3.5 w-3.5" /> Conclua o Dia 1 em andamento antes.
@@ -276,7 +277,7 @@ function ProvaCompletaPage() {
                   <Loader2 className="h-3.5 w-3.5 animate-spin" /> Montando seu caderno...
                 </p>
               )}
-            </button>
+            </Button>
           );
         })}
       </div>

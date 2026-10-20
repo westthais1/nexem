@@ -3,6 +3,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { Brain, Send, X, Loader2 } from "lucide-react";
 
 import { askTutor } from "@/lib/tutor.functions";
+import { Button } from '@/components/ui/button';
+import { useSubscription } from '@/hooks/use-subscription';
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -28,17 +30,22 @@ export function TutorChat({
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [limitReached, setLimitReached] = useState(false);
+  const { openUpgrade, isPremium } = useSubscription();
   const ask = useServerFn(askTutor);
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastToken = useRef(0);
 
   async function request(next: Msg[]) {
+    if (loading || (limitReached && !isPremium)) return;
     setError(null);
     setLoading(true);
     try {
       const res = await ask({
         data: { question, options, area, explicacao: explicacao ?? null, messages: next },
       });
+      if (res.limitReached) { setLimitReached(true); return; }
+      setLimitReached(false);
       setMessages([...next, { role: "assistant", content: res.content }]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao falar com o tutor.");
@@ -134,6 +141,10 @@ export function TutorChat({
               {error}
             </p>
           )}
+          {limitReached && !isPremium && <div role="alert" className="animate-fade-in-up rounded-lg border border-primary/40 bg-primary/10 p-4 text-sm text-foreground">
+            Você atingiu o limite gratuito de 3 consultas diárias. Faça o upgrade para o Nexem Pro para ter ajuda socrática ilimitada!
+            <Button variant="link" className="mt-2 px-0" onClick={openUpgrade}>Assinar Agora</Button>
+          </div>}
         </div>
 
         <form
@@ -156,14 +167,14 @@ export function TutorChat({
             placeholder="Responda ao Nex ou peça outra pista..."
             className="max-h-32 flex-1 resize-none rounded-xl border border-border bg-background/50 px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary/50"
           />
-          <button
+          <Button
             type="submit"
-            disabled={loading || !input.trim()}
+            disabled={loading || !input.trim() || (limitReached && !isPremium)}
             aria-label="Enviar pergunta"
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-opacity disabled:opacity-40"
           >
             <Send size={15} />
-          </button>
+          </Button>
         </form>
       </aside>
     </>
