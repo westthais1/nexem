@@ -311,3 +311,16 @@
     animation: none;
   }
 }
+
+@keyframes fox-jump {
+  0% { transform: translate(-50%, 60px) scale(0.9); }
+  40% { transform: translate(-50%, -30px) scale(1.05); }
+  70% { transform: translate(-50%, 4px) scale(0.98); }
+  100% { transform: translate(-50%, 0) scale(1); }
+}
+.fox-jump { animation: fox-jump 900ms cubic-bezier(.3,1.4,.5,1) 2; }
+@keyframes box-glow {
+  0%,100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 0%, transparent); }
+  50% { box-shadow: 0 0 24px 6px color-mix(in oklab, var(--primary) 55%, transparent); }
+}
+.box-glow { animation: box-glow 1.6s ease-in-out 3; }

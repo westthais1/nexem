@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { DailyFoxPath, PATH_QUERY_KEY } from "@/components/DailyFoxPath";
+import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Flame, Sparkles } from "lucide-react";
 import { TutorChat } from '@/components/TutorChat';
 import { Button } from '@/components/ui/button';
@@ -220,6 +222,7 @@ function DesafioPage() {
     }
   }, []);
 
+  const queryClient = useQueryClient();
   const resultado = useMemo(
     () => (session ? gradeDaily(session.answers, session.theta) : null),
     [session],
@@ -261,6 +264,13 @@ function DesafioPage() {
       .then(() => progressQuery.refetch())
       .catch((e) => console.error("[Desafio] Falha ao salvar proficiência", e));
 
+
+    void supabase
+      .rpc("advance_daily_path", { p_acertos: resultado.acertos, p_day: hoje })
+      .then(({ error }) => {
+        if (error) console.error("[Desafio] Falha ao avançar a trilha", error.message);
+        void queryClient.invalidateQueries({ queryKey: PATH_QUERY_KEY });
+      });
 
     const marcada = { ...session, rewarded: true, completed: true, saved: true };
     writeSession(marcada);
@@ -533,6 +543,8 @@ function DesafioPage() {
               </div>
             )}
 
+
+            <DailyFoxPath />
 
             <div className="rounded-2xl border border-border bg-card p-6 card-glow">
               <h2 className="text-lg font-semibold text-foreground">Resumo do desafio de hoje</h2>
