@@ -97,10 +97,10 @@ export function DailyFoxPath({ className }: { className?: string }) {
                   <img
                     src={foxAsset.url}
                     alt="Raposa na caixa atual"
-                    width={56}
-                    height={56}
+                    width={48}
+                    height={48}
                     className={cn(
-                      "absolute -top-14 left-1/2 h-14 w-14 -translate-x-1/2 object-contain",
+                      "absolute -top-12 left-1/2 h-12 w-12 -translate-x-1/2 object-contain",
                       pulouHoje && "fox-jump",
                     )}
                   />
