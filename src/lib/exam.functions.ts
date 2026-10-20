@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 
 const examAttemptSchema = z.object({
   nome_prova: z.string().min(1),
@@ -13,13 +14,14 @@ const examAttemptSchema = z.object({
 
 /** Salva o resultado de uma prova completa, separado das tentativas de treino. */
 export const registrarProva = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => examAttemptSchema.parse(input))
-  .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { getOptionalUserId } = await import("./auth-user.server");
+  .handler(async ({ data, context }) => {
+    const { requirePremium } = await import('./subscription.server');
+    await requirePremium(context.supabase, context.userId);
 
-    const { error } = await supabaseAdmin.from("enem_exam_attempts").insert({
-      user_id: await getOptionalUserId(),
+    const { error } = await context.supabase.from("enem_exam_attempts").insert({
+      user_id: context.userId,
       nome_prova: data.nome_prova,
       respostas: data.respostas,
       acertos: data.acertos,

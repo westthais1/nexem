@@ -4,7 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, ChevronLeft, Loader2, Lock, Sparkles, Trophy } from "lucide-react";
 
 import { TutorChat } from "@/components/TutorChat";
-import { questionsSupabase } from "@/lib/external-supabase";
+import { useServerFn } from '@tanstack/react-start';
+import { getPremiumQuestionPool } from '@/lib/subscription.functions';
+import { useSubscription } from '@/hooks/use-subscription';
+import { Button } from '@/components/ui/button';
 import { registrarTentativa } from "@/lib/attempts.functions";
 import { awardXp } from "@/lib/xp";
 import { pushHistory, readHistory } from "@/lib/daily-challenge";
@@ -77,15 +80,6 @@ type QuestionRow = {
   imagem_url: string | null;
 };
 
-async function fetchPool(): Promise<QuestionRow[]> {
-  const { data, error } = await questionsSupabase
-    .from(TABLE)
-    .select(COLUMNS)
-    .eq("nome_prova", "Banco Geral Nexem");
-  if (error) throw new Error(`Erro ao carregar o banco de questões: ${error.message}`);
-  return (data ?? []) as QuestionRow[];
-}
-
 function diffOf(q: QuestionRow): number {
   const d = Number(q.dificuldade);
   return Number.isFinite(d) && d > 0 ? Math.min(100, Math.max(1, Math.round(d))) : 50;
@@ -142,7 +136,9 @@ type View =
   | { kind: "bloco"; subject: Subject; level: MasteryLevel };
 
 function MaestriaPage() {
-  const poolQuery = useQuery({ queryKey: [TABLE, "maestria"], queryFn: fetchPool });
+  const { isPremium, isLoading, openUpgrade } = useSubscription();
+  const getPool = useServerFn(getPremiumQuestionPool);
+  const poolQuery = useQuery({ queryKey: [TABLE, "maestria", isPremium], queryFn: async () => await getPool() as QuestionRow[], enabled: isPremium });
   const progressQuery = useQuery({ queryKey: ["nexem_user_progress"], queryFn: fetchProgress });
   const masteryQuery = useQuery({
     queryKey: MASTERY_QUERY_KEY,
@@ -166,7 +162,7 @@ function MaestriaPage() {
     return map;
   }, [pool]);
 
-  if (poolQuery.isLoading || progressQuery.isLoading || masteryQuery.isLoading) {
+  if (isLoading || poolQuery.isLoading || progressQuery.isLoading || masteryQuery.isLoading) {
     return (
       <Shell>
         <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-6 text-muted-foreground">
@@ -187,7 +183,7 @@ function MaestriaPage() {
     );
   }
 
-  if (view.kind === "bloco" && progress) {
+  if (view.kind === "bloco" && progress && isPremium) {
     return (
       <Shell>
         <BlockSession
@@ -231,7 +227,7 @@ function MaestriaPage() {
 
         <div className="mt-6 space-y-4">
           {LEVELS.map((level) => {
-            const liberado = unlocked(level, theta);
+            const liberado = isPremium;
             const disponiveis = pool.filter((q) => {
               const d = diffOf(q);
               return (
@@ -240,10 +236,11 @@ function MaestriaPage() {
                 d <= level.max
               );
             }).length;
-            const semQuestoes = disponiveis === 0;
+            const semQuestoes = isPremium && disponiveis === 0;
             return (
               <div
                 key={level.id}
+                onClick={() => { if (!isPremium) openUpgrade(); }}
                 className={`rounded-2xl border p-6 transition-all duration-500 ${
                   liberado
                     ? "border-border bg-card hover:border-primary/50"
@@ -267,7 +264,7 @@ function MaestriaPage() {
                     <p className="mt-1 text-sm text-muted-foreground">{level.descricao}</p>
                     {!liberado && (
                       <p className="mt-2 inline-flex rounded-full border border-destructive/40 bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive">
-                        Requer Proficiência Mínima de {level.requisito} pontos
+                        Exclusivo Nexem Pro
                       </p>
                     )}
                     {liberado && semQuestoes && (
@@ -276,14 +273,14 @@ function MaestriaPage() {
                       </p>
                     )}
                   </div>
-                  <button
+                  <Button
                     type="button"
-                    disabled={!liberado || semQuestoes}
-                    onClick={() => setView({ kind: "bloco", subject: view.subject, level })}
+                    disabled={semQuestoes}
+                    onClick={(event) => { event.stopPropagation(); if (!isPremium) { openUpgrade(); return; } setView({ kind: "bloco", subject: view.subject, level }); }}
                     className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    Iniciar bloco de {BLOCK_SIZE}
-                  </button>
+                    {isPremium ? `Iniciar bloco de ${BLOCK_SIZE}` : 'Desbloquear com Nexem Pro'}
+                  </Button>
                 </div>
                 <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-background/60">
                   <div
@@ -320,7 +317,7 @@ function MaestriaPage() {
             <button
               key={s.slug}
               type="button"
-              disabled={total === 0}
+              disabled={isPremium && total === 0}
               onClick={() => setView({ kind: "niveis", subject: s })}
               className="rounded-2xl border border-border bg-card p-5 text-left transition-all duration-300 hover:border-primary/50 hover:shadow-[0_0_28px_-10px_var(--neon)] disabled:cursor-not-allowed disabled:opacity-40"
             >
@@ -342,7 +339,7 @@ function MaestriaPage() {
                 </span>
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                {liberados} de {LEVELS.length} níveis liberados
+                {isPremium ? `${LEVELS.length} níveis disponíveis` : '3 níveis · Nexem Pro'}
               </p>
             </button>
           );
@@ -494,6 +491,7 @@ function BlockSession({
   }, [current, selected, confirmed, answers, questions.length, subject.label, finalizar]);
 
   const proxima = useCallback(() => {
+    setHintToken(0);
     setIndex((i) => i + 1);
     setSelected(null);
     setConfirmed(false);

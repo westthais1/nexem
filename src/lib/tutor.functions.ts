@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 
 const TutorInput = z.object({
   question: z.string().min(1),
@@ -17,10 +18,18 @@ const TutorInput = z.object({
 });
 
 export const askTutor = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => TutorInput.parse(input))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
+
+    const transactionId = crypto.randomUUID();
+    const { data: allowed, error: reserveError } = await context.supabase.rpc('reserve_nexem_tutor_consultation', { p_request_id: transactionId });
+    if (reserveError) throw new Error('Não conseguimos verificar seu limite de consultas. Tente novamente.');
+    if (!allowed) return { content: '', limitReached: true };
+    const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+    try {
 
     const system = [
       "Você é o Nex, um tutor socrático para estudantes do ENEM.",
@@ -66,12 +75,21 @@ export const askTutor = createServerFn({ method: "POST" })
       const text = await res.text();
       if (res.status === 429) throw new Error("Muitas perguntas seguidas. Aguarde alguns segundos e tente novamente.");
       if (res.status === 402) throw new Error("Créditos de IA esgotados. Adicione créditos no Lovable para continuar.");
-      throw new Error(`Falha ao consultar o tutor (${res.status}): ${text.slice(0, 200)}`);
+      console.error('[Tutor] Falha do provedor', res.status, text.slice(0, 200));
+      throw new Error('Não conseguimos consultar o tutor. Tente novamente.');
     }
 
     const json = (await res.json()) as {
       choices?: Array<{ message?: { content?: string } }>;
     };
     const content = json.choices?.[0]?.message?.content?.trim();
-    return { content: content || "Não consegui formular uma dica agora. Tente reformular sua dúvida." };
+    if (!content) throw new Error('Não consegui formular uma dica agora. Tente novamente.');
+    const { error: logError } = await supabaseAdmin.from('nexem_tutor_transactions').update({ status: 'succeeded', completed_at: new Date().toISOString() }).eq('id', transactionId).eq('user_id', context.userId);
+    if (logError) console.error('[Tutor] Falha ao concluir transação', logError);
+    return { content, limitReached: false };
+    } catch (error) {
+      const { error: logError } = await supabaseAdmin.from('nexem_tutor_transactions').update({ status: 'failed', completed_at: new Date().toISOString() }).eq('id', transactionId).eq('user_id', context.userId);
+      if (logError) console.error('[Tutor] Falha ao liberar consulta', logError);
+      throw error;
+    }
   });

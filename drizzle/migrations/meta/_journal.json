@@ -29,6 +29,34 @@
       "when": 1792259791039,
       "tag": "0003_student_onboarding_quiz",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792534286155,
+      "tag": "0004_subscription_entitlements_and_tutor_usage",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792534534991,
+      "tag": "0005_tighten_subscription_and_usage_grants",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792534575959,
+      "tag": "0006_enforce_premium_mastery_writes",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792534598894,
+      "tag": "0007_allow_service_tutor_reservation_testing",
+      "breakpoints": true
     }
   ]
 }
