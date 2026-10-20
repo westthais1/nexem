@@ -1,9 +1,10 @@
 # Roadmap
 
-- [ ] Implementar assinatura Free/Premium persistida, planos e bloqueios de Maestria e Prova Completa, mantendo Desafio Diário gratuito.
-- [ ] Conectar checkout e ativação segura da assinatura — aguarda confirmação do provedor de pagamentos.
-- [ ] Implementar e testar limite de três consultas ao Tutor por 24 horas — aguarda confirmação do controle específico por conta.
-- [ ] Verificar os fluxos de assinatura e publicar a monetização com segurança.
+- [x] Implementar assinatura Free/Premium persistida, planos e bloqueios de Maestria e Prova Completa, mantendo Desafio Diário gratuito.
+- [ ] Conectar checkout e ativação segura da assinatura — pagamentos ainda não ativados; depende da autorização do usuário.
+- [x] Implementar e verificar limite de três consultas ao Tutor por 24 horas, persistido por conta; quarta consulta bloqueada no navegador.
+- [x] Verificar bloqueios, planos no celular e testes das regras; 29 testes passaram.
+- [ ] Publicar a monetização — depende de autorização para publicar e da decisão sobre pagamentos.
 
 - [x] Substituir vídeo e três fotos da landing por adolescentes distintos estudando, com aspecto natural, e conferir a apresentação e reprodução.
 
