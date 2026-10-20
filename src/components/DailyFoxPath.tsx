@@ -62,9 +62,25 @@ export function DailyFoxPath({ className }: { className?: string }) {
         </p>
       )}
 
-      <div className="relative mt-10 px-2">
-        <div aria-hidden className="absolute left-8 right-8 top-7 h-1 -translate-y-1/2 rounded-full bg-border" />
+      <div className="relative mt-14 px-2">
         <div className="relative flex items-start justify-between">
+          <svg
+            aria-hidden
+            className="pointer-events-none absolute top-0 h-14"
+            style={{ left: 28, right: 28 }}
+            viewBox="0 0 100 56"
+            preserveAspectRatio="none"
+          >
+            <polyline
+              points={LIFT.map((l, i) => `${i * 25},${28 + l}`).join(" ")}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={3}
+              strokeLinecap="round"
+              vectorEffect="non-scaling-stroke"
+              className="text-border"
+            />
+          </svg>
           {Array.from({ length: BOXES_PER_LEVEL }).map((_, bi) => {
             const idx = base + bi;
             const feito = idx < box;
