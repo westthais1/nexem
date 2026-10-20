@@ -46,7 +46,7 @@ function HeroBanner() {
       <div className="bg-aurora absolute inset-0 opacity-70" />
       <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-primary/20 blur-3xl" />
       <div className="absolute -bottom-20 left-1/3 h-56 w-56 rounded-full bg-accent/15 blur-3xl" />
-      <div className="relative px-7 py-10 md:px-12 md:py-16">
+      <div className="relative px-7 py-8 md:px-12 md:py-12">
         <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/40 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
           <span className="h-1.5 w-1.5 rounded-full bg-primary" />
           Tutor de IA · Online agora
@@ -56,30 +56,6 @@ function HeroBanner() {
             nexem
           </span>
         </h1>
-        <p className="mt-3 max-w-xl text-lg font-medium text-foreground/90 md:text-xl" style={{ fontFamily: "var(--font-display)" }}>
-          Estudo Adaptativo.{" "}
-          <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent text-glow-neon">
-            Nota Máxima.
-          </span>
-        </p>
-        <p className="mt-4 max-w-xl text-base text-muted-foreground md:text-lg">
-          Um treino inteligente que evolui com você.
-        </p>
-        <div className="mt-7 flex flex-wrap gap-3">
-          <Link
-            to="/simulado"
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-[0_0_28px_-6px_var(--neon)]"
-          >
-            Iniciar simulado
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-          </Link>
-          <Link
-            to="/redacao"
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-background/40 px-5 py-2.5 text-sm font-semibold text-foreground backdrop-blur transition-colors hover:bg-accent/10"
-          >
-            Corrigir redação
-          </Link>
-        </div>
       </div>
     </section>
   );
