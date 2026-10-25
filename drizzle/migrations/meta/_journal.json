@@ -64,6 +64,13 @@
       "when": 1792540304580,
       "tag": "0008_daily_path_progress",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792945769141,
+      "tag": "0009_study_materials",
+      "breakpoints": true
     }
   ]
 }
