@@ -3,6 +3,7 @@ import type { PathStep, StepStatus } from "./materials";
 export type QuizAttempt = { answers: number[]; score: number; passed: boolean };
 export type MaterialProgress = Record<string, StepStatus | QuizAttempt>;
 export const PASS_PERCENT = 70;
+export const LEVEL_REQUIRED_CORRECT = 2;
 export function statusOf(value: StepStatus | QuizAttempt | undefined): StepStatus {
   return value === "done" || value === "doing" ? value : "todo";
 }
@@ -11,7 +12,7 @@ export function gradeMaterialQuiz(step: PathStep, answers: number[]): QuizAttemp
   const complete = questions.length > 0 && answers.length === questions.length && answers.every((a) => Number.isInteger(a) && a >= 0 && a < 5);
   const correct = questions.reduce((sum, q, i) => sum + (answers[i] === q.answer ? 1 : 0), 0);
   const score = questions.length ? Math.round(correct / questions.length * 100) : 0;
-  return { answers, score, passed: complete && score >= PASS_PERCENT };
+  return { answers, score, passed: complete && (step.final ? score >= PASS_PERCENT : correct >= LEVEL_REQUIRED_CORRECT) };
 }
 export function isStepUnlocked(index: number, progress: MaterialProgress): boolean {
   return Array.from({ length: index }, (_, i) => i).every((i) => statusOf(progress[i]) === "done");
