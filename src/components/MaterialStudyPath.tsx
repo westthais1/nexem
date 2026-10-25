@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { processMaterial } from "@/lib/materials.functions";
-import { gradeMaterialQuiz, hasAchievementPath, isStepUnlocked, PASS_PERCENT, statusOf, type MaterialProgress, type QuizAttempt } from "@/lib/material-path";
+import { gradeMaterialQuiz, hasAchievementPath, isStepUnlocked, LEVEL_REQUIRED_CORRECT, PASS_PERCENT, statusOf, type MaterialProgress, type QuizAttempt } from "@/lib/material-path";
 import type { PathStep } from "@/lib/materials";
 import { cn } from "@/lib/utils";
 
@@ -54,7 +54,7 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
     <div className="flex flex-wrap items-center justify-between gap-3"><Badge variant="secondary">{current.subject} · {current.final ? "Simulado final" : `Nível ${current.level}`}</Badge><Button variant="ghost" onClick={() => setActive(null)}><X />Voltar à trilha</Button></div>
     <h2 className="font-display text-2xl font-semibold">{current.title}</h2>
     {!result ? <>
-      <p className="text-sm text-muted-foreground">{answers.filter((a) => a >= 0).length}/{questions.length} respondidas · conquista com {PASS_PERCENT}% de acertos</p>
+      <p className="text-sm text-muted-foreground">{answers.filter((a) => a >= 0).length}/{questions.length} respondidas · {current.final ? `conquista com ${PASS_PERCENT}% de acertos` : `${LEVEL_REQUIRED_CORRECT} acertos liberam o próximo nível`}</p>
       {questions.map((q, i) => <fieldset key={i} className="space-y-3 border-b border-border pb-6">
         <legend className="mb-3 font-medium leading-relaxed">{i + 1}. {q.prompt}</legend>
         {q.options.map((option, j) => <label key={j} className={cn("flex cursor-pointer items-start gap-3 rounded-lg border p-3 text-sm transition-colors", answers[i] === j ? "border-primary bg-primary/5" : "border-border bg-card")}>
