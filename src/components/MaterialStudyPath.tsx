@@ -65,7 +65,7 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
       <Button onClick={submit} disabled={busy || answers.length !== questions.length || answers.some((a) => a < 0)}>{busy ? <Loader2 className="animate-spin" /> : <Flag />}{current.final ? "Entregar simulado" : "Concluir missão"}</Button>
     </> : <>
       <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-5"><Trophy className="h-12 w-12 shrink-0 text-primary" /><div><p className="font-display text-3xl font-semibold">{result.score}%</p><p className="text-sm text-muted-foreground">{result.passed ? current.final ? "Material concluído! Conquista final desbloqueada." : "Conquista desbloqueada! Próximo nível liberado." : "Revise os conceitos e tente novamente."}</p></div></div>
-      {questions.map((q, i) => <article key={i} className="space-y-2 border-b border-border pb-4"><h3 className="font-medium">{i + 1}. {q.prompt}</h3><p className={result.answers[i] === q.answer ? "text-primary" : "text-destructive"}>{result.answers[i] === q.answer ? "Acertou" : "Precisa revisar"} · Sua resposta: {String.fromCharCode(65 + result.answers[i])}</p><p className="text-sm font-medium">Correta: {String.fromCharCode(65 + q.answer)}. {q.options[q.answer]}</p><p className="text-sm leading-relaxed text-muted-foreground">{q.explanation}</p></article>)}
+      {questions.map((q, i) => <article key={i} className="space-y-2 border-b border-border pb-4"><h3 className="font-medium">{i + 1}. {q.prompt}</h3><p className={result.answers[i] === q.answer ? "text-primary" : "text-destructive"}>{result.answers[i] === q.answer ? "Acertou" : "Precisa revisar"} · Sua resposta: {String.fromCharCode(65 + (result.answers[i] ?? 0))}</p><p className="text-sm font-medium">Correta: {String.fromCharCode(65 + q.answer)}. {q.options[q.answer]}</p><p className="text-sm leading-relaxed text-muted-foreground">{q.explanation}</p></article>)}
       <div className="flex flex-wrap gap-3"><Button onClick={() => setActive(null)}>Ver conquistas<ChevronRight /></Button><Button variant="outline" onClick={() => { setAnswers([]); setResult(null); }}>Tentar novamente</Button></div>
     </>}
     {error && <p role="alert" className="text-destructive">{error}</p>}
@@ -73,10 +73,11 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
   const node = (s: PathStep, i: number) => {
     const unlocked = isStepUnlocked(i, m.step_status);
     const complete = statusOf(m.step_status[i]) === "done";
+    const attempt = m.step_status[`quiz:${i}`];
     const Icon = complete ? Check : !unlocked ? Lock : s.final ? Trophy : s.level === 1 ? BookOpen : s.level === 2 ? Sparkles : Award;
     return <div key={i} className="flex min-w-0 flex-col items-center gap-3 text-center">
       <Button size="icon" variant={complete || unlocked ? "default" : "secondary"} disabled={!unlocked} onClick={() => open(i)} aria-label={`${s.subject}: ${s.title}${!unlocked ? " — bloqueado" : ""}`} className={cn("h-20 w-20 rounded-full border-b-4 border-primary/30 transition-transform motion-safe:hover:-translate-y-1 [&_svg]:size-7", unlocked && !complete && "ring-4 ring-primary/15", complete && "bg-accent text-accent-foreground border-accent/30")}><Icon /></Button>
-      <div className="max-w-40"><p className="text-xs font-medium text-muted-foreground">{s.final ? "Conquista final" : `Nível ${s.level}`}</p><h3 className="mt-1 break-words text-sm font-semibold">{s.title}</h3><p className="mt-1 text-xs text-muted-foreground">{complete ? "Conquistado" : !unlocked ? "Bloqueado" : `${s.questions?.length} questões · ${s.minutes} min`}</p></div>
+      <div className="max-w-40"><p className="text-xs font-medium text-muted-foreground">{s.final ? "Conquista final" : `Nível ${s.level}`}</p><h3 className="mt-1 break-words text-sm font-semibold">{s.title}</h3><p className="mt-1 text-xs text-muted-foreground">{complete ? "Conquistado" : !unlocked ? "Bloqueado" : `${s.questions?.length} questões · ${s.minutes} min`}</p>{typeof attempt === "object" && <p className="mt-1 text-xs font-medium text-primary">Última tentativa: {attempt.score}%</p>}</div>
     </div>;
   };
   return <section className="space-y-8">
