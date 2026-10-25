@@ -46,7 +46,7 @@ export function DailyFoxPath({ className }: { className?: string }) {
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <h2 className="text-xl font-semibold text-foreground" style={{ fontFamily: "var(--font-display)" }}>
-            Trilha do Desafio
+            Trilha do Desafio Diario
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             7–8 acertos: a raposa pula 1 caixa · 9–10 acertos: pula 2 caixas.
