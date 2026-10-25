@@ -14,6 +14,13 @@ describe("Conquistas dos materiais", () => {
     expect(attempt.passed).toBe(true);
     expect(isStepUnlocked(1, { 0: attempt.passed ? "done" : "doing" })).toBe(true);
   });
+  test("um acerto em três não libera o próximo nível", () => {
+    const mission = { questions: [{ answer: 0 }, { answer: 0 }, { answer: 0 }] };
+    const attempt = gradeMaterialQuiz(mission, [0, 1, 1]);
+    expect(attempt.score).toBe(33);
+    expect(attempt.passed).toBe(false);
+    expect(isStepUnlocked(1, { 0: attempt.passed ? "done" : "doing" })).toBe(false);
+  });
   test("um acerto não libera o próximo nível", () => {
     expect(gradeMaterialQuiz(step, [0,1,1,1,1,1,1,1,1,1]).passed).toBe(false);
   });
