@@ -13,6 +13,7 @@ import {
 import { useEffect, useState, type ReactNode } from "react";
 
 import { XpCelebration } from "@/components/XpCelebration";
+import { StatPills } from "@/components/StatPills";
 import { StudentQuiz } from "@/components/StudentQuiz";
 import { Button } from "@/components/ui/button";
 import { ensureProfile, markOnboarded } from "@/lib/profile";
@@ -371,6 +372,7 @@ function RootComponent() {
       <div className="flex min-h-screen flex-col bg-background md:flex-row">
         {!isLanding && <Sidebar />}
         <div className="flex w-full min-w-0 flex-1 flex-col md:w-auto">
+          {!isLanding && <StatPills className="px-4 pt-4 sm:px-6 md:px-10" />}
           {pathname.startsWith('/prova') ? <PremiumGate><Outlet /></PremiumGate> : <Outlet />}
           {!isLanding && <Footer />}
         </div>
