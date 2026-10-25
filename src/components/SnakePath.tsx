@@ -14,7 +14,7 @@ export type SnakeNode = {
 
 /** Deslocamento horizontal em zigue-zague: centro, direita, centro, esquerda… */
 const OFFSETS = [0, 1, 0, -1];
-const STEP = 120;
+const STEP = 150;
 const SHIFT = 72;
 
 /** Trilha vertical estilo Duolingo, compartilhada pelas trilhas do app. */
@@ -58,8 +58,8 @@ export function SnakePath({ nodes, className }: { nodes: SnakeNode[]; className?
               {n.state === "done" && <Star className="absolute -right-1 -top-1 !size-5 fill-primary text-primary" />}
             </button>
             {n.badge}
-            <p className={cn("mt-1 text-sm font-semibold leading-tight", n.state === "locked" ? "text-muted-foreground" : "text-foreground")}>{n.title}</p>
-            {n.subtitle && <p className="text-[11px] text-muted-foreground">{n.subtitle}</p>}
+            <p className={cn("mt-1 line-clamp-2 rounded-md bg-card/90 px-1 text-sm font-semibold leading-tight", n.state === "locked" ? "text-muted-foreground" : "text-foreground")}>{n.title}</p>
+            {n.subtitle && <p className="rounded bg-card/90 px-1 text-[11px] text-muted-foreground">{n.subtitle}</p>}
           </div>
         );
       })}
