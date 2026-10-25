@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Dividir a Trilha de estudo dos materiais por assuntos e conquistas sequenciais, salvar resultados e liberar um simulado final sobre o arquivo.
+- [x] Dividir a Trilha de estudo dos materiais por assuntos e conquistas sequenciais, salvar resultados e liberar um simulado final sobre o arquivo; geração real, 13 conquistas, entrega final e recuperação após recarregar verificadas.
 
 - [x] Implementar assinatura Free/Premium persistida, planos e bloqueios de Maestria e Prova Completa, mantendo Desafio Diário gratuito.
 - [ ] Conectar checkout e ativação segura da assinatura — pagamentos ainda não ativados; depende da autorização do usuário.
