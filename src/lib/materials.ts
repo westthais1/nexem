@@ -19,22 +19,22 @@ export function parseStudyJson(raw: string): StudyData | null {
     if (!m) return null;
     try { obj = JSON.parse(m[0]); } catch { return null; }
   }
-  const bullets = arr(obj.bullets).map(str).filter(Boolean);
-  const detailed = arr(obj.detailed).map((s) => {
+  const bullets = arr(obj["bullets"]).map(str).filter(Boolean);
+  const detailed = arr(obj["detailed"]).map((s) => {
     const o = (s ?? {}) as Record<string, unknown>;
-    return { heading: str(o.heading), paragraphs: arr(o.paragraphs).map(str).filter(Boolean) };
+    return { heading: str(o["heading"]), paragraphs: arr(o["paragraphs"]).map(str).filter(Boolean) };
   }).filter((s) => s.heading || s.paragraphs.length);
-  const flashcards = arr(obj.flashcards).map((c) => {
+  const flashcards = arr(obj["flashcards"]).map((c) => {
     const o = (c ?? {}) as Record<string, unknown>;
-    return { front: str(o.front), back: str(o.back) };
+    return { front: str(o["front"]), back: str(o["back"]) };
   }).filter((c) => c.front && c.back);
-  const path = arr(obj.path).map((p) => {
+  const path = arr(obj["path"]).map((p) => {
     const o = (p ?? {}) as Record<string, unknown>;
-    const minutes = Math.max(5, Math.min(240, Math.round(Number(o.minutes) || 30)));
-    return { title: str(o.title), description: str(o.description), minutes, concepts: arr(o.concepts).map(str).filter(Boolean), format: str(o.format) };
+    const minutes = Math.max(5, Math.min(240, Math.round(Number(o["minutes"]) || 30)));
+    return { title: str(o["title"]), description: str(o["description"]), minutes, concepts: arr(o["concepts"]).map(str).filter(Boolean), format: str(o["format"]) };
   }).filter((p) => p.title);
   if (!bullets.length && !flashcards.length) return null;
-  return { title: str(obj.title) || "Material de estudo", bullets, detailed, flashcards, path };
+  return { title: str(obj["title"]) || "Material de estudo", bullets, detailed, flashcards, path };
 }
 
 export function pathProgress(statuses: StepStatus[]): number {

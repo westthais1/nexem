@@ -363,7 +363,7 @@ function PathTab({ m, onStatus }: { m: Material; onStatus: (ss: Material["step_s
       </div>
       <ol className="space-y-4">
         {m.path.map((s, i) => {
-          const st = statuses[i];
+          const st = statuses[i] ?? "todo";
           return (
             <li key={i} className={cn("rounded-3xl border bg-card p-6 transition-colors", st === "done" ? "border-primary" : "border-border")}>
               <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
