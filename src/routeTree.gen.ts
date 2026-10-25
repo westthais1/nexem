@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AdaptativoRouteImport } from './routes/adaptativo'
 import { Route as DesafioRouteImport } from './routes/desafio'
 import { Route as EntendaTriRouteImport } from './routes/entenda-tri'
 import { Route as EstatisticasRouteImport } from './routes/estatisticas'
@@ -28,11 +27,6 @@ import { Route as ProvaNomeRouteImport } from './routes/prova.$nome'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdaptativoRoute = AdaptativoRouteImport.update({
-  id: '/adaptativo',
-  path: '/adaptativo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DesafioRoute = DesafioRouteImport.update({
@@ -103,7 +97,6 @@ const ProvaNomeRoute = ProvaNomeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/adaptativo': typeof AdaptativoRoute
   '/desafio': typeof DesafioRoute
   '/entenda-tri': typeof EntendaTriRoute
   '/estatisticas': typeof EstatisticasRoute
@@ -120,7 +113,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/adaptativo': typeof AdaptativoRoute
   '/desafio': typeof DesafioRoute
   '/entenda-tri': typeof EntendaTriRoute
   '/estatisticas': typeof EstatisticasRoute
@@ -138,7 +130,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/adaptativo': typeof AdaptativoRoute
   '/desafio': typeof DesafioRoute
   '/entenda-tri': typeof EntendaTriRoute
   '/estatisticas': typeof EstatisticasRoute
@@ -157,7 +148,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/adaptativo'
     | '/desafio'
     | '/entenda-tri'
     | '/estatisticas'
@@ -174,7 +164,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/adaptativo'
     | '/desafio'
     | '/entenda-tri'
     | '/estatisticas'
@@ -191,7 +180,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/adaptativo'
     | '/desafio'
     | '/entenda-tri'
     | '/estatisticas'
@@ -209,7 +197,6 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdaptativoRoute: typeof AdaptativoRoute
   DesafioRoute: typeof DesafioRoute
   EntendaTriRoute: typeof EntendaTriRoute
   EstatisticasRoute: typeof EstatisticasRoute
@@ -232,13 +219,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/adaptativo': {
-      id: '/adaptativo'
-      path: '/adaptativo'
-      fullPath: '/adaptativo'
-      preLoaderRoute: typeof AdaptativoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/desafio': {
@@ -337,7 +317,6 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdaptativoRoute: AdaptativoRoute,
   DesafioRoute: DesafioRoute,
   EntendaTriRoute: EntendaTriRoute,
   EstatisticasRoute: EstatisticasRoute,
