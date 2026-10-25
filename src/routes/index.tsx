@@ -137,7 +137,7 @@ function QuickActions() {
   return (
     <section className="mt-8">
       <h2 className="text-lg font-semibold text-foreground">Continue de onde parou</h2>
-      <div className="mt-4 grid gap-4 md:grid-cols-1">
+      <div className="mt-4 grid max-w-2xl gap-4">
         {items.map((item) => {
           const Icon = item.icon;
           return (
