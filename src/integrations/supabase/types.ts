@@ -320,6 +320,54 @@ export type Database = {
         }
         Relationships: []
       }
+      study_materials: {
+        Row: {
+          bullets: Json
+          card_status: Json
+          created_at: string
+          detailed: string
+          file_name: string
+          file_size: number
+          file_type: string
+          flashcards: Json
+          id: string
+          path: Json
+          step_status: Json
+          title: string
+          user_id: string
+        }
+        Insert: {
+          bullets?: Json
+          card_status?: Json
+          created_at?: string
+          detailed?: string
+          file_name: string
+          file_size?: number
+          file_type: string
+          flashcards?: Json
+          id?: string
+          path?: Json
+          step_status?: Json
+          title?: string
+          user_id: string
+        }
+        Update: {
+          bullets?: Json
+          card_status?: Json
+          created_at?: string
+          detailed?: string
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          flashcards?: Json
+          id?: string
+          path?: Json
+          step_status?: Json
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_tri_profiles: {
         Row: {
           created_at: string
