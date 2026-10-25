@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Award, BookOpen, Check, ChevronRight, Flag, GraduationCap, Loader2, Lock, RefreshCw, Sparkles, Trophy, X } from "lucide-react";
+import { Award, BookOpen, ChevronRight, Flag, GraduationCap, Loader2, RefreshCw, Sparkles, Trophy, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { processMaterial } from "@/lib/materials.functions";
 import { gradeMaterialQuiz, hasAchievementPath, isStepUnlocked, LEVEL_REQUIRED_CORRECT, PASS_PERCENT, statusOf, type MaterialProgress, type QuizAttempt } from "@/lib/material-path";
 import type { PathStep } from "@/lib/materials";
 import { cn } from "@/lib/utils";
+import { awardXp } from "@/lib/xp";
+import { RewardModal, SnakePath, type SnakeNode } from "@/components/SnakePath";
+
+const MATERIAL_XP = 30;
 
 type Props = { material: { id: string; file_name: string; path: PathStep[]; step_status: MaterialProgress }; onSave: (progress: MaterialProgress) => Promise<void>; onRefresh: () => Promise<void> };
 export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
@@ -16,6 +20,7 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
   const [active, setActive] = useState<number | null>(null);
   const [answers, setAnswers] = useState<number[]>([]);
   const [result, setResult] = useState<QuizAttempt | null>(null);
+  const [reward, setReward] = useState<string | null>(null);
   const ready = hasAchievementPath(m.path);
   const done = m.path.filter((_, i) => statusOf(m.step_status[i]) === "done").length;
   const groups = Array.from(new Set(m.path.filter((s) => !s.final).map((s) => s.subject || "Conteúdo do material")));
@@ -37,6 +42,10 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
     try {
       await onSave({ ...m.step_status, [active]: attempt.passed ? "done" : statusOf(m.step_status[active]) === "done" ? "done" : "doing", [`quiz:${active}`]: attempt });
       setResult(attempt);
+      if (attempt.passed && statusOf(m.step_status[active]) !== "done") {
+        awardXp("questao", { amount: MATERIAL_XP, label: `Trilha: ${current.title}` });
+        setReward(current.title);
+      }
     } catch { setError("Não conseguimos salvar o resultado. Tente novamente."); }
     finally { setBusy(false); }
   }
@@ -70,20 +79,25 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
       <div className="flex flex-wrap gap-3">{result.passed ? <><Button onClick={() => setActive(null)}>Ver conquistas<ChevronRight /></Button><Button variant="outline" onClick={retry}>Tentar novamente</Button></> : <><Button onClick={retry}><RefreshCw />Tentar novamente</Button><Button variant="outline" onClick={() => setActive(null)}>Ver conquistas<ChevronRight /></Button></>}</div>
     </>}
     {error && <p role="alert" className="text-destructive">{error}</p>}
+    <RewardModal open={reward !== null} xp={MATERIAL_XP} title={reward ?? ""} onClose={() => setReward(null)} />
   </section>;
-  const node = (s: PathStep, i: number) => {
+  const toNode = (s: PathStep, i: number): SnakeNode => {
     const unlocked = isStepUnlocked(i, m.step_status);
     const complete = statusOf(m.step_status[i]) === "done";
     const attempt = m.step_status[`quiz:${i}`];
-    const Icon = complete ? Check : !unlocked ? Lock : s.final ? Trophy : s.level === 1 ? BookOpen : s.level === 2 ? Sparkles : Award;
-    return <div key={i} className="flex min-w-0 flex-col items-center gap-3 text-center">
-      <Button size="icon" variant={complete || unlocked ? "default" : "secondary"} disabled={!unlocked} onClick={() => open(i)} aria-label={`${s.subject}: ${s.title}${!unlocked ? " — bloqueado" : ""}`} className={cn("h-20 w-20 rounded-full border-b-4 border-primary/30 transition-transform motion-safe:hover:-translate-y-1 [&_svg]:size-7", unlocked && !complete && "ring-4 ring-primary/15", complete && "bg-accent text-accent-foreground border-accent/30")}><Icon /></Button>
-      <div className="max-w-40"><p className="text-xs font-medium text-muted-foreground">{s.final ? "Conquista final" : `Nível ${s.level}`}</p><h3 className="mt-1 break-words text-sm font-semibold">{s.title}</h3><p className="mt-1 text-xs text-muted-foreground">{complete ? "Conquistado" : !unlocked ? "Bloqueado" : `${s.questions?.length} questões · ${s.minutes} min`}</p>{typeof attempt === "object" && <p className="mt-1 text-xs font-medium text-primary">Última tentativa: {attempt.score}%</p>}</div>
-    </div>;
+    const Icon = s.final ? Trophy : s.level === 1 ? BookOpen : s.level === 2 ? Sparkles : Award;
+    return {
+      key: i,
+      title: s.final ? "Simulado do material" : `${s.subject || "Conteúdo"} · Nível ${s.level}`,
+      subtitle: complete ? "Conquistado" : !unlocked ? "Bloqueado" : `${s.questions?.length ?? 0} questões${typeof attempt === "object" ? ` · última ${attempt.score}%` : ""}`,
+      state: complete ? "done" : unlocked ? "active" : "locked",
+      icon: <Icon />,
+      onClick: () => open(i),
+    };
   };
+  const nodes = m.path.map(toNode);
   return <section className="space-y-8">
-    <header className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="font-display text-2xl font-semibold">Trilha de conquistas</h2><p className="mt-1 text-sm text-muted-foreground">{groups.length} assuntos · {done}/{m.path.length} conquistas</p></div><Badge variant="outline"><GraduationCap className="mr-2 h-4 w-4" />{done === m.path.length ? "Material dominado" : "Em evolução"}</Badge></header>
-    {groups.map((subject, n) => <section key={subject} className="border-b border-border pb-8"><div className="mb-6 flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-sm font-semibold text-primary">{n + 1}</span><h3 className="font-display text-lg font-semibold">{subject}</h3></div><div className="grid grid-cols-3 gap-2 sm:gap-6">{m.path.map((s, i) => !s.final && (s.subject || "Conteúdo do material") === subject ? node(s, i) : null)}</div></section>)}
-    <section className="flex flex-col items-center gap-5 py-4"><h3 className="font-display text-xl font-semibold">Simulado do material</h3>{m.path.map((s, i) => s.final ? node(s, i) : null)}<p className="text-center text-sm text-muted-foreground">Todos os assuntos do arquivo, em uma prova final.</p></section>
+    <header className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="font-display text-2xl font-semibold">Trilha de conquistas</h2><p className="mt-1 text-sm text-muted-foreground">{groups.length} assuntos · {done}/{m.path.length} conquistas · +{MATERIAL_XP} XP por desafio</p></div><Badge variant="outline"><GraduationCap className="mr-2 h-4 w-4" />{done === m.path.length ? "Material dominado" : "Em evolução"}</Badge></header>
+    <SnakePath nodes={nodes} className="pb-8" />
   </section>;
 }
