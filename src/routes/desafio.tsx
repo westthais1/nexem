@@ -574,12 +574,6 @@ function DesafioPage() {
                 >
                   Voltar à Dashboard
                 </Link>
-                <Link
-                  to="/adaptativo"
-                  className="rounded-lg border border-border bg-background/40 px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-accent/10"
-                >
-                  Treinar mais no adaptativo
-                </Link>
               </div>
               <p className="mt-4 text-xs text-muted-foreground">
                 O desafio é travado em 10 questões por dia. Um novo conjunto aparece amanhã.

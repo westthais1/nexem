@@ -272,7 +272,7 @@ function RaioXPage() {
           to="/simulado"
           className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90"
         >
-          Praticar no Simulado adaptativo
+          Praticar no Treine com Tutor Nex
         </Link>
       </section>
     </main>
