@@ -144,6 +144,7 @@ const NAV_ITEMS = [
   { to: "/simulado", label: "Treine com Tutor Nex", icon: SimuladoIcon },
   { to: "/full-simulado", label: "Prova Completa", icon: SimuladoIcon },
   { to: "/redacao", label: "Redação Inteligente", icon: RedacaoIcon },
+  { to: "/materiais", label: "Meus Materiais", icon: SimuladoIcon },
   { to: "/estatisticas", label: "Estatísticas", icon: EstatisticasIcon },
   { to: "/raio-x", label: "Raio-X do ENEM", icon: EstatisticasIcon },
 ] as const;
