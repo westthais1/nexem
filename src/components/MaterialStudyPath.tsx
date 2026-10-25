@@ -3,7 +3,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { Award, BookOpen, Check, ChevronRight, Flag, GraduationCap, Loader2, Lock, RefreshCw, Sparkles, Trophy, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { processMaterial } from "@/lib/materials.functions";
 import { gradeMaterialQuiz, hasAchievementPath, isStepUnlocked, LEVEL_REQUIRED_CORRECT, PASS_PERCENT, statusOf, type MaterialProgress, type QuizAttempt } from "@/lib/material-path";
 import type { PathStep } from "@/lib/materials";
@@ -84,7 +83,6 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
   };
   return <section className="space-y-8">
     <header className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="font-display text-2xl font-semibold">Trilha de conquistas</h2><p className="mt-1 text-sm text-muted-foreground">{groups.length} assuntos · {done}/{m.path.length} conquistas</p></div><Badge variant="outline"><GraduationCap className="mr-2 h-4 w-4" />{done === m.path.length ? "Material dominado" : "Em evolução"}</Badge></header>
-    <Progress value={Math.round(done / m.path.length * 100)} className="h-2" />
     {groups.map((subject, n) => <section key={subject} className="border-b border-border pb-8"><div className="mb-6 flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-sm font-semibold text-primary">{n + 1}</span><h3 className="font-display text-lg font-semibold">{subject}</h3></div><div className="grid grid-cols-3 gap-2 sm:gap-6">{m.path.map((s, i) => !s.final && (s.subject || "Conteúdo do material") === subject ? node(s, i) : null)}</div></section>)}
     <section className="flex flex-col items-center gap-5 py-4"><h3 className="font-display text-xl font-semibold">Simulado do material</h3>{m.path.map((s, i) => s.final ? node(s, i) : null)}<p className="text-center text-sm text-muted-foreground">Todos os assuntos do arquivo, em uma prova final.</p></section>
   </section>;
