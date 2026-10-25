@@ -19,11 +19,11 @@ const SHIFT = 72;
 
 /** Trilha vertical estilo Duolingo, compartilhada pelas trilhas do app. */
 export function SnakePath({ nodes, className }: { nodes: SnakeNode[]; className?: string }) {
-  const points = nodes.map((_, i) => ({ x: OFFSETS[i % 4] * SHIFT, y: i * STEP + 40 }));
+  const points = nodes.map((_, i) => ({ x: (OFFSETS[i % 4] ?? 0) * SHIFT, y: i * STEP + 40 }));
   const height = Math.max(nodes.length * STEP, STEP);
   const d = points.map((p, i) => {
     if (i === 0) return `M ${p.x} ${p.y}`;
-    const prev = points[i - 1];
+    const prev = points[i - 1]!;
     const my = (prev.y + p.y) / 2;
     return `C ${prev.x} ${my}, ${p.x} ${my}, ${p.x} ${p.y}`;
   }).join(" ");
@@ -34,7 +34,7 @@ export function SnakePath({ nodes, className }: { nodes: SnakeNode[]; className?
         <path d={d} fill="none" stroke="currentColor" strokeWidth={6} strokeDasharray="2 14" strokeLinecap="round" />
       </svg>
       {nodes.map((n, i) => {
-        const p = points[i];
+        const p = points[i]!;
         return (
           <div key={n.key} className="absolute left-1/2 flex w-40 -translate-x-1/2 flex-col items-center text-center" style={{ top: p.y - 36, marginLeft: p.x }}>
             {n.state === "active" && (
