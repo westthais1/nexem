@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Award, BookOpen, Check, ChevronRight, Flag, GraduationCap, Loader2, Lock, RefreshCw, Sparkles, Trophy, X } from "lucide-react";
+import { Award, BookOpen, ChevronRight, Flag, GraduationCap, Loader2, RefreshCw, Sparkles, Trophy, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { processMaterial } from "@/lib/materials.functions";
 import { gradeMaterialQuiz, hasAchievementPath, isStepUnlocked, LEVEL_REQUIRED_CORRECT, PASS_PERCENT, statusOf, type MaterialProgress, type QuizAttempt } from "@/lib/material-path";
 import type { PathStep } from "@/lib/materials";
 import { cn } from "@/lib/utils";
+import { awardXp } from "@/lib/xp";
+import { RewardModal, SnakePath, type SnakeNode } from "@/components/SnakePath";
+
+const MATERIAL_XP = 30;
 
 type Props = { material: { id: string; file_name: string; path: PathStep[]; step_status: MaterialProgress }; onSave: (progress: MaterialProgress) => Promise<void>; onRefresh: () => Promise<void> };
 export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
@@ -16,6 +20,7 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
   const [active, setActive] = useState<number | null>(null);
   const [answers, setAnswers] = useState<number[]>([]);
   const [result, setResult] = useState<QuizAttempt | null>(null);
+  const [reward, setReward] = useState<string | null>(null);
   const ready = hasAchievementPath(m.path);
   const done = m.path.filter((_, i) => statusOf(m.step_status[i]) === "done").length;
   const groups = Array.from(new Set(m.path.filter((s) => !s.final).map((s) => s.subject || "Conteúdo do material")));
@@ -37,6 +42,10 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
     try {
       await onSave({ ...m.step_status, [active]: attempt.passed ? "done" : statusOf(m.step_status[active]) === "done" ? "done" : "doing", [`quiz:${active}`]: attempt });
       setResult(attempt);
+      if (attempt.passed && statusOf(m.step_status[active]) !== "done") {
+        awardXp("questao", { amount: MATERIAL_XP, label: `Trilha: ${current.title}` });
+        setReward(current.title);
+      }
     } catch { setError("Não conseguimos salvar o resultado. Tente novamente."); }
     finally { setBusy(false); }
   }
@@ -86,8 +95,6 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
     };
   };
   const nodes = m.path.map(toNode);
-  const firstActive = nodes.findIndex((n) => n.state === "active");
-  nodes.forEach((n, i) => { if (n.state === "active" && i !== firstActive) n.state = "done"; });
   return <section className="space-y-8">
     <header className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="font-display text-2xl font-semibold">Trilha de conquistas</h2><p className="mt-1 text-sm text-muted-foreground">{groups.length} assuntos · {done}/{m.path.length} conquistas · +{MATERIAL_XP} XP por desafio</p></div><Badge variant="outline"><GraduationCap className="mr-2 h-4 w-4" />{done === m.path.length ? "Material dominado" : "Em evolução"}</Badge></header>
     <SnakePath nodes={nodes} className="pb-8" />
