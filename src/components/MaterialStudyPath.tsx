@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Award, BookOpen, Check, ChevronRight, Flag, GraduationCap, Loader2, Lock, Sparkles, Trophy, X } from "lucide-react";
+import { Award, BookOpen, Check, ChevronRight, Flag, GraduationCap, Loader2, Lock, RefreshCw, Sparkles, Trophy, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -22,6 +22,7 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
   const groups = Array.from(new Set(m.path.filter((s) => !s.final).map((s) => s.subject || "Conteúdo do material")));
   const current = active === null ? null : m.path[active];
   const questions = current?.questions ?? [];
+  const correctCount = result ? questions.reduce((sum, q, i) => sum + (result.answers[i] === q.answer ? 1 : 0), 0) : 0;
   async function upgrade() {
     setBusy(true); setError("");
     try {
@@ -44,6 +45,7 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
     if (!isStepUnlocked(i, m.step_status)) return;
     setActive(i); setAnswers([]); setResult(null); setError("");
   }
+  function retry() { setAnswers([]); setResult(null); setError(""); }
   if (!ready) return <section className="space-y-5 py-6">
     <div className="flex items-center gap-3"><GraduationCap className="h-10 w-10 text-primary" /><h2 className="font-display text-2xl font-semibold">Sua trilha de conquistas</h2></div>
     <p className="text-muted-foreground">Este material ainda usa a trilha anterior. Gere os níveis por assunto e o simulado final.</p>
@@ -64,9 +66,9 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
       </fieldset>)}
       <Button onClick={submit} disabled={busy || answers.length !== questions.length || answers.some((a) => a < 0)}>{busy ? <Loader2 className="animate-spin" /> : <Flag />}{current.final ? "Entregar simulado" : "Concluir missão"}</Button>
     </> : <>
-      <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-5"><Trophy className="h-12 w-12 shrink-0 text-primary" /><div><p className="font-display text-3xl font-semibold">{result.score}%</p><p className="text-sm text-muted-foreground">{result.passed ? current.final ? "Material concluído! Conquista final desbloqueada." : "Conquista desbloqueada! Próximo nível liberado." : "Revise os conceitos e tente novamente."}</p></div></div>
+      <div className="flex items-start gap-4 rounded-lg border border-border bg-card p-5">{result.passed ? <Trophy className="h-12 w-12 shrink-0 text-primary" /> : <RefreshCw className="h-12 w-12 shrink-0 text-primary" />}<div><p className="font-display text-3xl font-semibold">{result.score}%</p><p className="text-sm text-muted-foreground">{result.passed ? current.final ? "Material concluído! Conquista final desbloqueada." : "Conquista desbloqueada! Próximo nível liberado." : current.final ? `Você acertou ${correctCount} de ${questions.length}. São necessários ${PASS_PERCENT}% para concluir o material.` : `Você acertou ${correctCount} de ${questions.length}. Bastam ${LEVEL_REQUIRED_CORRECT} acertos para liberar o próximo nível.`}</p>{!result.passed && <p className="mt-1 text-sm text-muted-foreground">Revise as explicações abaixo e tente de novo — você continua aqui, sem perder o progresso.</p>}</div></div>
       {questions.map((q, i) => <article key={i} className="space-y-2 border-b border-border pb-4"><h3 className="font-medium">{i + 1}. {q.prompt}</h3><p className={result.answers[i] === q.answer ? "text-primary" : "text-destructive"}>{result.answers[i] === q.answer ? "Acertou" : "Precisa revisar"} · Sua resposta: {String.fromCharCode(65 + (result.answers[i] ?? 0))}</p><p className="text-sm font-medium">Correta: {String.fromCharCode(65 + q.answer)}. {q.options[q.answer]}</p><p className="text-sm leading-relaxed text-muted-foreground">{q.explanation}</p></article>)}
-      <div className="flex flex-wrap gap-3"><Button onClick={() => setActive(null)}>Ver conquistas<ChevronRight /></Button><Button variant="outline" onClick={() => { setAnswers([]); setResult(null); }}>Tentar novamente</Button></div>
+      <div className="flex flex-wrap gap-3">{result.passed ? <><Button onClick={() => setActive(null)}>Ver conquistas<ChevronRight /></Button><Button variant="outline" onClick={retry}>Tentar novamente</Button></> : <><Button onClick={retry}><RefreshCw />Tentar novamente</Button><Button variant="outline" onClick={() => setActive(null)}>Ver conquistas<ChevronRight /></Button></>}</div>
     </>}
     {error && <p role="alert" className="text-destructive">{error}</p>}
   </section>;
