@@ -71,19 +71,26 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
     </>}
     {error && <p role="alert" className="text-destructive">{error}</p>}
   </section>;
-  const node = (s: PathStep, i: number) => {
+  const toNode = (s: PathStep, i: number): SnakeNode => {
     const unlocked = isStepUnlocked(i, m.step_status);
     const complete = statusOf(m.step_status[i]) === "done";
     const attempt = m.step_status[`quiz:${i}`];
-    const Icon = complete ? Check : !unlocked ? Lock : s.final ? Trophy : s.level === 1 ? BookOpen : s.level === 2 ? Sparkles : Award;
-    return <div key={i} className="flex min-w-0 flex-col items-center gap-3 text-center">
-      <Button size="icon" variant={complete || unlocked ? "default" : "secondary"} disabled={!unlocked} onClick={() => open(i)} aria-label={`${s.subject}: ${s.title}${!unlocked ? " — bloqueado" : ""}`} className={cn("h-20 w-20 rounded-full border-b-4 border-primary/30 transition-transform motion-safe:hover:-translate-y-1 [&_svg]:size-7", unlocked && !complete && "ring-4 ring-primary/15", complete && "bg-accent text-accent-foreground border-accent/30")}><Icon /></Button>
-      <div className="max-w-40"><p className="text-xs font-medium text-muted-foreground">{s.final ? "Conquista final" : `Nível ${s.level}`}</p><h3 className="mt-1 break-words text-sm font-semibold">{s.title}</h3><p className="mt-1 text-xs text-muted-foreground">{complete ? "Conquistado" : !unlocked ? "Bloqueado" : `${s.questions?.length} questões · ${s.minutes} min`}</p>{typeof attempt === "object" && <p className="mt-1 text-xs font-medium text-primary">Última tentativa: {attempt.score}%</p>}</div>
-    </div>;
+    const Icon = s.final ? Trophy : s.level === 1 ? BookOpen : s.level === 2 ? Sparkles : Award;
+    return {
+      key: i,
+      title: s.final ? "Simulado do material" : `${s.subject || "Conteúdo"} · Nível ${s.level}`,
+      subtitle: complete ? "Conquistado" : !unlocked ? "Bloqueado" : `${s.questions?.length ?? 0} questões${typeof attempt === "object" ? ` · última ${attempt.score}%` : ""}`,
+      state: complete ? "done" : unlocked ? "active" : "locked",
+      icon: <Icon />,
+      onClick: () => open(i),
+    };
   };
+  const nodes = m.path.map(toNode);
+  const firstActive = nodes.findIndex((n) => n.state === "active");
+  nodes.forEach((n, i) => { if (n.state === "active" && i !== firstActive) n.state = "done"; });
   return <section className="space-y-8">
-    <header className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="font-display text-2xl font-semibold">Trilha de conquistas</h2><p className="mt-1 text-sm text-muted-foreground">{groups.length} assuntos · {done}/{m.path.length} conquistas</p></div><Badge variant="outline"><GraduationCap className="mr-2 h-4 w-4" />{done === m.path.length ? "Material dominado" : "Em evolução"}</Badge></header>
-    {groups.map((subject, n) => <section key={subject} className="border-b border-border pb-8"><div className="mb-6 flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-sm font-semibold text-primary">{n + 1}</span><h3 className="font-display text-lg font-semibold">{subject}</h3></div><div className="grid grid-cols-3 gap-2 sm:gap-6">{m.path.map((s, i) => !s.final && (s.subject || "Conteúdo do material") === subject ? node(s, i) : null)}</div></section>)}
-    <section className="flex flex-col items-center gap-5 py-4"><h3 className="font-display text-xl font-semibold">Simulado do material</h3>{m.path.map((s, i) => s.final ? node(s, i) : null)}<p className="text-center text-sm text-muted-foreground">Todos os assuntos do arquivo, em uma prova final.</p></section>
+    <header className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="font-display text-2xl font-semibold">Trilha de conquistas</h2><p className="mt-1 text-sm text-muted-foreground">{groups.length} assuntos · {done}/{m.path.length} conquistas · +{MATERIAL_XP} XP por desafio</p></div><Badge variant="outline"><GraduationCap className="mr-2 h-4 w-4" />{done === m.path.length ? "Material dominado" : "Em evolução"}</Badge></header>
+    <SnakePath nodes={nodes} className="pb-8" />
+    <RewardModal open={reward !== null} xp={MATERIAL_XP} title={reward ?? ""} onClose={() => setReward(null)} />
   </section>;
 }
