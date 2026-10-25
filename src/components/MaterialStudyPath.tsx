@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Award, BookOpen, Check, ChevronRight, Flag, GraduationCap, Loader2, Lock, Sparkles, Trophy, X } from "lucide-react";
+import { Award, BookOpen, Check, ChevronRight, Flag, GraduationCap, Loader2, Lock, RefreshCw, Sparkles, Trophy, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -22,6 +22,7 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
   const groups = Array.from(new Set(m.path.filter((s) => !s.final).map((s) => s.subject || "Conteúdo do material")));
   const current = active === null ? null : m.path[active];
   const questions = current?.questions ?? [];
+  const correctCount = result ? questions.reduce((sum, q, i) => sum + (result.answers[i] === q.answer ? 1 : 0), 0) : 0;
   async function upgrade() {
     setBusy(true); setError("");
     try {
@@ -44,6 +45,7 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
     if (!isStepUnlocked(i, m.step_status)) return;
     setActive(i); setAnswers([]); setResult(null); setError("");
   }
+  function retry() { setAnswers([]); setResult(null); setError(""); }
   if (!ready) return <section className="space-y-5 py-6">
     <div className="flex items-center gap-3"><GraduationCap className="h-10 w-10 text-primary" /><h2 className="font-display text-2xl font-semibold">Sua trilha de conquistas</h2></div>
     <p className="text-muted-foreground">Este material ainda usa a trilha anterior. Gere os níveis por assunto e o simulado final.</p>
