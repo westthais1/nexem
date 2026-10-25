@@ -131,7 +131,6 @@ function TutorNexCard() {
 
 function QuickActions() {
   const items = [
-    { to: "/simulado", title: "Simulado adaptativo", desc: "Questões selecionadas pela IA com base no seu desempenho.", icon: SimuladoIconSmall },
     { to: "/redacao", title: "Redação Inteligente", desc: "Correção competência por competência com sugestões de melhoria.", icon: RedacaoIconSmall },
   ] as const;
 
