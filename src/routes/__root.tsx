@@ -146,7 +146,7 @@ const NAV_ITEMS = [
   { to: "/redacao", label: "Redação Inteligente", icon: RedacaoIcon },
   { to: "/materiais", label: "Meus Materiais", icon: SimuladoIcon },
   { to: "/estatisticas", label: "Estatísticas", icon: EstatisticasIcon },
-  { to: "/raio-x", label: "Raio-X do ENEM", icon: EstatisticasIcon },
+  { to: "/raio-x", label: "Entenda como funciona o ENEM\n", icon: EstatisticasIcon },
 ] as const;
 
 function Sidebar() {
