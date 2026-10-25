@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Dividir a Trilha de estudo dos materiais por assuntos e conquistas sequenciais, salvar resultados e liberar um simulado final sobre o arquivo.
+
 - [x] Implementar assinatura Free/Premium persistida, planos e bloqueios de Maestria e Prova Completa, mantendo Desafio Diário gratuito.
 - [ ] Conectar checkout e ativação segura da assinatura — pagamentos ainda não ativados; depende da autorização do usuário.
 - [x] Implementar e verificar limite de três consultas ao Tutor por 24 horas, persistido por conta; quarta consulta bloqueada no navegador.
