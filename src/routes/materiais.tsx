@@ -3,13 +3,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  BarChart3, BookOpen, Check, Clock, FileText, Image as ImageIcon, Layers, Loader2, Lock, Map as MapIcon,
+  BookOpen, Check, Clock, FileText, Image as ImageIcon, Layers, Loader2, Lock, Map as MapIcon,
   RotateCcw, Trash2, Upload, X, ListChecks, Notebook,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { processMaterial } from "@/lib/materials.functions";
 import {
-  FREE_MATERIAL_LIMIT, pathProgress,
+  FREE_MATERIAL_LIMIT,
   type DetailedSection, type Flashcard, type PathStep, type StepStatus,
 } from "@/lib/materials";
 import { useSubscription } from "@/hooks/use-subscription";
@@ -18,7 +18,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { MaterialStudyPath } from "@/components/MaterialStudyPath";
-import { statusOf, type MaterialProgress } from "@/lib/material-path";
+import { type MaterialProgress } from "@/lib/material-path";
 
 export const Route = createFileRoute("/materiais")({
   head: () => ({
@@ -40,14 +40,13 @@ type Material = {
    card_status: Record<string, "got" | "review">; step_status: MaterialProgress;
 };
 type Upload = { key: string; name: string; state: "reading" | "processing" | "error" | "limit"; error?: string };
-type Tab = "docs" | "notes" | "cards" | "path" | "stats";
+type Tab = "docs" | "notes" | "cards" | "path";
 
 const TABS: { id: Tab; label: string; icon: typeof FileText }[] = [
   { id: "docs", label: "Documentos", icon: FileText },
   { id: "notes", label: "Resumos", icon: Notebook },
   { id: "cards", label: "Flashcards", icon: Layers },
   { id: "path", label: "Trilha de estudo", icon: MapIcon },
-  { id: "stats", label: "Progresso", icon: BarChart3 },
 ];
 const MAX_BYTES = 10 * 1024 * 1024;
 
@@ -151,7 +150,7 @@ function MateriaisPage() {
         ))}
       </nav>
 
-      {tab !== "docs" && tab !== "stats" && materials.length > 1 && (
+      {tab !== "docs" && materials.length > 1 && (
         <div className="mb-4 flex flex-wrap gap-2">
           {materials.map((m) => (
             <button key={m.id} onClick={() => setSelectedId(m.id)}
@@ -171,7 +170,6 @@ function MateriaisPage() {
       {tab === "notes" && selected && <NotesTab m={selected} />}
       {tab === "cards" && selected && <CardsTab key={selected.id} m={selected} onStatus={(cs) => updateMaterial(selected.id, { card_status: cs })} />}
       {tab === "path" && selected && <MaterialStudyPath key={selected.id} material={selected} onSave={(ss) => updateMaterial(selected.id, { step_status: ss })} onRefresh={() => qc.invalidateQueries({ queryKey: ["study-materials"] })} />}
-      {tab === "stats" && <StatsTab materials={materials} />}
     </main>
   );
 }
@@ -351,29 +349,3 @@ function Face({ children, label, back }: { children: ReactNode; label: string; b
   );
 }
 
-function StatsTab({ materials }: { materials: Material[] }) {
-  const cards = materials.reduce((s, m) => s + m.flashcards.length, 0);
-  const got = materials.reduce((s, m) => s + Object.values(m.card_status).filter((x) => x === "got").length, 0);
-  const allSteps = materials.flatMap((m) => m.path.map((_, i) => statusOf(m.step_status[i])));
-  const minutesDone = materials.reduce((s, m) => s + m.path.reduce((a, p, i) => a + ((m.step_status[i] ?? "todo") === "done" ? p.minutes : 0), 0), 0);
-  const stats = [
-    { l: "Arquivos", v: materials.length },
-    { l: "Flashcards dominados", v: `${got}/${cards}` },
-    { l: "Trilha concluída", v: `${pathProgress(allSteps)}%` },
-    { l: "Minutos estudados", v: minutesDone },
-  ];
-  return (
-    <section className="space-y-6">
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {stats.map((s) => <div key={s.l} className="rounded-3xl bg-card p-5"><p className="text-xs text-muted-foreground">{s.l}</p><p className="font-display text-2xl font-semibold">{s.v}</p></div>)}
-      </div>
-      <div className="space-y-4 rounded-3xl bg-card p-6">
-        {materials.length === 0 && <p className="text-muted-foreground">Envie arquivos para acompanhar seu progresso.</p>}
-        {materials.map((m) => {
-          const pct = pathProgress(m.path.map((_, i) => statusOf(m.step_status[i])));
-          return <div key={m.id}><div className="mb-1 flex justify-between gap-3 text-sm"><span className="truncate">{m.title || m.file_name}</span><span className="shrink-0 text-muted-foreground">{pct}%</span></div><Progress value={pct} className="h-2" /></div>;
-        })}
-      </div>
-    </section>
-  );
-}
