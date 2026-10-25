@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 - Keep `/landing?preview=true` accessible without session redirects so signed-in users can review the public presentation without logging out; normal landing visits retain onboarding redirects.
+- Material achievement paths store generated subject levels and final exam questions inside the existing path JSON and owner-scoped quiz attempts inside step_status; shared browser-safe grading keeps progression and analytics consistent without changing legacy material records until explicitly regenerated.
 - Subscription state is owner-readable and service-role writable in a separate entitlement table; never trust browser storage or profile metadata for paid access.
 - Use SubscriptionProvider for workspace paywalls and authenticated premium question/attempt server functions for paid actions; keep all legacy full-exam entry points behind PremiumGate to prevent alternate-route bypasses.
 - Tutor consultation reservations use an authenticated atomic database function with a per-user transaction lock, and only the server may finish or refund transactions; concurrent devices must share the same usage budget.

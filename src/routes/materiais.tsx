@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { MaterialStudyPath } from "@/components/MaterialStudyPath";
+import { statusOf, type MaterialProgress } from "@/lib/material-path";
 
 export const Route = createFileRoute("/materiais")({
   head: () => ({
@@ -35,7 +37,7 @@ export const Route = createFileRoute("/materiais")({
 type Material = {
   id: string; file_name: string; file_type: string; file_size: number; title: string; created_at: string;
   bullets: string[]; detailed: string; flashcards: Flashcard[]; path: PathStep[];
-  card_status: Record<string, "got" | "review">; step_status: Record<string, StepStatus>;
+   card_status: Record<string, "got" | "review">; step_status: MaterialProgress;
 };
 type Upload = { key: string; name: string; state: "reading" | "processing" | "error" | "limit"; error?: string };
 type Tab = "docs" | "notes" | "cards" | "path" | "stats";
@@ -123,7 +125,7 @@ function MateriaisPage() {
   const updateMaterial = useCallback(async (id: string, patch: Partial<Pick<Material, "card_status" | "step_status">>) => {
     qc.setQueryData<Material[]>(["study-materials"], (old) => old?.map((m) => (m.id === id ? { ...m, ...patch } : m)));
     const { error } = await supabase.from("study_materials").update(patch).eq("id", id);
-    if (error) void qc.invalidateQueries({ queryKey: ["study-materials"] });
+    if (error) { await qc.invalidateQueries({ queryKey: ["study-materials"] }); throw error; }
   }, [qc]);
 
   const remove = async (id: string) => {
@@ -168,7 +170,7 @@ function MateriaisPage() {
       {tab !== "docs" && !selected && <Empty onGo={() => setTab("docs")} />}
       {tab === "notes" && selected && <NotesTab m={selected} />}
       {tab === "cards" && selected && <CardsTab key={selected.id} m={selected} onStatus={(cs) => updateMaterial(selected.id, { card_status: cs })} />}
-      {tab === "path" && selected && <PathTab m={selected} onStatus={(ss) => updateMaterial(selected.id, { step_status: ss })} />}
+      {tab === "path" && selected && <MaterialStudyPath key={selected.id} material={selected} onSave={(ss) => updateMaterial(selected.id, { step_status: ss })} onRefresh={() => qc.invalidateQueries({ queryKey: ["study-materials"] })} />}
       {tab === "stats" && <StatsTab materials={materials} />}
     </main>
   );
@@ -349,47 +351,10 @@ function Face({ children, label, back }: { children: ReactNode; label: string; b
   );
 }
 
-const NEXT: Record<StepStatus, StepStatus> = { todo: "doing", doing: "done", done: "todo" };
-const LABEL: Record<StepStatus, string> = { todo: "Não iniciado", doing: "Em andamento", done: "Concluído" };
-
-function PathTab({ m, onStatus }: { m: Material; onStatus: (ss: Material["step_status"]) => void }) {
-  const statuses = m.path.map((_, i) => m.step_status[i] ?? "todo");
-  const pct = pathProgress(statuses);
-  return (
-    <section className="space-y-5">
-      <div className="rounded-3xl bg-card p-6">
-        <p className="mb-2 font-medium">{pct}% da trilha ENEM concluída</p>
-        <Progress value={pct} className="h-3" />
-      </div>
-      <ol className="space-y-4">
-        {m.path.map((s, i) => {
-          const st = statuses[i] ?? "todo";
-          return (
-            <li key={i} className={cn("rounded-3xl border bg-card p-6 transition-colors", st === "done" ? "border-primary" : "border-border")}>
-              <div className="mb-3 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-                <h3 className="font-display text-lg font-semibold">{s.title}</h3>
-                <Button size="sm" variant={st === "done" ? "default" : "outline"} onClick={() => onStatus({ ...m.step_status, [i]: NEXT[st] })}>
-                  {st === "done" && <Check />}{LABEL[st]}
-                </Button>
-              </div>
-              <p className="mb-3 text-sm text-muted-foreground">{s.description}</p>
-              <div className="flex flex-wrap gap-2 text-xs">
-                <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />{s.minutes} min</Badge>
-                {s.format && <Badge variant="outline">{s.format}</Badge>}
-                {s.concepts.map((c) => <Badge key={c} variant="outline" className="text-muted-foreground">{c}</Badge>)}
-              </div>
-            </li>
-          );
-        })}
-      </ol>
-    </section>
-  );
-}
-
 function StatsTab({ materials }: { materials: Material[] }) {
   const cards = materials.reduce((s, m) => s + m.flashcards.length, 0);
   const got = materials.reduce((s, m) => s + Object.values(m.card_status).filter((x) => x === "got").length, 0);
-  const allSteps = materials.flatMap((m) => m.path.map((_, i) => m.step_status[i] ?? "todo"));
+  const allSteps = materials.flatMap((m) => m.path.map((_, i) => statusOf(m.step_status[i])));
   const minutesDone = materials.reduce((s, m) => s + m.path.reduce((a, p, i) => a + ((m.step_status[i] ?? "todo") === "done" ? p.minutes : 0), 0), 0);
   const stats = [
     { l: "Arquivos", v: materials.length },
@@ -405,7 +370,7 @@ function StatsTab({ materials }: { materials: Material[] }) {
       <div className="space-y-4 rounded-3xl bg-card p-6">
         {materials.length === 0 && <p className="text-muted-foreground">Envie arquivos para acompanhar seu progresso.</p>}
         {materials.map((m) => {
-          const pct = pathProgress(m.path.map((_, i) => m.step_status[i] ?? "todo"));
+          const pct = pathProgress(m.path.map((_, i) => statusOf(m.step_status[i])));
           return <div key={m.id}><div className="mb-1 flex justify-between gap-3 text-sm"><span className="truncate">{m.title || m.file_name}</span><span className="shrink-0 text-muted-foreground">{pct}%</span></div><Progress value={pct} className="h-2" /></div>;
         })}
       </div>

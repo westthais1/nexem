@@ -1,7 +1,8 @@
 export const FREE_MATERIAL_LIMIT = 3;
 
 export type Flashcard = { front: string; back: string };
-export type PathStep = { title: string; description: string; minutes: number; concepts: string[]; format: string };
+export type MaterialQuestion = { prompt: string; options: string[]; answer: number; explanation: string };
+export type PathStep = { title: string; description: string; minutes: number; concepts: string[]; format: string; subject?: string; level?: number; questions?: MaterialQuestion[]; final?: boolean };
 export type DetailedSection = { heading: string; paragraphs: string[] };
 export type StepStatus = "todo" | "doing" | "done";
 export type StudyData = { title: string; bullets: string[]; detailed: DetailedSection[]; flashcards: Flashcard[]; path: PathStep[] };
@@ -31,7 +32,11 @@ export function parseStudyJson(raw: string): StudyData | null {
   const path = arr(obj["path"]).map((p) => {
     const o = (p ?? {}) as Record<string, unknown>;
     const minutes = Math.max(5, Math.min(240, Math.round(Number(o["minutes"]) || 30)));
-    return { title: str(o["title"]), description: str(o["description"]), minutes, concepts: arr(o["concepts"]).map(str).filter(Boolean), format: str(o["format"]) };
+    const questions = arr(o["questions"]).map((q) => {
+      const v = (q ?? {}) as Record<string, unknown>;
+      return { prompt: str(v["prompt"]), options: arr(v["options"]).map(str), answer: Number(v["answer"]), explanation: str(v["explanation"]) };
+    }).filter((q) => q.prompt && q.options.length === 5 && q.options.every(Boolean) && Number.isInteger(q.answer) && q.answer >= 0 && q.answer < 5 && q.explanation);
+    return { title: str(o["title"]), description: str(o["description"]), minutes, concepts: arr(o["concepts"]).map(str).filter(Boolean), format: str(o["format"]), subject: str(o["subject"]), level: Number(o["level"]) || 1, questions, final: o["final"] === true };
   }).filter((p) => p.title);
   if (!bullets.length && !flashcards.length) return null;
   return { title: str(obj["title"]) || "Material de estudo", bullets, detailed, flashcards, path };
