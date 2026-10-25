@@ -79,6 +79,7 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
       <div className="flex flex-wrap gap-3">{result.passed ? <><Button onClick={() => setActive(null)}>Ver conquistas<ChevronRight /></Button><Button variant="outline" onClick={retry}>Tentar novamente</Button></> : <><Button onClick={retry}><RefreshCw />Tentar novamente</Button><Button variant="outline" onClick={() => setActive(null)}>Ver conquistas<ChevronRight /></Button></>}</div>
     </>}
     {error && <p role="alert" className="text-destructive">{error}</p>}
+    <RewardModal open={reward !== null} xp={MATERIAL_XP} title={reward ?? ""} onClose={() => setReward(null)} />
   </section>;
   const toNode = (s: PathStep, i: number): SnakeNode => {
     const unlocked = isStepUnlocked(i, m.step_status);
@@ -98,6 +99,5 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
   return <section className="space-y-8">
     <header className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="font-display text-2xl font-semibold">Trilha de conquistas</h2><p className="mt-1 text-sm text-muted-foreground">{groups.length} assuntos · {done}/{m.path.length} conquistas · +{MATERIAL_XP} XP por desafio</p></div><Badge variant="outline"><GraduationCap className="mr-2 h-4 w-4" />{done === m.path.length ? "Material dominado" : "Em evolução"}</Badge></header>
     <SnakePath nodes={nodes} className="pb-8" />
-    <RewardModal open={reward !== null} xp={MATERIAL_XP} title={reward ?? ""} onClose={() => setReward(null)} />
   </section>;
 }

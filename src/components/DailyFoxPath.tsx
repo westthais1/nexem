@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { Check, Lock, Trophy } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { Lock, Trophy } from "lucide-react";
+import { SnakePath, type SnakeNode } from "@/components/SnakePath";
 
 import foxAsset from "@/assets/daily/fox.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,11 +25,10 @@ export async function fetchPath() {
   };
 }
 
-/** Zigzag leve: a trilha sobe e desce a cada caixa do nível atual. */
-const LIFT = [0, -14, -24, -14, 0];
 
 /** Mostra apenas o nível atual da trilha: a raposa pula caixas conforme os acertos do Desafio Diário. */
 export function DailyFoxPath({ className }: { className?: string }) {
+  const navigate = useNavigate();
   const { data } = useQuery({ queryKey: PATH_QUERY_KEY, queryFn: fetchPath, staleTime: 30_000 });
   const box = data?.box ?? 0;
   const today = new Date().toISOString().slice(0, 10);
@@ -62,77 +63,23 @@ export function DailyFoxPath({ className }: { className?: string }) {
         </p>
       )}
 
-      <div className="relative mt-14 px-2">
-        <div className="relative flex items-start justify-between">
-          <svg
-            aria-hidden
-            overflow="visible"
-            className="pointer-events-none absolute top-0 h-14"
-            style={{ left: 28, width: "calc(100% - 56px)" }}
-            viewBox="0 0 100 56"
-            preserveAspectRatio="none"
-          >
-            <polyline
-              points={LIFT.map((l, i) => `${i * 25},${28 + l}`).join(" ")}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={3}
-              strokeLinecap="round"
-              vectorEffect="non-scaling-stroke"
-              className="text-border"
-            />
-          </svg>
-          {Array.from({ length: BOXES_PER_LEVEL }).map((_, bi) => {
-            const idx = base + bi;
-            const feito = idx < box;
-            const atual = idx === foxAt;
-            const ultimo = bi === BOXES_PER_LEVEL - 1;
-            const recem = pulouHoje && idx >= box - (data?.lastJump ?? 0) && idx < box;
-            return (
-              <div
-                key={idx}
-                className="relative flex flex-col items-center"
-                style={{ transform: `translateY(${LIFT[bi % LIFT.length]}px)` }}
-              >
-                {atual && (
-                  <img
-                    src={foxAsset.url}
-                    alt="Raposa na caixa atual"
-                    width={48}
-                    height={48}
-                    className={cn(
-                      "absolute -top-12 left-1/2 h-12 w-12 -translate-x-1/2 object-contain",
-                      pulouHoje && "fox-jump",
-                    )}
-                  />
-                )}
-                <div
-                  className={cn(
-                    "flex h-14 w-14 items-center justify-center rounded-full border-b-4 transition-all",
-                    feito && "border-primary/70 bg-primary text-primary-foreground",
-                    atual && "border-accent/70 bg-accent text-accent-foreground ring-4 ring-accent/30",
-                    !feito && !atual && "border-border bg-secondary text-muted-foreground",
-                    recem && "box-glow",
-                  )}
-                >
-                  {feito ? (
-                    <Check className="h-6 w-6" />
-                  ) : ultimo ? (
-                    <Trophy className="h-6 w-6" />
-                  ) : atual ? (
-                    <span className="font-bold">{idx + 1}</span>
-                  ) : (
-                    <Lock className="h-5 w-5" />
-                  )}
-                </div>
-                <span className="mt-2 text-[11px] font-medium text-muted-foreground">
-                  {ultimo ? "Fim do nível" : `Caixa ${bi + 1}`}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <SnakePath
+        className="mt-8"
+        nodes={Array.from({ length: BOXES_PER_LEVEL }).map((_, bi): SnakeNode => {
+          const idx = base + bi;
+          const feito = idx < box;
+          const atual = idx === foxAt && !concluido;
+          const ultimo = bi === BOXES_PER_LEVEL - 1;
+          return {
+            key: idx,
+            title: ultimo ? "Fim do nível" : `Caixa ${bi + 1}`,
+            subtitle: feito ? "Concluída" : atual ? "Fazer o Desafio Diário" : "Bloqueada",
+            state: feito ? "done" : atual ? "active" : "locked",
+            icon: ultimo ? <Trophy /> : <img src={foxAsset.url} alt="" className={cn("h-12 w-12 object-contain", pulouHoje && "fox-jump")} />,
+            onClick: () => navigate({ to: "/desafio" }),
+          };
+        })}
+      />
 
       <p className="mt-6 flex items-center justify-center gap-2 text-center text-sm text-muted-foreground">
         {concluido ? (
