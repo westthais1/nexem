@@ -14,8 +14,9 @@
 - Subscription state is owner-readable and service-role writable in a separate entitlement table; never trust browser storage or profile metadata for paid access.
 - Use SubscriptionProvider for workspace paywalls and authenticated premium question/attempt server functions for paid actions; keep all legacy full-exam entry points behind PremiumGate to prevent alternate-route bypasses.
 - Tutor consultation reservations use an authenticated atomic database function with a per-user transaction lock, and only the server may finish or refund transactions; concurrent devices must share the same usage budget.
-- Gate the existing study workspace in the root shell on the persisted profile quiz completion before mounting study pages; keep this separate from challenge onboarding so both new and existing students answer once.
-- Keep student quiz validation in a browser-safe shared schema and save its answers atomically with completion through the owner-scoped profile client.
+- Gate all existing study pages in the root shell on student_profiles.onboarding_completed before mounting content; the separate challenge onboarding must not bypass the student profile gate.
+- Keep onboarding schemas, summary and schedule calculations browser-safe and shared; authenticated server functions validate each transition, grade diagnostics and complete onboarding only after explicit summary confirmation.
+- Store resumable onboarding answers and schedules in owner-scoped student_profiles, not browser storage; mirror legacy profile fields only after confirmation so older consumers stay compatible.
 - Keep daily challenge diagnosis in a pure browser-safe module shared by the results UI, rewards and saved consistency metric so these cannot disagree; test it without database dependencies.
 - Keep the uploaded question mascot and speech bubble in a daily-challenge-only presentation component so other practice modules retain their layouts.
 - Landing navigation uses a shared link list for desktop and mobile (closable mobile menu); "Como funciona" is a same-page anchor, while Entenda a TRI, Guia do ENEM, Perguntas frequentes and Nexem Pro are separate public routes (/entenda-tri, /guia-enem, /perguntas-frequentes, /nexem-pro) rendered inside PublicPageShell and whitelisted in the root session guard like /landing.

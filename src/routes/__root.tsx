@@ -14,10 +14,10 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { XpCelebration } from "@/components/XpCelebration";
 import { StatPills } from "@/components/StatPills";
-import { StudentQuiz } from "@/components/StudentQuiz";
+import { StudentOnboarding } from "@/components/StudentOnboarding";
 import { Button } from "@/components/ui/button";
-import { ensureProfile, markOnboarded } from "@/lib/profile";
-import { needsStudentQuiz } from "@/lib/student-quiz";
+import { ensureProfile } from "@/lib/profile";
+import { fetchStudentProfile, type StudentProfile } from "@/lib/student-profile";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import nexemLogo from "@/assets/nexem-logo.png.asset.json";
@@ -271,6 +271,7 @@ function UserMenu() {
   return (
     <div className="space-y-2">
       <Button variant="outline" className="w-full" onClick={openUpgrade}>{isPremium ? 'Nexem Pro' : 'Conhecer Nexem Pro'}</Button>
+      <Button variant="ghost" className="w-full justify-start" onClick={() => navigate({ to: '/perfil' })}>Editar meu perfil</Button>
       <div className="flex items-center gap-3 rounded-lg px-3 py-2">
         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-sm font-semibold text-primary-foreground">
           {initials}
@@ -311,7 +312,7 @@ function RootComponent() {
     pathname.startsWith("/guia-enem") ||
     pathname.startsWith("/perguntas-frequentes") ||
     pathname.startsWith("/nexem-pro");
-  const [quizUserId, setQuizUserId] = useState<string | null>(null);
+  const [onboardingProfile, setOnboardingProfile] = useState<StudentProfile | null>(null);
   const [profileReady, setProfileReady] = useState(false);
   const [profileError, setProfileError] = useState(false);
   const [retry, setRetry] = useState(0);
@@ -329,9 +330,10 @@ function RootComponent() {
       if (!active) return;
       if (error || !data.user) { navigate({ to: "/landing", replace: true }); return; }
       setSubscriptionUserId(data.user.id);
-      const profile = await ensureProfile(data.user);
+      await ensureProfile(data.user);
+      const profile = await fetchStudentProfile(data.user.id);
       if (!active) return;
-      setQuizUserId(needsStudentQuiz({ quiz_completed_at: profile.quizCompletedAt }) ? data.user.id : null);
+      setOnboardingProfile(profile.completed ? null : profile);
       setProfileReady(true);
     }).catch(() => { if (active) setProfileError(true); });
 
@@ -339,7 +341,7 @@ function RootComponent() {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT") {
         setSubscriptionUserId(null);
-        setQuizUserId(null);
+        setOnboardingProfile(null);
         setProfileReady(false);
         navigate({ to: "/landing", replace: true });
       }
@@ -360,10 +362,9 @@ function RootComponent() {
     </main>
   );
 
-  if (!isLanding && quizUserId) return <StudentQuiz key={quizUserId} userId={quizUserId} onComplete={() => {
-    setQuizUserId(null);
-    void markOnboarded(quizUserId);
-    navigate({ to: "/desafio", replace: true });
+  if (!isLanding && onboardingProfile) return <StudentOnboarding key={onboardingProfile.userId} profile={onboardingProfile} onComplete={() => {
+    setOnboardingProfile(null);
+    navigate({ to: "/", replace: true });
   }} />;
 
   return (
