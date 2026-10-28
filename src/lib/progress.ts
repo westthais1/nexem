@@ -4,6 +4,8 @@
  */
 
 import { questionsSupabase } from "@/lib/external-supabase";
+import { fetchStudentProfile } from './student-profile';
+import { refinedLevels } from './student-onboarding';
 
 export const MASTERY_TARGET = 85;
 export const DEFAULT_TRACK_THETA = 50;
@@ -156,6 +158,12 @@ function rowToProgress(row: Row): UserProgress {
 /** Lê a linha do estudante; cria uma com os valores padrão quando ainda não existe. */
 export async function fetchProgress(): Promise<UserProgress> {
   const userId = deviceUserId();
+  const student = await fetchStudentProfile(userId);
+  const initial = defaultProgress();
+  if (student.completed) {
+    const levels = refinedLevels(student.answers);
+    initial.tracks = Object.fromEntries(TRACKS.map(t => [t, 20 + (levels[t] - 1) * 15])) as Tracks;
+  }
   const { data, error } = await questionsSupabase
     .from("nexem_user_progress")
     .select("*")
@@ -165,7 +173,7 @@ export async function fetchProgress(): Promise<UserProgress> {
   if (error) throw new Error(`Erro ao carregar seu progresso: ${error.message}`);
 
   if (!data) {
-    const base = defaultProgress();
+    const base = initial;
     await questionsSupabase.from("nexem_user_progress").insert({
       user_id: userId,
       theta_matematica: base.tracks.matematica,
@@ -180,6 +188,8 @@ export async function fetchProgress(): Promise<UserProgress> {
   }
 
   const progress = rowToProgress(data as Row);
+  // Onboarding is an initial estimate only; completed challenges remain authoritative.
+  if (!progress.lastPlayedDate && student.completed) progress.tracks = initial.tracks;
   cacheProgress(progress);
   return progress;
 }

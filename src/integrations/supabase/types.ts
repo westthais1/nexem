@@ -320,6 +320,48 @@ export type Database = {
         }
         Relationships: []
       }
+      student_profiles: {
+        Row: {
+          answers: Json
+          area_levels: Json
+          availability: Json
+          consent_at: string | null
+          onboarding_completed: boolean
+          onboarding_step: number
+          schedule: Json | null
+          schedule_needs_regeneration: boolean
+          summary_confirmed_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          area_levels?: Json
+          availability?: Json
+          consent_at?: string | null
+          onboarding_completed?: boolean
+          onboarding_step?: number
+          schedule?: Json | null
+          schedule_needs_regeneration?: boolean
+          summary_confirmed_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          area_levels?: Json
+          availability?: Json
+          consent_at?: string | null
+          onboarding_completed?: boolean
+          onboarding_step?: number
+          schedule?: Json | null
+          schedule_needs_regeneration?: boolean
+          summary_confirmed_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       study_materials: {
         Row: {
           bullets: Json

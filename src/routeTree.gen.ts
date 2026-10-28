@@ -18,6 +18,7 @@ import { Route as GuiaEnemRouteImport } from './routes/guia-enem'
 import { Route as LandingRouteImport } from './routes/landing'
 import { Route as MateriaisRouteImport } from './routes/materiais'
 import { Route as NexemProRouteImport } from './routes/nexem-pro'
+import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as PerguntasFrequentesRouteImport } from './routes/perguntas-frequentes'
 import { Route as RaioXRouteImport } from './routes/raio-x'
 import { Route as RedacaoRouteImport } from './routes/redacao'
@@ -70,6 +71,11 @@ const NexemProRoute = NexemProRouteImport.update({
   path: '/nexem-pro',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PerfilRoute = PerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PerguntasFrequentesRoute = PerguntasFrequentesRouteImport.update({
   id: '/perguntas-frequentes',
   path: '/perguntas-frequentes',
@@ -111,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/landing': typeof LandingRoute
   '/materiais': typeof MateriaisRoute
   '/nexem-pro': typeof NexemProRoute
+  '/perfil': typeof PerfilRoute
   '/perguntas-frequentes': typeof PerguntasFrequentesRoute
   '/raio-x': typeof RaioXRoute
   '/redacao': typeof RedacaoRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByTo {
   '/landing': typeof LandingRoute
   '/materiais': typeof MateriaisRoute
   '/nexem-pro': typeof NexemProRoute
+  '/perfil': typeof PerfilRoute
   '/perguntas-frequentes': typeof PerguntasFrequentesRoute
   '/raio-x': typeof RaioXRoute
   '/redacao': typeof RedacaoRoute
@@ -146,6 +154,7 @@ export interface FileRoutesById {
   '/landing': typeof LandingRoute
   '/materiais': typeof MateriaisRoute
   '/nexem-pro': typeof NexemProRoute
+  '/perfil': typeof PerfilRoute
   '/perguntas-frequentes': typeof PerguntasFrequentesRoute
   '/raio-x': typeof RaioXRoute
   '/redacao': typeof RedacaoRoute
@@ -165,6 +174,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/materiais'
     | '/nexem-pro'
+    | '/perfil'
     | '/perguntas-frequentes'
     | '/raio-x'
     | '/redacao'
@@ -182,6 +192,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/materiais'
     | '/nexem-pro'
+    | '/perfil'
     | '/perguntas-frequentes'
     | '/raio-x'
     | '/redacao'
@@ -199,6 +210,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/materiais'
     | '/nexem-pro'
+    | '/perfil'
     | '/perguntas-frequentes'
     | '/raio-x'
     | '/redacao'
@@ -217,6 +229,7 @@ export interface RootRouteChildren {
   LandingRoute: typeof LandingRoute
   MateriaisRoute: typeof MateriaisRoute
   NexemProRoute: typeof NexemProRoute
+  PerfilRoute: typeof PerfilRoute
   PerguntasFrequentesRoute: typeof PerguntasFrequentesRoute
   RaioXRoute: typeof RaioXRoute
   RedacaoRoute: typeof RedacaoRoute
@@ -290,6 +303,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NexemProRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/perfil': {
+      id: '/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof PerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/perguntas-frequentes': {
       id: '/perguntas-frequentes'
       path: '/perguntas-frequentes'
@@ -345,6 +365,7 @@ const rootRouteChildren: RootRouteChildren = {
   LandingRoute: LandingRoute,
   MateriaisRoute: MateriaisRoute,
   NexemProRoute: NexemProRoute,
+  PerfilRoute: PerfilRoute,
   PerguntasFrequentesRoute: PerguntasFrequentesRoute,
   RaioXRoute: RaioXRoute,
   RedacaoRoute: RedacaoRoute,

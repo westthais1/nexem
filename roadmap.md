@@ -1,5 +1,9 @@
 # Roadmap
 
+- [x] Criar onboarding com salvamento por resposta, diagnóstico opcional, aviso de privacidade, resumo confirmado, cronograma e edição; retomada móvel, geração real e leitura após recarregar verificadas.
+- [x] Apresentar perguntas em uma caixa, avançar após resposta única e manter Voltar; múltiplas escolhas aguardam Continuar, verificado no navegador; 18 testes passaram.
+- [ ] Definir canal e política de privacidade completos antes do lançamento — depende dos dados legais do responsável pelo Nexem; aviso para menores não substitui autorização verificável quando exigida.
+
 - [x] Dividir a Trilha de estudo dos materiais por assuntos e conquistas sequenciais, salvar resultados e liberar um simulado final sobre o arquivo; geração real, 13 conquistas, entrega final e recuperação após recarregar verificadas.
 
 - [x] Implementar assinatura Free/Premium persistida, planos e bloqueios de Maestria e Prova Completa, mantendo Desafio Diário gratuito.

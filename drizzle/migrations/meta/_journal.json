@@ -71,6 +71,13 @@
       "when": 1792945769141,
       "tag": "0009_study_materials",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793203170442,
+      "tag": "0010_student_onboarding_profiles",
+      "breakpoints": true
     }
   ]
 }
