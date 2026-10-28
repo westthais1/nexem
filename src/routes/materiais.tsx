@@ -248,7 +248,7 @@ function DocsTab(props: {
       </section>
       <aside className="h-fit space-y-3 rounded-3xl bg-card p-6">
         <h2 className="font-display text-xl font-semibold">Transforme seus arquivos em um kit de estudo</h2>
-        {[{ i: ListChecks, t: "Resumo em tópicos" }, { i: BookOpen, t: "Anotações detalhadas" }, { i: Layers, t: "Flashcards" }, { i: MapIcon, t: "Trilha de estudo ENEM" }].map(({ i: I, t }) => (
+        {[{ i: ListChecks, t: "Resumo em tópicos" }, { i: BookOpen, t: "Anotações detalhadas" }, { i: Layers, t: "Flashcards" }, { i: MapIcon, t: "Trilha de estudo personalizada" }].map(({ i: I, t }) => (
           <div key={t} className="flex items-center gap-3 rounded-xl bg-muted p-3 text-sm font-medium"><I className="h-5 w-5 text-primary" />{t}</div>
         ))}
       </aside>
