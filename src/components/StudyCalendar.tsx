@@ -33,7 +33,7 @@ export function StudyCalendar({compact=false}:{compact?:boolean}) {
  async function action(s:Session,kind:'start'|'skip'|'postpone') {
   await run(async()=>{const result=await update({data:{id:s.id,action:kind,correct:0,total:0}});queryClient.setQueryData(CALENDAR_KEY,result.state);
    if(kind==='postpone')setUndo({id:s.id,...result.previous});
-   if(kind==='start'){const topic=data?.topics.find(t=>t.id===s.topic_id);if(s.type==='Redação')await navigate({to:'/redacao'});else if(s.type==='Simulado')await navigate({to:'/desafio'});else if(s.type==='Exercícios')await navigate({to:'/simulado',search:{studySession:s.id,topic:topic?.title ?? '',subject:topic?.subject ?? ''}});else setActive(s);}
+   if(kind==='start'){if(s.type==='Redação')await navigate({to:'/redacao'});else if(s.type==='Simulado')await navigate({to:'/desafio'});else await navigate({to:'/simulado',search:{subject:data?.topics.find(t=>t.id===s.topic_id)?.subject ?? ''}});}
   });
  }
  function open(s:Session,which:'complete'|'move'){setMode(which);setActive(s);setMinutes(s.actual_minutes || s.duration);setCorrect(0);setTotal(0);setMoveDate(s.date);setMoveTime(time(s.start_minutes));}

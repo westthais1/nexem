@@ -23,6 +23,8 @@ export async function calendarData(db: SupabaseClient<Database>, userId: string)
 }
 export async function generateWeek(db: SupabaseClient<Database>,userId:string,week?:string,service=false) {
   const state=await calendarData(db,userId), start=week ?? monday(state.today);
+  const initial=state.topics.filter(t=>!state.mastery.some(m=>m.topic_id===t.id)).map(t=>({user_id:userId,topic_id:t.id,mastery:initialMastery(state.answers,t.area)}));
+  if(initial.length){const {error}=await db.from('topic_mastery').upsert(initial,{onConflict:'user_id,topic_id',ignoreDuplicates:true});if(error)throw new Error('Não conseguimos salvar seu ponto de partida.');}
   const mastery:Mastery[]=state.topics.map(t=>state.mastery.find(m=>m.topic_id===t.id) ?? {topic_id:t.id,mastery:initialMastery(state.answers,t.area),accuracy:null,next_review:null,review_stage:0});
   // Legacy question attempts expose subjects, not topic IDs: use only subject-level evidence.
   for(const m of mastery) {

@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 - Keep `/landing?preview=true` accessible without session redirects so signed-in users can review the public presentation without logging out; normal landing visits retain onboarding redirects.
+- Study calendar sessions and topic mastery are account-owned persistent records; the shared deterministic planner is the only scheduling policy, atomic database functions replace planned sessions, and managed weekly callbacks use cron authentication. AI may explain but never decide the plan; legacy subject evidence must not be presented as measured topic accuracy.
 - Material achievement paths store generated subject levels and final exam questions inside the existing path JSON and owner-scoped quiz attempts inside step_status; shared browser-safe grading keeps progression and analytics consistent without changing legacy material records until explicitly regenerated.
 - Subscription state is owner-readable and service-role writable in a separate entitlement table; never trust browser storage or profile metadata for paid access.
 - Use SubscriptionProvider for workspace paywalls and authenticated premium question/attempt server functions for paid actions; keep all legacy full-exam entry points behind PremiumGate to prevent alternate-route bypasses.

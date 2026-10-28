@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
+import type { Database } from '@/integrations/supabase/types';
 import { getRequest } from '@tanstack/react-start/server';
 import { calendarData, generateWeek } from './study-calendar.server';
 import { addDays, fitsAvailability, findFreeSlot, localDay, monday } from './study-planner';
@@ -22,7 +23,7 @@ export const updateStudySession=createServerFn({method:'POST'}).middleware([requ
   const state=await calendarData(context.supabase,context.userId),session=state.sessions.find(s=>s.id===data.id);
   if(!session) throw new Error('Sessão não encontrada.');
   if(session.status!=='planejada') throw new Error('Essa sessão já foi finalizada.');
-  const patch:Record<string,string|number|null>={};
+  const patch:Database['public']['Tables']['study_sessions']['Update']={};
   if(data.action==='start') patch.started_at=session.started_at ?? new Date().toISOString();
   if(data.action==='complete') {patch.status='concluida';patch.completed_at=new Date().toISOString();patch.actual_minutes=data.minutes ?? (session.started_at?Math.max(0,Math.min(720,Math.round((Date.now()-new Date(session.started_at).getTime())/60000))):session.duration);patch.correct=data.correct;patch.total=data.total;}
   if(data.action==='skip') patch.status='pulada';

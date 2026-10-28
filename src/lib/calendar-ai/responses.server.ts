@@ -23,8 +23,7 @@ export function createResponsesCall(
   const reasoning = config.model !== "openai/chat-latest";
   const result = streamText({
     model: provider.responses(config.model),
-    // AI SDK 6 lacks `instructions`: rename this key to `system` there.
-    ...(instructions ? { system: instructions } : {}),
+    ...(instructions ? { instructions } : {}),
     maxRetries: 0,
     messages,
     abortSignal: request.signal,
