@@ -45,10 +45,11 @@ export function StudentOnboarding({ profile, editing = false, onComplete }: { pr
   const loadDiagnostic = useServerFn(getOnboardingDiagnostic);
   const pending = useRef<Promise<unknown>>(Promise.resolve());
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoAdvance = useRef<ReturnType<typeof setTimeout> | null>(null);
   const summary = profileSummary(answers);
 
   useEffect(() => { heading.current?.focus(); window.scrollTo({ top: 0, behavior: 'instant' }); }, [step, quizIndex]);
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); if (autoAdvance.current) clearTimeout(autoAdvance.current); }, []);
 
   function persist(a: OnboardingAnswers, at: number, advance = false) {
     setSaveState('Salvando…');
@@ -63,6 +64,15 @@ export function StudentOnboarding({ profile, editing = false, onComplete }: { pr
     if (timer.current) clearTimeout(timer.current);
     if (immediate) void persist(next, step);
     else { setSaveState('Salvando…'); timer.current = setTimeout(() => { void persist(answersRef.current, step); timer.current = null; }, 500); }
+    const singleStep = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18, 20].includes(step);
+    if (immediate && singleStep && key !== 'targetScore') {
+      if (autoAdvance.current) clearTimeout(autoAdvance.current);
+      autoAdvance.current = setTimeout(() => { autoAdvance.current = null; void move(); }, 180);
+    }
+    if (key === 'diagnostic' && quizStarted && immediate) {
+      if (autoAdvance.current) clearTimeout(autoAdvance.current);
+      autoAdvance.current = setTimeout(() => { autoAdvance.current = null; void advanceQuiz(); }, 180);
+    }
   }
   function flushTimer() { if (timer.current) { clearTimeout(timer.current); timer.current = null; } }
   async function move(back = false) {
@@ -82,6 +92,15 @@ export function StudentOnboarding({ profile, editing = false, onComplete }: { pr
     setDiagnosticLoading(true); setDiagnosticError('');
     try { const q = await loadDiagnostic(); setDiagnostic(q); const savedAnswers = answersRef.current.diagnostic?.answers ?? {}; setQuizIndex(Math.min(7, q.filter(x => savedAnswers[x.id]).length)); setQuizStarted(true); } catch { setDiagnosticError('Não conseguimos carregar o diagnóstico. Tente novamente ou pule por agora.'); } finally { setDiagnosticLoading(false); }
   }
+  async function advanceQuiz() {
+    if (saving) return;
+    setSaving(true); setError('');
+    try {
+      await persist(answersRef.current, step);
+      if (quizIndex < 7) setQuizIndex(quizIndex + 1);
+      else { const r = await persist(answersRef.current, 24, true); setAnswers(r.answers); answersRef.current = r.answers; setStep(24); }
+    } catch { setError('Não conseguimos salvar a resposta. Tente novamente.'); } finally { setSaving(false); }
+  }
   const currentQuestion = diagnostic?.[quizIndex];
   const selectedLetter = currentQuestion ? answers.diagnostic?.answers[currentQuestion.id] : null;
   const yesNo = (key: 'under18' | 'trainee' | 'previousEnem') => <Choices options={['Sim', 'Não']} value={answers[key] === null ? '' : answers[key] ? 'Sim' : 'Não'} onChange={v => change(key, v === 'Sim')} />;
@@ -89,12 +108,12 @@ export function StudentOnboarding({ profile, editing = false, onComplete }: { pr
   if (schedule) return <main className="mx-auto min-h-dvh w-full max-w-4xl px-5 py-10"><div className="mb-8 flex items-center gap-3 text-primary"><CheckCircle2 /><h1 className="text-2xl font-semibold tracking-normal">Sua jornada está pronta, {answers.name}!</h1></div><PersonalSchedule schedule={schedule} /><Button size="lg" className="mt-8" onClick={onComplete}>Ir para o início<ArrowRight /></Button></main>;
   return <main className="min-h-dvh w-full bg-background px-5 py-5 sm:px-8">
     <header className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3"><img src={nexemLogo.url} alt="nexem" className="h-7 w-auto" /><span role="status" className="text-right text-xs text-muted-foreground">{saveState}</span></header>
-    <section className="mx-auto w-full max-w-xl pb-8 pt-8 sm:pt-12">
+    <section className="mx-auto mt-6 w-full max-w-xl rounded-lg border border-border bg-card px-5 py-6 sm:mt-10 sm:px-8 sm:py-8">
       <div className="mb-7"><div className="mb-2 flex justify-between text-xs font-medium text-muted-foreground"><span>{editing ? 'Editar meu perfil' : 'Seu ponto de partida'}</span><span>{step + 1} de {STEPS.length}</span></div><Progress value={Math.round(step / SUMMARY_STEP * 100)} aria-label="Progresso do seu perfil" className="h-2" /></div>
       <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">{step === SUMMARY_STEP ? <Target /> : step === 24 ? <ShieldCheck /> : <GraduationCap />}</div>
       <h1 ref={heading} tabIndex={-1} className="text-3xl font-semibold leading-tight tracking-normal outline-none sm:text-4xl">{STEPS[step]}</h1>
       <p className="mb-7 mt-3 text-base text-muted-foreground">{step === SUMMARY_STEP ? 'Confira suas escolhas. O cronograma só será criado quando você confirmar.' : step === 23 ? 'São 8 questões: 2 por área objetiva, de nível fácil a médio. Sem pressão e sem nota oficial.' : step >= 8 && step <= 12 ? 'Não é uma prova. Sua percepção ajuda a encontrar o melhor ponto de partida.' : 'Cada resposta deixa sua preparação mais do seu jeito.'}</p>
-      <div key={step} className="min-h-48 space-y-5 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-150">
+      <fieldset disabled={saving} key={step} className="min-w-0 min-h-48 space-y-5 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-150">
         {step === 0 && <div><label htmlFor="student-name" className="mb-2 block text-sm font-medium">Seu nome ou apelido</label><Input id="student-name" autoComplete="given-name" maxLength={100} placeholder="Pode me chamar de…" value={answers.name} onChange={e => change('name', e.target.value, false)} onBlur={() => { flushTimer(); void persist(answersRef.current, step); }} className="h-14 text-lg" /><p className="mt-3 text-sm text-muted-foreground">Só o primeiro nome ou apelido já basta.</p></div>}
         {step === 1 && <>{yesNo('under18')}<p className="text-sm text-muted-foreground">Não precisamos da sua data de nascimento nem de documentos.</p></>}
         {step === 2 && <Choices options={SITUATIONS} value={answers.situation} onChange={v => change('situation', v as OnboardingAnswers['situation'])} />}
@@ -116,7 +135,7 @@ export function StudentOnboarding({ profile, editing = false, onComplete }: { pr
         {step === 23 && <>{!quizStarted ? <><Button size="lg" className="w-full" disabled={diagnosticLoading} onClick={() => void startQuiz()}>{diagnosticLoading ? <LoaderCircle className="animate-spin" /> : <Sparkles />}{answers.diagnostic && !answers.diagnostic.skipped ? 'Retomar diagnóstico' : 'Fazer diagnóstico'}</Button><Button variant="outline" className="w-full" onClick={() => { change('diagnostic', { skipped: true, answers: {}, results: {} }); }}>Pular por agora</Button>{answers.diagnostic?.skipped && <p className="text-sm text-primary">Tudo bem! Vamos começar com sua autoavaliação.</p>}</> : currentQuestion && <><p className="text-sm font-medium text-primary">Questão {quizIndex + 1} de 8 · {AREA_LABELS[currentQuestion.area as keyof typeof AREA_LABELS]}</p><p className="whitespace-pre-line text-base leading-relaxed">{currentQuestion.text}</p>{currentQuestion.image && <img src={currentQuestion.image} alt="Imagem da questão" className="max-h-72 w-full object-contain" />}<Choices options={currentQuestion.options.map((o, i) => `${'ABCDE'[i]}. ${o}`)} value={selectedLetter ? `${selectedLetter}. ${currentQuestion.options['ABCDE'.indexOf(selectedLetter)]}` : ''} onChange={v => change('diagnostic', { skipped: false, answers: { ...answers.diagnostic?.answers, [currentQuestion.id]: v[0] as 'A' | 'B' | 'C' | 'D' | 'E' }, results: {} })} /><div className="flex justify-between gap-3"><Button variant="ghost" disabled={quizIndex === 0 || saving} onClick={() => setQuizIndex(quizIndex - 1)}><ArrowLeft />Anterior</Button><Button disabled={!selectedLetter || saving} onClick={async () => { setSaving(true); try { await persist(answersRef.current, step); if (quizIndex < 7) setQuizIndex(quizIndex + 1); else { const r = await persist(answersRef.current, 24, true); setAnswers(r.answers); answersRef.current = r.answers; setStep(24); } } finally { setSaving(false); } }}>{quizIndex === 7 ? 'Concluir diagnóstico' : 'Próxima questão'}<ArrowRight /></Button></div><Button variant="ghost" onClick={() => { setQuizStarted(false); change('diagnostic', { skipped: true, answers: {}, results: {} }); }}>Pular por agora</Button></>}{diagnosticError && <p role="alert" className="text-sm text-destructive">{diagnosticError}</p>}</>}
         {step === 24 && <><div className="space-y-3 text-sm leading-relaxed text-muted-foreground"><p>Usamos suas respostas para personalizar seus estudos, desafios e metas. Elas ficam vinculadas à sua conta e não ficam visíveis para outros alunos.</p><p>Não pedimos CPF, endereço, data de nascimento ou dados de responsáveis. As notas anteriores e o diagnóstico são opcionais. Você pode revisar suas respostas em “Editar meu perfil”.</p><p>Você pode solicitar acesso, correção ou exclusão dos seus dados ao Nexem. A exclusão não está disponível nesta tela; o canal de atendimento e a política completa ainda precisam ser definidos antes do lançamento.</p></div>{answers.under18 && <div className="rounded-lg border border-primary/30 bg-primary/5 p-4"><h2 className="font-semibold tracking-normal">Para quem tem menos de 18 anos</h2><p className="mt-2 text-sm text-muted-foreground">Converse com seu responsável sobre o uso do Nexem e este aviso. Vamos guardar apenas o apelido e as informações necessárias para seus estudos, sem coletar documentos seus ou do responsável. Esta confirmação não substitui uma autorização verificável do responsável, quando exigida.</p><label className="mt-4 flex items-start gap-3 text-sm"><Checkbox checked={answers.parentalNotice} onCheckedChange={v => change('parentalNotice', v === true)} /><span>Li o aviso e vou conversar com meu responsável.</span></label></div>}<label className="flex items-start gap-3 text-sm"><Checkbox checked={answers.consent} onCheckedChange={v => change('consent', v === true)} /><span>Li o aviso e concordo com o uso das minhas respostas para personalizar meus estudos.</span></label></>}
         {step === SUMMARY_STEP && <><p className="text-xl font-semibold text-primary">Vamos nessa, {answers.name}!</p><dl className="grid grid-cols-2 gap-5 border-y border-border py-5"><div><dt className="text-sm text-muted-foreground">Meta de nota</dt><dd className="mt-1 text-2xl font-semibold">{summary.target}</dd></div><div><dt className="text-sm text-muted-foreground">Horas por semana</dt><dd className="mt-1 text-2xl font-semibold">{summary.hours}h</dd></div><div className="col-span-2"><dt className="text-sm text-muted-foreground">Pontos fortes relativos</dt><dd className="mt-1 font-medium">{summary.strengths.map(a => AREA_LABELS[a]).join(' e ')}</dd></div><div className="col-span-2"><dt className="text-sm text-muted-foreground">Prioridades de estudo</dt><dd className="mt-1 font-medium">{summary.priorities.map(a => AREA_LABELS[a]).join(' e ')}</dd></div></dl><p className="text-sm text-muted-foreground">{answers.course} · {answers.university}<br />{answers.language} · {answers.period}<br />{answers.styles.join(', ')}</p><p className="text-sm text-muted-foreground">{answers.diagnostic?.skipped ? 'Perfil baseado na sua autoavaliação, não em uma medida oficial de proficiência.' : 'Diagnóstico curto: uma estimativa inicial, não uma nota TRI oficial. A redação usa sua autoavaliação.'}</p>{editing && <p className="font-medium text-primary">Mudou alguma resposta? Confirme para regenerar seu cronograma.</p>}<Button variant="outline" className="w-full" onClick={() => setStep(0)}>Revisar minhas respostas</Button></>}
-      </div>
+      </fieldset>
       {error && <p role="alert" className="mt-5 text-sm text-destructive">{error}</p>}
       <div className="mt-8 flex items-center justify-between gap-3 border-t border-border pt-5"><Button variant="ghost" aria-label="Voltar à pergunta anterior" disabled={step === 0 || saving} onClick={() => void move(true)}><ArrowLeft />Voltar</Button>{!(step === 23 && quizStarted) && <Button size="lg" disabled={saving} className="h-auto min-h-12 max-w-[70%] whitespace-normal" onClick={() => step === SUMMARY_STEP ? void finish() : void move()}>{saving ? <LoaderCircle className="shrink-0 animate-spin" /> : step === SUMMARY_STEP ? <Check /> : null}{saving ? 'Salvando…' : step === SUMMARY_STEP ? editing ? 'Regenerar meu cronograma' : 'Gerar meu cronograma' : 'Continuar'}{step < SUMMARY_STEP && <ArrowRight className="shrink-0" />}</Button>}</div>
       {editing && <Button variant="ghost" className="mt-4 w-full" disabled={saving} onClick={async () => { flushTimer(); setSaving(true); try { await persist(answersRef.current, step); onComplete(); } finally { setSaving(false); } }}>Salvar e voltar sem regenerar</Button>}
