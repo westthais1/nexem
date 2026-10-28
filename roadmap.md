@@ -1,6 +1,7 @@
 # Roadmap
 
 - [ ] Criar onboarding completo com salvamento por resposta, diagnóstico opcional, consentimento, resumo confirmado, cronograma personalizado e edição do perfil; testar recuperação e acesso.
+- [ ] Apresentar cada pergunta em uma caixa, avançar após resposta única e manter Voltar; múltiplas seleções continuam com confirmação manual.
 
 - [x] Dividir a Trilha de estudo dos materiais por assuntos e conquistas sequenciais, salvar resultados e liberar um simulado final sobre o arquivo; geração real, 13 conquistas, entrega final e recuperação após recarregar verificadas.
 
