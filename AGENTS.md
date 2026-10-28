@@ -17,6 +17,7 @@
 - Gate all existing study pages in the root shell on student_profiles.onboarding_completed before mounting content; the separate challenge onboarding must not bypass the student profile gate.
 - Keep onboarding schemas, summary and schedule calculations browser-safe and shared; authenticated server functions validate each transition, grade diagnostics and complete onboarding only after explicit summary confirmation.
 - Store resumable onboarding answers and schedules in owner-scoped student_profiles, not browser storage; mirror legacy profile fields only after confirmation so older consumers stay compatible.
+- Use onboarding-derived area levels only as the daily challenge's initial estimate before any completed challenge; preserve measured progress and keep mastery achievements starting at zero.
 - Keep daily challenge diagnosis in a pure browser-safe module shared by the results UI, rewards and saved consistency metric so these cannot disagree; test it without database dependencies.
 - Keep the uploaded question mascot and speech bubble in a daily-challenge-only presentation component so other practice modules retain their layouts.
 - Landing navigation uses a shared link list for desktop and mobile (closable mobile menu); "Como funciona" is a same-page anchor, while Entenda a TRI, Guia do ENEM, Perguntas frequentes and Nexem Pro are separate public routes (/entenda-tri, /guia-enem, /perguntas-frequentes, /nexem-pro) rendered inside PublicPageShell and whitelisted in the root session guard like /landing.

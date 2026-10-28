@@ -51,6 +51,9 @@ export const STEPS = [
   'Vamos descobrir seu ponto de partida?', 'Seus dados, suas escolhas', 'Seu perfil Nexem',
 ];
 export const SUMMARY_STEP = STEPS.length - 1;
+export function advancesOnSingleChoice(step: number): boolean {
+  return [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18, 20].includes(step);
+}
 export function validateOnboardingStep(step: number, a: OnboardingAnswers): string | null {
   if (step === 0 && !a.name) return 'Conte como você quer ser chamado.';
   if (step === 1 && a.under18 === null) return 'Escolha uma opção para continuarmos.';

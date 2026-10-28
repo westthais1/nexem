@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
-import { AREAS, AREA_LABELS, COURSES, DAYS, DIFFICULTIES, PERIODS, SITUATIONS, STEPS, STYLES, SUBJECTS, SUMMARY_STEP, UNIVERSITIES, profileSummary, validateOnboardingStep, weeklyHours, type OnboardingAnswers, type StudyDay } from '@/lib/student-onboarding';
+import { AREAS, AREA_LABELS, COURSES, DAYS, DIFFICULTIES, PERIODS, SITUATIONS, STEPS, STYLES, SUBJECTS, SUMMARY_STEP, UNIVERSITIES, profileSummary, validateOnboardingStep, weeklyHours, advancesOnSingleChoice, type OnboardingAnswers, type StudyDay } from '@/lib/student-onboarding';
 import { confirmStudentProfile, getOnboardingDiagnostic, saveStudentOnboarding } from '@/lib/student-onboarding.functions';
 import type { StudentProfile } from '@/lib/student-profile';
 import nexemLogo from '@/assets/nexem-logo.png.asset.json';
@@ -64,12 +64,12 @@ export function StudentOnboarding({ profile, editing = false, onComplete }: { pr
     if (timer.current) clearTimeout(timer.current);
     if (immediate) void persist(next, step);
     else { setSaveState('Salvando…'); timer.current = setTimeout(() => { void persist(answersRef.current, step); timer.current = null; }, 500); }
-    const singleStep = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18, 20].includes(step);
+    const singleStep = advancesOnSingleChoice(step);
     if (immediate && singleStep && key !== 'targetScore') {
       if (autoAdvance.current) clearTimeout(autoAdvance.current);
       autoAdvance.current = setTimeout(() => { autoAdvance.current = null; void move(); }, 180);
     }
-    if (key === 'diagnostic' && quizStarted && immediate) {
+    if (key === 'diagnostic' && quizStarted && immediate && !(value as OnboardingAnswers['diagnostic'])?.skipped) {
       if (autoAdvance.current) clearTimeout(autoAdvance.current);
       autoAdvance.current = setTimeout(() => { autoAdvance.current = null; void advanceQuiz(); }, 180);
     }
@@ -77,6 +77,7 @@ export function StudentOnboarding({ profile, editing = false, onComplete }: { pr
   function flushTimer() { if (timer.current) { clearTimeout(timer.current); timer.current = null; } }
   async function move(back = false) {
     if (saving) return;
+    if (autoAdvance.current) { clearTimeout(autoAdvance.current); autoAdvance.current = null; }
     const issue = !back ? validateOnboardingStep(step, answersRef.current) : null;
     if (issue) { setError(issue); return; }
     flushTimer(); setSaving(true); setError('');
@@ -94,6 +95,7 @@ export function StudentOnboarding({ profile, editing = false, onComplete }: { pr
   }
   async function advanceQuiz() {
     if (saving) return;
+    if (autoAdvance.current) { clearTimeout(autoAdvance.current); autoAdvance.current = null; }
     setSaving(true); setError('');
     try {
       await persist(answersRef.current, step);
