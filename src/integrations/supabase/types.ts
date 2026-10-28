@@ -666,6 +666,15 @@ export type Database = {
         Args: { p_request_id: string }
         Returns: boolean
       }
+      save_study_week: {
+        Args: {
+          p_insights: Json
+          p_sessions: Json
+          p_summary: string
+          p_week: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
