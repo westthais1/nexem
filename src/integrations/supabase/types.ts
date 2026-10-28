@@ -38,6 +38,30 @@ export type Database = {
         }
         Relationships: []
       }
+      enem_config: {
+        Row: {
+          exam_date: string | null
+          id: string
+          second_day: string | null
+          source_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          exam_date?: string | null
+          id?: string
+          second_day?: string | null
+          source_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          exam_date?: string | null
+          id?: string
+          second_day?: string | null
+          source_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       enem_essays: {
         Row: {
           c1: number
@@ -362,6 +386,21 @@ export type Database = {
         }
         Relationships: []
       }
+      study_activity_days: {
+        Row: {
+          day: string
+          user_id: string
+        }
+        Insert: {
+          day: string
+          user_id: string
+        }
+        Update: {
+          day?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       study_materials: {
         Row: {
           bullets: Json
@@ -407,6 +446,176 @@ export type Database = {
           step_status?: Json
           title?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      study_plans: {
+        Row: {
+          generated_at: string
+          id: string
+          insights: Json
+          summary: string
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          generated_at?: string
+          id?: string
+          insights?: Json
+          summary?: string
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          generated_at?: string
+          id?: string
+          insights?: Json
+          summary?: string
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
+      study_sessions: {
+        Row: {
+          actual_minutes: number
+          completed_at: string | null
+          correct: number
+          date: string
+          duration: number
+          format: string
+          id: string
+          plan_id: string
+          start_minutes: number
+          started_at: string | null
+          status: string
+          topic_id: string
+          total: number
+          type: string
+          user_id: string
+        }
+        Insert: {
+          actual_minutes?: number
+          completed_at?: string | null
+          correct?: number
+          date: string
+          duration: number
+          format?: string
+          id?: string
+          plan_id: string
+          start_minutes: number
+          started_at?: string | null
+          status?: string
+          topic_id: string
+          total?: number
+          type: string
+          user_id: string
+        }
+        Update: {
+          actual_minutes?: number
+          completed_at?: string | null
+          correct?: number
+          date?: string
+          duration?: number
+          format?: string
+          id?: string
+          plan_id?: string
+          start_minutes?: number
+          started_at?: string | null
+          status?: string
+          topic_id?: string
+          total?: number
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_sessions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "study_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "study_sessions_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      topic_mastery: {
+        Row: {
+          accuracy: number | null
+          last_reviewed: string | null
+          mastery: number
+          next_review: string | null
+          review_stage: number
+          topic_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accuracy?: number | null
+          last_reviewed?: string | null
+          mastery?: number
+          next_review?: string | null
+          review_stage?: number
+          topic_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accuracy?: number | null
+          last_reviewed?: string | null
+          mastery?: number
+          next_review?: string | null
+          review_stage?: number
+          topic_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topic_mastery_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      topics: {
+        Row: {
+          active: boolean
+          area: string
+          estimated_minutes: number
+          exam_weight: number
+          id: string
+          language: string | null
+          subject: string
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          area: string
+          estimated_minutes?: number
+          exam_weight?: number
+          id: string
+          language?: string | null
+          subject: string
+          title: string
+        }
+        Update: {
+          active?: boolean
+          area?: string
+          estimated_minutes?: number
+          exam_weight?: number
+          id?: string
+          language?: string | null
+          subject?: string
+          title?: string
         }
         Relationships: []
       }

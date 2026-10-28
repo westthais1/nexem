@@ -78,6 +78,13 @@
       "when": 1793203170442,
       "tag": "0010_student_onboarding_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793204093947,
+      "tag": "0011_study_calendar",
+      "breakpoints": true
     }
   ]
 }
