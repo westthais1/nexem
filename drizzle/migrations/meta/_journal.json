@@ -92,6 +92,13 @@
       "when": 1793204213407,
       "tag": "0012_atomic_study_plan_save",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793204265505,
+      "tag": "0013_service_weekly_study_generation",
+      "breakpoints": true
     }
   ]
 }
