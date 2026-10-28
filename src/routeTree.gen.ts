@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CronogramaRouteImport } from './routes/cronograma'
 import { Route as DesafioRouteImport } from './routes/desafio'
 import { Route as EntendaTriRouteImport } from './routes/entenda-tri'
 import { Route as EstatisticasRouteImport } from './routes/estatisticas'
@@ -25,10 +26,16 @@ import { Route as RedacaoRouteImport } from './routes/redacao'
 import { Route as SimuladoRouteImport } from './routes/simulado'
 import { Route as ProvaIndexRouteImport } from './routes/prova.index'
 import { Route as ProvaNomeRouteImport } from './routes/prova.$nome'
+import { Route as ApiPublicJobsStudyWeekRouteImport } from './routes/api/public/jobs/study-week'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CronogramaRoute = CronogramaRouteImport.update({
+  id: '/cronograma',
+  path: '/cronograma',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DesafioRoute = DesafioRouteImport.update({
@@ -106,9 +113,15 @@ const ProvaNomeRoute = ProvaNomeRouteImport.update({
   path: '/prova/$nome',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicJobsStudyWeekRoute = ApiPublicJobsStudyWeekRouteImport.update({
+  id: '/api/public/jobs/study-week',
+  path: '/api/public/jobs/study-week',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cronograma': typeof CronogramaRoute
   '/desafio': typeof DesafioRoute
   '/entenda-tri': typeof EntendaTriRoute
   '/estatisticas': typeof EstatisticasRoute
@@ -124,9 +137,11 @@ export interface FileRoutesByFullPath {
   '/simulado': typeof SimuladoRoute
   '/prova/$nome': typeof ProvaNomeRoute
   '/prova/': typeof ProvaIndexRoute
+  '/api/public/jobs/study-week': typeof ApiPublicJobsStudyWeekRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cronograma': typeof CronogramaRoute
   '/desafio': typeof DesafioRoute
   '/entenda-tri': typeof EntendaTriRoute
   '/estatisticas': typeof EstatisticasRoute
@@ -142,10 +157,12 @@ export interface FileRoutesByTo {
   '/simulado': typeof SimuladoRoute
   '/prova/$nome': typeof ProvaNomeRoute
   '/prova': typeof ProvaIndexRoute
+  '/api/public/jobs/study-week': typeof ApiPublicJobsStudyWeekRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cronograma': typeof CronogramaRoute
   '/desafio': typeof DesafioRoute
   '/entenda-tri': typeof EntendaTriRoute
   '/estatisticas': typeof EstatisticasRoute
@@ -161,11 +178,13 @@ export interface FileRoutesById {
   '/simulado': typeof SimuladoRoute
   '/prova/$nome': typeof ProvaNomeRoute
   '/prova/': typeof ProvaIndexRoute
+  '/api/public/jobs/study-week': typeof ApiPublicJobsStudyWeekRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/cronograma'
     | '/desafio'
     | '/entenda-tri'
     | '/estatisticas'
@@ -181,9 +200,11 @@ export interface FileRouteTypes {
     | '/simulado'
     | '/prova/$nome'
     | '/prova/'
+    | '/api/public/jobs/study-week'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/cronograma'
     | '/desafio'
     | '/entenda-tri'
     | '/estatisticas'
@@ -199,9 +220,11 @@ export interface FileRouteTypes {
     | '/simulado'
     | '/prova/$nome'
     | '/prova'
+    | '/api/public/jobs/study-week'
   id:
     | '__root__'
     | '/'
+    | '/cronograma'
     | '/desafio'
     | '/entenda-tri'
     | '/estatisticas'
@@ -217,10 +240,12 @@ export interface FileRouteTypes {
     | '/simulado'
     | '/prova/$nome'
     | '/prova/'
+    | '/api/public/jobs/study-week'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CronogramaRoute: typeof CronogramaRoute
   DesafioRoute: typeof DesafioRoute
   EntendaTriRoute: typeof EntendaTriRoute
   EstatisticasRoute: typeof EstatisticasRoute
@@ -236,6 +261,7 @@ export interface RootRouteChildren {
   SimuladoRoute: typeof SimuladoRoute
   ProvaNomeRoute: typeof ProvaNomeRoute
   ProvaIndexRoute: typeof ProvaIndexRoute
+  ApiPublicJobsStudyWeekRoute: typeof ApiPublicJobsStudyWeekRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -245,6 +271,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cronograma': {
+      id: '/cronograma'
+      path: '/cronograma'
+      fullPath: '/cronograma'
+      preLoaderRoute: typeof CronogramaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/desafio': {
@@ -352,11 +385,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProvaNomeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/jobs/study-week': {
+      id: '/api/public/jobs/study-week'
+      path: '/api/public/jobs/study-week'
+      fullPath: '/api/public/jobs/study-week'
+      preLoaderRoute: typeof ApiPublicJobsStudyWeekRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CronogramaRoute: CronogramaRoute,
   DesafioRoute: DesafioRoute,
   EntendaTriRoute: EntendaTriRoute,
   EstatisticasRoute: EstatisticasRoute,
@@ -372,6 +413,7 @@ const rootRouteChildren: RootRouteChildren = {
   SimuladoRoute: SimuladoRoute,
   ProvaNomeRoute: ProvaNomeRoute,
   ProvaIndexRoute: ProvaIndexRoute,
+  ApiPublicJobsStudyWeekRoute: ApiPublicJobsStudyWeekRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
