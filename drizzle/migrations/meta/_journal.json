@@ -78,6 +78,27 @@
       "when": 1793203170442,
       "tag": "0010_student_onboarding_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793204093947,
+      "tag": "0011_study_calendar",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793204213407,
+      "tag": "0012_atomic_study_plan_save",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793204265505,
+      "tag": "0013_service_weekly_study_generation",
+      "breakpoints": true
     }
   ]
 }

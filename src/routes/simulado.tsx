@@ -36,6 +36,7 @@ import {
 } from "@/lib/mastery";
 
 export const Route = createFileRoute("/simulado")({
+  validateSearch: (search: Record<string, unknown>) => ({ subject: typeof search['subject'] === 'string' ? search['subject'] : '' }),
   head: () => ({
     meta: [
       { title: "Níveis de Maestria — Treine com Nex | Nexem" },
@@ -136,6 +137,7 @@ type View =
   | { kind: "bloco"; subject: Subject; level: MasteryLevel };
 
 function MaestriaPage() {
+  const { subject: scheduledSubject } = Route.useSearch();
   const { isPremium, isLoading, openUpgrade } = useSubscription();
   const getPool = useServerFn(getPremiumQuestionPool);
   const poolQuery = useQuery({ queryKey: [TABLE, "maestria", isPremium], queryFn: async () => await getPool() as QuestionRow[], enabled: isPremium });
@@ -145,7 +147,10 @@ function MaestriaPage() {
     queryFn: fetchMasteryProgress,
   });
 
-  const [view, setView] = useState<View>({ kind: "materias" });
+  const [view, setView] = useState<View>(() => {
+    const subject = subjectOf(scheduledSubject, null);
+    return subject ? { kind: 'niveis', subject } : { kind: 'materias' };
+  });
 
   const pool = useMemo(() => poolQuery.data ?? [], [poolQuery.data]);
   const progress = progressQuery.data ?? null;
