@@ -36,7 +36,7 @@ import {
 } from "@/lib/mastery";
 
 export const Route = createFileRoute("/simulado")({
-  validateSearch: (search: Record<string, unknown>): { subject?: string } => ({ subject: typeof search['subject'] === 'string' ? search['subject'] : undefined }),
+  validateSearch: (search: Record<string, unknown>): { subject?: string | undefined } => ({ subject: typeof search['subject'] === 'string' ? search['subject'] : undefined }),
   head: () => ({
     meta: [
       { title: "Níveis de Maestria — Treine com Nex | Nexem" },
@@ -137,7 +137,7 @@ type View =
   | { kind: "bloco"; subject: Subject; level: MasteryLevel };
 
 function MaestriaPage() {
-  const { subject: scheduledSubject } = Route.useSearch();
+  const scheduledSubject = Route.useSearch().subject ?? '';
   const { isPremium, isLoading, openUpgrade } = useSubscription();
   const getPool = useServerFn(getPremiumQuestionPool);
   const poolQuery = useQuery({ queryKey: [TABLE, "maestria", isPremium], queryFn: async () => await getPool() as QuestionRow[], enabled: isPremium });
