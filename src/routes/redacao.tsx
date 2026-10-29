@@ -450,9 +450,9 @@ function RedacaoPage() {
                     Nota atribuída pelo Professor Claude
                   </p>
                   {feedback.comentario && (
-                    <p className="mt-3 text-sm leading-relaxed text-foreground/90">
-                      {feedback.comentario}
-                    </p>
+                    <div className="mt-3 max-h-[28rem] overflow-y-auto whitespace-pre-wrap rounded-xl bg-muted/40 p-3 text-sm leading-relaxed text-foreground/90">
+                      {feedback.comentario.replace(/^##\s*/gm, "")}
+                    </div>
                   )}
                   <div className="mt-5 space-y-3">
                     {COMPETENCIAS.map((row) => (
