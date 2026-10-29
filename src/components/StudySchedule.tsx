@@ -223,7 +223,7 @@ export function StudySchedule() {
 
                 <Link
                   to="/simulado"
-                  search={{ area: today.materia_principal, dificuldade: difficultyLabel }}
+                  search={{ subject: today.materia_principal }}
                   className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-[0_0_28px_-6px_var(--neon)]"
                 >
                   {difficulty === "dificil" ? (

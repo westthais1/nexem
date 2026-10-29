@@ -36,7 +36,7 @@ import {
 } from "@/lib/mastery";
 
 export const Route = createFileRoute("/simulado")({
-  validateSearch: (search: Record<string, unknown>) => ({ subject: typeof search['subject'] === 'string' ? search['subject'] : '' }),
+  validateSearch: (search: Record<string, unknown>): { subject?: string } => ({ subject: typeof search['subject'] === 'string' ? search['subject'] : undefined }),
   head: () => ({
     meta: [
       { title: "Níveis de Maestria — Treine com Nex | Nexem" },
