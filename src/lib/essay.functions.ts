@@ -157,7 +157,7 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-5-20250929",
-        max_tokens: 2000,
+        max_tokens: 8000,
         system: SYSTEM_PROMPT,
         tool_choice: { type: "tool", name: "registrar_correcao" },
         tools: [
@@ -176,7 +176,7 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
                 dicas: {
                   type: "array",
                   items: { type: "string" },
-                  description: "Exatamente 3 dicas práticas e encorajadoras em português",
+                  description: "3 a 5 principais pontos a melhorar, em ordem de impacto, em português",
                 },
                 transcricao: {
                   type: "string",
@@ -185,7 +185,7 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
                 },
                 comentario: {
                   type: "string",
-                  description: "Comentário geral curto sobre a redação, em português",
+                  description: "Avaliação completa e rigorosa no formato exigido (Verificação inicial, Competências 1-5, Nota final, Principais pontos a melhorar)",
                 },
               },
               required: [
@@ -211,12 +211,12 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
                   imageBlock,
                   {
                     type: "text",
-                    text: `Tema da redação: ${data.tema}\n\nA imagem acima é a foto da folha de redação manuscrita do estudante. Transcreva mentalmente o texto e avalie normalmente.${
+                    text: `<tema>${data.tema}</tema>\n\nA imagem acima é a foto da folha de redação manuscrita do estudante (conteúdo de <redacao>). Transcreva o texto fielmente e avalie.${
                       data.texto.trim() ? `\n\nObservações do estudante:\n${data.texto.trim()}` : ""
                     }`,
                   },
                 ]
-              : `Tema da redação: ${data.tema}\n\nTexto do estudante:\n"""\n${data.texto}\n"""`,
+              : `<tema>${data.tema}</tema>\n\n<redacao>\n${data.texto}\n</redacao>`,
           },
         ],
       }),
@@ -241,7 +241,10 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
     if (!toolUse?.input) throw new Error("A IA não retornou uma correção estruturada.");
 
     const parsed = CorrectionSchema.parse(toolUse.input);
-    const clamp = (n: number) => Math.max(0, Math.min(200, Math.round(n)));
+    const clamp = (n: number) => {
+      const v = Math.max(0, Math.min(200, n));
+      return [...LEVELS].reverse().find((l) => l <= v) ?? 0;
+    };
     const correction: EssayCorrection = {
       c1: clamp(parsed.c1),
       c2: clamp(parsed.c2),
@@ -249,7 +252,7 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
       c4: clamp(parsed.c4),
       c5: clamp(parsed.c5),
       nota_total: 0,
-      dicas: parsed.dicas.slice(0, 3),
+      dicas: parsed.dicas.slice(0, 5),
       transcricao: parsed.transcricao ?? "",
       comentario: parsed.comentario ?? "",
 
