@@ -86,6 +86,8 @@ Registre a correção com a ferramenta registrar_correcao. As notas c1..c5 devem
 ## Principais pontos a melhorar
 (Os 3 a 5 ajustes que mais aumentariam a nota, em ordem de impacto.)
 
+Se houver fuga total ao tema (ou outro caso de nota zero), preencha "fuga_tema" = true e "motivo_zero" com a explicação, atribua 0 em todas as competências e NÃO avalie as competências: no "comentario" explique apenas por que a nota é zero.
+
 No campo "dicas", liste os mesmos 3 a 5 principais pontos a melhorar, em ordem de impacto.`;
 
 const LEVELS = [0, 40, 80, 120, 160, 200];
@@ -110,6 +112,8 @@ const CorrectionSchema = z.object({
     .pipe(z.array(z.string()).min(1)),
   transcricao: z.string().optional().default(""),
   comentario: z.string().optional().default(""),
+  fuga_tema: z.boolean().optional().default(false),
+  motivo_zero: z.string().optional().default(""),
 });
 
 export type EssayCorrection = {
@@ -183,6 +187,14 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
                   description:
                     "Transcrição completa e fiel do texto manuscrito lido na imagem, para o aluno conferir",
                 },
+                fuga_tema: {
+                  type: "boolean",
+                  description: "true se houver fuga total ao tema ou outro caso de nota zero",
+                },
+                motivo_zero: {
+                  type: "string",
+                  description: "Explicação do motivo da nota zero (vazio se não houver)",
+                },
                 comentario: {
                   type: "string",
                   description: "Avaliação completa e rigorosa no formato exigido (Verificação inicial, Competências 1-5, Nota final, Principais pontos a melhorar)",
@@ -198,6 +210,7 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
                 "dicas",
                 "transcricao",
                 "comentario",
+                "fuga_tema",
               ],
 
             },
@@ -257,6 +270,11 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
       comentario: parsed.comentario ?? "",
 
     };
+    if (parsed.fuga_tema) {
+      correction.c1 = correction.c2 = correction.c3 = correction.c4 = correction.c5 = 0;
+      correction.comentario = `Nota zero: ${parsed.motivo_zero || "fuga total ao tema."}\n\nA redação não foi avaliada nas competências porque, pelos critérios do INEP, a fuga total ao tema zera a nota. Avaliação estimada segundo os critérios públicos do INEP.`;
+      correction.dicas = ["Leia o tema com atenção e responda exatamente ao recorte proposto antes de escrever."];
+    }
     correction.nota_total =
       correction.c1 + correction.c2 + correction.c3 + correction.c4 + correction.c5;
 
