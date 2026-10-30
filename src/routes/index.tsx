@@ -6,7 +6,6 @@ import { MASTERY_QUERY_KEY, fetchMasteryProgress } from "@/lib/mastery-progress"
 import { useSubscription } from '@/hooks/use-subscription';
 import { Button } from '@/components/ui/button';
 import { Lock } from 'lucide-react';
-import { StudyCalendar } from '@/components/StudyCalendar';
 
 
 export const Route = createFileRoute("/")({
@@ -35,7 +34,6 @@ function DashboardPage() {
       <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8 md:px-10 md:py-12">
         <HeroBanner />
         <DailyChallengeCard />
-        <StudyCalendar compact />
         <DailyFoxPath className="mt-8" />
         <TutorNexCard />
         <QuickActions />
