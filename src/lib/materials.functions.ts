@@ -46,10 +46,10 @@ export const processMaterial = createServerFn({ method: "POST" })
 
     const part =
       data.materialId || data.kind === "text"
-        ? { type: "input_text", text: `Material (${data.fileName}):\n\n${source.slice(0, 120_000)}` }
+        ? { type: "text", text: `Material (${data.fileName}):\n\n${source.slice(0, 120_000)}` }
         : data.kind === "pdf"
-          ? { type: "input_file", filename: data.fileName, file_data: `data:application/pdf;base64,${data.content}` }
-          : { type: "input_image", image_url: `data:${data.mimeType};base64,${data.content}` };
+          ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: data.content } }
+          : { type: "image", source: { type: "base64", media_type: data.mimeType || "image/png", data: data.content } };
 
     const S = (props: Record<string, unknown>) => ({ type: "object", additionalProperties: false, required: Object.keys(props), properties: props });
     const strArr = { type: "array", items: { type: "string" } };
@@ -61,17 +61,16 @@ export const processMaterial = createServerFn({ method: "POST" })
       path: { type: "array", items: S({ title: { type: "string" }, subject: { type: "string" }, level: { type: "integer" }, final: { type: "boolean" }, description: { type: "string" }, minutes: { type: "integer" }, concepts: strArr, format: { type: "string" }, questions: { type: "array", items: S({ prompt: { type: "string" }, options: strArr, answer: { type: "integer" }, explanation: { type: "string" } }) } }) },
     });
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/messages", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Lovable-API-Key": apiKey, "X-Lovable-AIG-SDK": "fetch" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}`, "X-Lovable-AIG-SDK": "fetch" },
       body: JSON.stringify({
-        model: "openai/gpt-6-astra",
+        model: "anthropic/claude-sonnet-5",
+        max_tokens: 32000,
         stream: true,
-        store: false,
-        reasoning: { effort: "low" },
-        instructions: SYSTEM,
-        text: { format: { type: "json_schema", name: "study_material", strict: true, schema } },
-        input: [{ role: "user", content: [{ type: "input_text", text: "Gere o material de estudo para este arquivo." }, part] }],
+        system: SYSTEM,
+        output_config: { effort: "low", format: { type: "json_schema", schema } },
+        messages: [{ role: "user", content: [part, { type: "text", text: "Gere o material de estudo para este arquivo." }] }],
       }),
     });
     if (!res.ok || !res.body) {
@@ -95,11 +94,12 @@ export const processMaterial = createServerFn({ method: "POST" })
       for (const line of lines) {
         if (!line.startsWith("data:")) continue;
         const payload = line.slice(5).trim();
-        if (!payload || payload === "[DONE]") continue;
+        if (!payload) continue;
         try {
-          const ev = JSON.parse(payload) as { type?: string; delta?: string; response?: { error?: { message?: string } } };
-          if (ev.type === "response.output_text.delta" && ev.delta) output += ev.delta;
-          if (ev.type === "response.failed" || ev.type === "error") throw new Error("A IA não conseguiu processar este arquivo.");
+          const ev = JSON.parse(payload) as { type?: string; delta?: { type?: string; text?: string; stop_reason?: string } };
+          if (ev.type === "content_block_delta" && ev.delta?.type === "text_delta" && ev.delta.text) output += ev.delta.text;
+          if (ev.type === "message_delta" && ev.delta?.stop_reason === "refusal") throw new Error("A IA recusou processar este arquivo.");
+          if (ev.type === "error") throw new Error("A IA não conseguiu processar este arquivo.");
         } catch (e) {
           if (e instanceof Error && e.message.startsWith("A IA")) throw e;
         }
