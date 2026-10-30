@@ -146,7 +146,6 @@ const NAV_ITEMS = [
   { to: "/full-simulado", label: "Prova Completa", icon: SimuladoIcon },
   { to: "/redacao", label: "Redação Inteligente", icon: RedacaoIcon },
   { to: "/materiais", label: "Meus Materiais", icon: SimuladoIcon },
-  { to: "/cronograma", label: "Cronograma de Estudos", icon: EstatisticasIcon },
   { to: "/estatisticas", label: "Estatísticas", icon: EstatisticasIcon },
   { to: "/raio-x", label: "Entenda como funciona o ENEM\n", icon: EstatisticasIcon },
 ] as const;
