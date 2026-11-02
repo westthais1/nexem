@@ -50,7 +50,7 @@ export function SnakePath({ nodes, className }: { nodes: SnakeNode[]; className?
               className={cn(
                 "relative flex h-[72px] w-[72px] items-center justify-center rounded-full border-b-[6px] transition-all duration-200 [&_svg]:size-7",
                 n.state === "done" && "border-accent/60 bg-accent text-accent-foreground hover:-translate-y-1 hover:brightness-110",
-                n.state === "active" && "border-primary/60 bg-primary text-primary-foreground ring-4 ring-primary/30 motion-safe:animate-pulse hover:-translate-y-1 hover:scale-105 hover:animate-none active:translate-y-0.5 active:border-b-2",
+                n.state === "active" && "border-primary/60 bg-primary text-primary-foreground ring-4 ring-primary/30 node-ring hover:-translate-y-1 hover:scale-105 hover:animate-none active:translate-y-0.5 active:border-b-2",
                 n.state === "locked" && "cursor-not-allowed border-border bg-secondary text-muted-foreground",
               )}
             >
