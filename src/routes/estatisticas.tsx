@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { TriSimulator } from "@/components/TriSimulator";
 
@@ -17,10 +17,10 @@ export const Route = createFileRoute("/estatisticas")({
 });
 
 const AREAS = [
-  { name: "Matemática", pct: 82, color: "from-primary to-accent" },
-  { name: "Ciências da Natureza", pct: 74, color: "from-accent to-primary" },
-  { name: "Linguagens & Códigos", pct: 88, color: "from-primary to-accent" },
-  { name: "Ciências Humanas", pct: 69, color: "from-accent to-primary" },
+  { name: "Matemática", pct: 82, subject: "álgebra", color: "from-primary to-accent" },
+  { name: "Ciências da Natureza", pct: 74, subject: "biologia", color: "from-accent to-primary" },
+  { name: "Linguagens & Códigos", pct: 88, subject: "leitura", color: "from-primary to-accent" },
+  { name: "Ciências Humanas", pct: 69, subject: "história", color: "from-accent to-primary" },
 ] as const;
 
 function EstatisticasPage() {
@@ -58,7 +58,16 @@ function EstatisticasPage() {
               <div key={area.name}>
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium text-foreground">{area.name}</span>
-                  <span className="text-muted-foreground">{area.pct}%</span>
+                  <span className="flex items-center gap-3">
+                    <span className="text-muted-foreground">{area.pct}%</span>
+                    <Link
+                      to="/simulado"
+                      search={{ subject: area.subject }}
+                      className="rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-foreground transition-colors hover:border-primary"
+                    >
+                      Treinar este assunto
+                    </Link>
+                  </span>
                 </div>
                 <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-secondary">
                   <div className={`h-full rounded-full bg-gradient-to-r ${area.color}`} style={{ width: `${area.pct}%` }} />
