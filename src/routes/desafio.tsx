@@ -8,7 +8,7 @@ import { TutorChat } from '@/components/TutorChat';
 import { Button } from '@/components/ui/button';
 
 import { registrarTentativa } from "@/lib/attempts.functions";
-import { awardXp, XP_REWARDS } from "@/lib/xp";
+import { awardXp, readXpState, XP_REWARDS } from "@/lib/xp";
 import { useXp } from "@/hooks/use-xp";
 import { DailyFoxQuestion } from "@/components/DailyFoxQuestion";
 import {
@@ -244,13 +244,8 @@ function DesafioPage() {
     const baseTracks = session.thetas ?? defaultTracks();
     const novosTracks = applyVelocity(baseTracks, session.answers);
     const hoje = todayKey();
-    const ontem = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
-    const streak =
-      progress.lastPlayedDate === hoje
-        ? progress.streakCounter
-        : progress.lastPlayedDate === ontem
-          ? progress.streakCounter + 1
-          : 1;
+    // Sequência única: a mesma usada por todas as atividades (XP).
+    const streak = Math.max(1, readXpState().streak);
     const proximo: UserProgress = {
       tracks: novosTracks,
       streakCounter: streak,
