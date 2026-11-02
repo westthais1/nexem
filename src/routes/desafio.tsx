@@ -370,7 +370,18 @@ function DesafioPage() {
                 </span>
               </div>
 
-              <DailyFoxQuestion text={current.enunciado} />
+              <DailyFoxQuestion
+                text={current.enunciado}
+                mood={
+                  confirmed
+                    ? selected === current.resposta_correta?.trim().toUpperCase()
+                      ? "celebrating"
+                      : "encouraging"
+                    : selected
+                      ? "thinking"
+                      : "talking"
+                }
+              />
 
               {current.imagem_url && (
                 <div className="mt-5 flex justify-center">
