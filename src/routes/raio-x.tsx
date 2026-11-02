@@ -72,6 +72,13 @@ function MateriaCard({ materia }: { materia: Materia }) {
                 />
               </div>
               {t.nota ? <p className="mt-1 text-[11px] text-primary">{t.nota}</p> : null}
+              <Link
+                to="/simulado"
+                search={{ subject: `${t.nome} ${materia.nome}` }}
+                className="mt-1.5 inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-foreground transition-colors hover:border-primary"
+              >
+                Treinar este assunto →
+              </Link>
             </li>
           );
         })}
@@ -156,6 +163,13 @@ function RaioXPage() {
               <span className="shrink-0 text-sm font-semibold text-foreground">
                 ~{Math.round(peso(t))}%
               </span>
+              <Link
+                to="/simulado"
+                search={{ subject: `${t.nome} ${t.materia}` }}
+                className="shrink-0 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-foreground transition-colors hover:border-primary"
+              >
+                Treinar
+              </Link>
             </li>
           ))}
         </ol>
