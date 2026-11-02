@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Lock, Trophy } from "lucide-react";
@@ -7,6 +8,7 @@ import foxAsset from "@/assets/daily/fox.png.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { BOXES_PER_LEVEL, PATH_LEVELS, PATH_TOTAL, levelOf } from "@/lib/daily-path";
 import { cn } from "@/lib/utils";
+import { LevelUpCelebration } from "@/components/LevelUpCelebration";
 
 export const PATH_QUERY_KEY = ["daily_path_progress"];
 
@@ -41,6 +43,14 @@ export function DailyFoxPath({ className }: { className?: string }) {
   const proximo = nivel < PATH_LEVELS.length - 1 ? PATH_LEVELS[nivel + 1] : null;
   const faltam = BOXES_PER_LEVEL - noNivel;
   const concluido = box >= PATH_TOTAL;
+  const [festa, setFesta] = useState(false);
+  useEffect(() => {
+    if (!nivelCompleto) return;
+    const key = `nexem-levelup-${box}`;
+    if (window.localStorage.getItem(key)) return;
+    window.localStorage.setItem(key, "1");
+    setFesta(true);
+  }, [nivelCompleto, box]);
 
   return (
     <section className={cn("rounded-2xl border border-border bg-card p-6 card-glow", className)}>
@@ -75,7 +85,7 @@ export function DailyFoxPath({ className }: { className?: string }) {
             title: ultimo ? "Fim do nível" : `Caixa ${bi + 1}`,
             subtitle: feito ? "Concluída" : atual ? "Fazer o Desafio Diário" : "Bloqueada",
             state: feito ? "done" : atual ? "active" : "locked",
-            icon: ultimo ? <Trophy /> : <img src={foxAsset.url} alt="" className={cn("h-12 w-12 object-contain", pulouHoje && "fox-jump")} />,
+            icon: ultimo ? <Trophy /> : <img src={foxAsset.url} alt="" className={cn("h-12 w-12 object-contain", pulouHoje ? "fox-jump" : "fox-idle")} />,
             onClick: () => navigate({ to: "/desafio" }),
           };
         })}
@@ -94,6 +104,7 @@ export function DailyFoxPath({ className }: { className?: string }) {
           </>
         ) : null}
       </p>
+      <LevelUpCelebration open={festa} level={PATH_LEVELS[nivel] ?? "Novo nível"} onClose={() => setFesta(false)} />
     </section>
   );
 }

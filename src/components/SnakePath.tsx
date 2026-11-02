@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Check, Lock, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ConfettiBurst } from "@/components/LevelUpCelebration";
 
 export type SnakeNode = {
   key: string | number;
@@ -50,7 +51,7 @@ export function SnakePath({ nodes, className }: { nodes: SnakeNode[]; className?
               className={cn(
                 "relative flex h-[72px] w-[72px] items-center justify-center rounded-full border-b-[6px] transition-all duration-200 [&_svg]:size-7",
                 n.state === "done" && "border-accent/60 bg-accent text-accent-foreground hover:-translate-y-1 hover:brightness-110",
-                n.state === "active" && "border-primary/60 bg-primary text-primary-foreground ring-4 ring-primary/30 motion-safe:animate-pulse hover:-translate-y-1 hover:scale-105 hover:animate-none active:translate-y-0.5 active:border-b-2",
+                n.state === "active" && "border-primary/60 bg-primary text-primary-foreground ring-4 ring-primary/30 node-ring hover:-translate-y-1 hover:scale-105 hover:animate-none active:translate-y-0.5 active:border-b-2",
                 n.state === "locked" && "cursor-not-allowed border-border bg-secondary text-muted-foreground",
               )}
             >
@@ -72,15 +73,7 @@ export function RewardModal({ open, xp, title, onClose }: { open: boolean; xp: n
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        {Array.from({ length: 36 }).map((_, i) => (
-          <span
-            key={i}
-            className="confetti-piece absolute top-0 h-3 w-2 rounded-sm"
-            style={{ left: `${(i * 37) % 100}%`, animationDelay: `${(i % 9) * 0.12}s`, background: i % 3 === 0 ? "var(--primary)" : i % 3 === 1 ? "var(--accent)" : "var(--chart-4, var(--primary))" }}
-          />
-        ))}
-      </div>
+      <ConfettiBurst />
       <div role="dialog" aria-modal className="relative w-full max-w-sm animate-scale-in rounded-3xl border border-border bg-card p-8 text-center shadow-xl" onClick={(e) => e.stopPropagation()}>
         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary text-primary-foreground"><Star className="h-10 w-10 fill-current" /></div>
         <h2 className="mt-4 font-display text-2xl font-bold">Desafio concluído!</h2>

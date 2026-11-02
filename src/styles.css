@@ -350,3 +350,25 @@
 .fox-sparkles i:nth-child(4) { background: var(--accent); --dx: -20px; --dy: -50px; animation-delay: .3s; }
 @keyframes fox-spark { 0% { transform: translate(0,0) scale(.4); opacity: 1; } 100% { transform: translate(var(--dx,30px), var(--dy,-45px)) scale(1); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .fox-anim, .fox-think, .fox-sparkles i { animation: none !important; } }
+
+/* Gamificação: confete subindo, subida de nível e raposa na trilha */
+@keyframes confetti-up {
+  0% { transform: translate(0, 10vh) rotate(0); opacity: 1; }
+  55% { opacity: 1; }
+  100% { transform: translate(var(--dx, 0), -110vh) rotate(var(--rot, 720deg)); opacity: 0; }
+}
+.confetti-up { animation: confetti-up 2.6s cubic-bezier(.15,.7,.4,1) forwards; }
+@keyframes levelup-pop { 0% { transform: scale(.4) rotate(-6deg); opacity: 0; } 60% { transform: scale(1.08) rotate(2deg); opacity: 1; } 100% { transform: scale(1) rotate(0); } }
+.levelup-pop { animation: levelup-pop .7s cubic-bezier(.3,1.6,.5,1) both; }
+@keyframes levelup-crown { 0%,100% { transform: translateY(0) rotate(-8deg); } 50% { transform: translateY(-8px) rotate(8deg); } }
+.levelup-crown { animation: levelup-crown 1.2s ease-in-out infinite; }
+.levelup-rays { background: radial-gradient(circle, color-mix(in oklch, var(--primary) 45%, transparent), transparent 70%); animation: fox-bubble 1.6s ease-in-out infinite; }
+@keyframes fox-party { 0%,100% { transform: translateY(0) rotate(0) scale(1); } 20% { transform: translateY(4px) scale(1.1,.88); } 45% { transform: translateY(-30px) rotate(-10deg) scale(.95,1.08); } 70% { transform: translateY(-12px) rotate(10deg); } }
+.fox-party { animation: fox-party 1s cubic-bezier(.3,1.4,.5,1) infinite; }
+@keyframes fox-idle { 0%,100% { transform: translateY(0) rotate(0); } 25% { transform: translateY(-6px) rotate(-4deg); } 50% { transform: translateY(0) scale(1.04,.97); } 75% { transform: translateY(-4px) rotate(4deg); } }
+.fox-idle { animation: fox-idle 2.2s ease-in-out infinite; transform-origin: bottom center; }
+@keyframes node-ring { 0% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--primary) 60%, transparent); } 100% { box-shadow: 0 0 0 18px transparent; } }
+.node-ring { animation: node-ring 1.4s ease-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .confetti-up, .levelup-pop, .levelup-crown, .fox-party, .fox-idle, .node-ring { animation: none; }
+}
