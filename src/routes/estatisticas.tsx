@@ -110,6 +110,66 @@ function EstatisticasPage() {
           )}
         </section>
 
+        <section className="mt-6 grid gap-6 lg:grid-cols-2">
+          <div className="rounded-2xl border border-border bg-card p-6 card-glow">
+            <h2 className="text-lg font-semibold text-foreground">Última nota por área</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Da sua prova completa mais recente em cada área.</p>
+            {d && Object.keys(d.ultimaPorArea).length === 0 ? (
+              <p className="mt-5 text-sm text-muted-foreground">
+                Termine uma Prova Completa para ver sua nota em cada área.
+              </p>
+            ) : (
+              <ul className="mt-5 space-y-3">
+                {(["linguagens", "humanas", "natureza", "matematica"] as const).map((k) => {
+                  const v = d?.ultimaPorArea[k];
+                  return (
+                    <li key={k} className="flex items-center justify-between rounded-xl border border-border bg-background/40 px-4 py-3 text-sm">
+                      <span className="font-medium text-foreground">{AREA_INFO[k].name}</span>
+                      <span className="text-muted-foreground">
+                        {v ? <><span className="font-semibold text-foreground">{fmt(v.nota)}</span> · {v.acertos}/{v.total}</> : "—"}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-6 card-glow">
+            <h2 className="text-lg font-semibold text-foreground">Redação por competência</h2>
+            {d && !d.competencias ? (
+              <p className="mt-5 text-sm text-muted-foreground">Corrija sua primeira redação para ver a média por competência.</p>
+            ) : (
+              <>
+                <ul className="mt-5 space-y-3">
+                  {(["c1", "c2", "c3", "c4", "c5"] as const).map((k, i) => {
+                    const v = d?.competencias?.[k] ?? 0;
+                    return (
+                      <li key={k}>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-foreground">Competência {i + 1}</span>
+                          <span className="text-muted-foreground">{v}/200</span>
+                        </div>
+                        <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-secondary">
+                          <div className="h-full rounded-full bg-gradient-to-r from-primary to-accent" style={{ width: `${(v / 200) * 100}%` }} />
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <p className="mt-6 text-xs font-medium uppercase tracking-wider text-muted-foreground">Nota das redações ao longo do tempo</p>
+                <div className="mt-3 flex items-end gap-2" style={{ height: "96px" }}>
+                  {(d?.redacoesSerie ?? []).map((r, i) => (
+                    <div key={i} className="flex flex-1 flex-col items-center justify-end" title={`${new Date(r.data).toLocaleDateString("pt-BR")}: ${r.nota}`} style={{ height: "100%" }}>
+                      <div className="w-full max-w-[28px] rounded-t-md bg-gradient-to-t from-accent/40 to-accent" style={{ height: `${Math.max(4, (r.nota / 1000) * 100)}%` }} />
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+
         <section className="mt-6 rounded-2xl border border-border bg-card p-6 card-glow">
           <h2 className="text-lg font-semibold text-foreground">Evolução semanal</h2>
           <p className="mt-1 text-sm text-muted-foreground">Nota TRI estimada ao fim de cada um dos últimos 7 dias.</p>
