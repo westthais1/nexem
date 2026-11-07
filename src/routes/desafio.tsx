@@ -7,8 +7,7 @@ import { Loader2, Flame, Sparkles } from "lucide-react";
 import { TutorChat } from '@/components/TutorChat';
 import { Button } from '@/components/ui/button';
 
-import { registrarTentativa } from "@/lib/attempts.functions";
-import { awardXp, readXpState, XP_REWARDS } from "@/lib/xp";
+import { awardXp, XP_REWARDS } from "@/lib/xp";
 import { useXp } from "@/hooks/use-xp";
 import { DailyFoxQuestion } from "@/components/DailyFoxQuestion";
 import {
@@ -195,13 +194,15 @@ function DesafioPage() {
     writeSession(next);
     setSession(next);
 
-    void registrarTentativa({
-      data: {
+    void awardXp("questao", {
+      amount: 0,
+      label: "Questão do Desafio Diário",
+      attempts: [{
         question_id: String(current.id),
         dificuldade_questao: String(dificuldade),
         materia_questao: current.materia ?? current.area_conhecimento ?? null,
         foi_correto: correto,
-      },
+      }],
     }).catch((e) => console.error("[Desafio] Falha ao registrar tentativa", e));
 
     // Trava permanente: a questão nunca mais aparece em sessões futuras.

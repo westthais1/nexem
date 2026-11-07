@@ -8,8 +8,7 @@ import { useServerFn } from '@tanstack/react-start';
 import { getPremiumQuestionPool } from '@/lib/subscription.functions';
 import { useSubscription } from '@/hooks/use-subscription';
 import { Button } from '@/components/ui/button';
-import { registrarTentativa } from "@/lib/attempts.functions";
-import { awardXp } from "@/lib/xp";
+import { awardXp, XP_REWARDS } from "@/lib/xp";
 import { pushHistory, readHistory } from "@/lib/daily-challenge";
 import { fetchProgress, saveProgress, TRACK_LABEL, type UserProgress } from "@/lib/progress";
 import {
@@ -480,16 +479,17 @@ function BlockSession({
     if (correto) {
       setFlash(true);
       window.setTimeout(() => setFlash(false), 900);
-      awardXp("questao");
     }
 
-    void registrarTentativa({
-      data: {
+    void awardXp("questao", {
+      amount: correto ? XP_REWARDS.questao : 0,
+      subject: subject.label,
+      attempts: [{
         question_id: String(current.id),
         dificuldade_questao: String(dificuldade),
         materia_questao: subject.label,
         foi_correto: correto,
-      },
+      }],
     }).catch((e) => console.error("[Maestria] Falha ao registrar tentativa", e));
 
     if (todas.length >= questions.length) void finalizar(todas);
