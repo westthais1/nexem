@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { EXAM_DURATION_SECONDS, fetchExamQuestions, formatClock, type ExamQuestion } from "@/lib/exams";
 import { registrarProva } from "@/lib/exam.functions";
 import { XP_REWARDS, awardXp } from "@/lib/xp";
+import { trackOf, type TrackKey } from "@/lib/progress";
 
 export const Route = createFileRoute("/prova/$nome")({
   head: ({ params }) => ({
@@ -73,6 +74,15 @@ function ProvaRunnerPage() {
       ).length;
       const total = questions.length;
       const nota = total > 0 ? Math.round((acertos / total) * 1000) : 0;
+      const porArea: Partial<Record<TrackKey, { acertos: number; total: number; nota: number }>> = {};
+      for (const q of questions) {
+        const t = trackOf(q.area_conhecimento);
+        if (!t) continue;
+        const cur = (porArea[t] ??= { acertos: 0, total: 0, nota: 0 });
+        cur.total += 1;
+        if (answers[String(q.id)] === q.resposta_correta?.trim().toUpperCase()) cur.acertos += 1;
+      }
+      for (const v of Object.values(porArea)) if (v) v.nota = v.total > 0 ? Math.round((v.acertos / v.total) * 1000) : 0;
 
       awardXp("provaCompleta", { label: `Prova Completa · ${nome}` });
 
@@ -85,6 +95,7 @@ function ProvaRunnerPage() {
           nota,
           tempo_gasto_segundos: EXAM_DURATION_SECONDS - remaining,
           finalizado_por_tempo: timeout,
+          por_area: porArea,
         },
       }).catch((e) => console.error("[Prova] Falha ao registrar prova", e));
     },
