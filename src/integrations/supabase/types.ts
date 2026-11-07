@@ -121,6 +121,7 @@ export type Database = {
           id: string
           nome_prova: string
           nota: number
+          por_area: Json | null
           respostas: Json
           tempo_gasto_segundos: number
           total_questoes: number
@@ -133,6 +134,7 @@ export type Database = {
           id?: string
           nome_prova: string
           nota: number
+          por_area?: Json | null
           respostas?: Json
           tempo_gasto_segundos?: number
           total_questoes: number
@@ -145,6 +147,7 @@ export type Database = {
           id?: string
           nome_prova?: string
           nota?: number
+          por_area?: Json | null
           respostas?: Json
           tempo_gasto_segundos?: number
           total_questoes?: number
@@ -344,6 +347,75 @@ export type Database = {
         }
         Relationships: []
       }
+      student_activity_events: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          label: string | null
+          subject: string | null
+          user_id: string
+          xp: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          label?: string | null
+          subject?: string | null
+          user_id: string
+          xp?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          label?: string | null
+          subject?: string | null
+          user_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
+      student_area_progress: {
+        Row: {
+          created_at: string
+          last_played_date: string | null
+          source: string
+          theta_humanas: number
+          theta_linguagens: number
+          theta_matematica: number
+          theta_natureza: number
+          tri_consistency_rate: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          last_played_date?: string | null
+          source?: string
+          theta_humanas?: number
+          theta_linguagens?: number
+          theta_matematica?: number
+          theta_natureza?: number
+          tri_consistency_rate?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          last_played_date?: string | null
+          source?: string
+          theta_humanas?: number
+          theta_linguagens?: number
+          theta_matematica?: number
+          theta_natureza?: number
+          tri_consistency_rate?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       student_profiles: {
         Row: {
           answers: Json
@@ -381,6 +453,39 @@ export type Database = {
           schedule?: Json | null
           schedule_needs_regeneration?: boolean
           summary_confirmed_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      student_xp: {
+        Row: {
+          best_streak: number
+          browser_imported_at: string | null
+          last_active_day: string | null
+          last_activity: string | null
+          streak: number
+          total_xp: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          best_streak?: number
+          browser_imported_at?: string | null
+          last_active_day?: string | null
+          last_activity?: string | null
+          streak?: number
+          total_xp?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          best_streak?: number
+          browser_imported_at?: string | null
+          last_active_day?: string | null
+          last_activity?: string | null
+          streak?: number
+          total_xp?: number
           updated_at?: string
           user_id?: string
         }
@@ -662,6 +767,58 @@ export type Database = {
         }[]
       }
       has_nexem_premium: { Args: never; Returns: boolean }
+      import_browser_xp: {
+        Args: {
+          p_best: number
+          p_days: string[]
+          p_last_activity: string
+          p_last_day: string
+          p_streak: number
+          p_total: number
+          p_user: string
+        }
+        Returns: {
+          best_streak: number
+          browser_imported_at: string | null
+          last_active_day: string | null
+          last_activity: string | null
+          streak: number
+          total_xp: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "student_xp"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      record_activity: {
+        Args: {
+          p_kind: string
+          p_label: string
+          p_subject: string
+          p_user: string
+          p_xp: number
+        }
+        Returns: {
+          best_streak: number
+          browser_imported_at: string | null
+          last_active_day: string | null
+          last_activity: string | null
+          streak: number
+          total_xp: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "student_xp"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       reserve_nexem_tutor_consultation: {
         Args: { p_request_id: string }
         Returns: boolean
