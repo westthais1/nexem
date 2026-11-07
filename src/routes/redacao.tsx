@@ -148,7 +148,7 @@ function RedacaoPage() {
       if (upErr) throw upErr;
       const { data: signed, error: signErr } = await supabase.storage
         .from("redacao-fotos")
-        .createSignedUrl(path, 3600);
+        .createSignedUrl(path, 600);
       if (signErr) throw signErr;
       setImagePath(path);
       setPreviewUrl(signed?.signedUrl ?? null);

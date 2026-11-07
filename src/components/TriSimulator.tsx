@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, CheckCircle2, Loader2, TrendingUp } from "lucide-react";
 import {
   CartesianGrid,
@@ -17,9 +18,10 @@ function pct(b: TriBucket) {
 }
 
 export function TriSimulator() {
+  const triFn = useServerFn(getTriEstimate);
   const { data, isPending, error } = useQuery({
     queryKey: ["tri-estimate"],
-    queryFn: () => getTriEstimate(),
+    queryFn: () => triFn(),
     retry: false,
   });
 

@@ -80,6 +80,8 @@ function normalize(v: string | null | undefined): string {
 
 /** Descobre a matéria de uma questão a partir de `materia` (e da área como reserva). */
 export function subjectOf(materia: string | null, area: string | null): Subject | null {
+  const bySlug = materia ? SUBJECT_BY_SLUG.get(materia) : undefined;
+  if (bySlug) return bySlug;
   const m = normalize(materia);
   if (m) {
     const hit = SUBJECTS.find((s) => s.match.some((k) => m.includes(k)));

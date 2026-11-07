@@ -141,10 +141,15 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
       | { type: "image"; source: { type: "url"; url: string } }
       | null = null;
     if (data.imagem_path) {
+      const { getOptionalUserId } = await import("./auth-user.server");
+      const owner = await getOptionalUserId();
+      if (!owner) throw new Error("Entre na sua conta para corrigir a foto da redação.");
+      if (!data.imagem_path.startsWith(`${owner}/`) || data.imagem_path.includes(".."))
+        throw new Error("Esta foto não pertence à sua conta.");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { data: signed, error } = await supabaseAdmin.storage
         .from("redacao-fotos")
-        .createSignedUrl(data.imagem_path, 60 * 30);
+        .createSignedUrl(data.imagem_path, 60 * 10);
       if (error || !signed?.signedUrl)
         throw new Error("Não foi possível ler a foto da redação enviada.");
       imageBlock = { type: "image", source: { type: "url", url: signed.signedUrl } };
