@@ -154,8 +154,8 @@ export const getXpState = createServerFn({ method: "POST" })
         p_total: b.totalXp,
         p_streak: b.streak,
         p_best: b.bestStreak,
-        p_last_day: b.lastActiveDay ?? undefined,
-        p_last_activity: b.lastActivity ?? undefined,
+        p_last_day: b.lastActiveDay as string,
+        p_last_activity: b.lastActivity as string,
         p_days: b.history,
       });
       if (!error) return snapshot(supabase, userId, imported as XpRow);
