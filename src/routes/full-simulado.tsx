@@ -349,6 +349,10 @@ function ExamRoom({
           nota,
           tempo_gasto_segundos: tempo,
           finalizado_por_tempo: porTempo,
+          por_area: {
+            [a]: { acertos: resultado[a].acertos, total: resultado[a].total, nota: resultado[a].nota },
+            [b]: { acertos: resultado[b].acertos, total: resultado[b].total, nota: resultado[b].nota },
+          },
         },
       }).catch((e) => console.error("[Prova Completa] Falha ao salvar", e));
       window.scrollTo({ top: 0, behavior: "smooth" });

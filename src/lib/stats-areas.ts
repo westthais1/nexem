@@ -21,3 +21,12 @@ export function areaOfMateria(materia: string | null): AreaKey | null {
   if (/linguag|portugu|ingles|espanhol|literat|artes|educacao fisica|redac/.test(m)) return "linguagens";
   return null;
 }
+
+/** Nome de matéria usado no resto do app (Tutor Nex/Estatísticas) para um assunto livre. */
+export function canonicalSubjectName(raw: string | null | undefined): string | null {
+  const s = subjectOf(raw ?? null, null);
+  if (s) return s.label;
+  const area = areaOfMateria(raw ?? null);
+  if (area) return AREA_INFO[area].name;
+  return raw?.trim() || null;
+}

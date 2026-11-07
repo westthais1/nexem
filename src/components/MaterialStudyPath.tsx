@@ -8,6 +8,7 @@ import { gradeMaterialQuiz, hasAchievementPath, isStepUnlocked, LEVEL_REQUIRED_C
 import type { PathStep } from "@/lib/materials";
 import { cn } from "@/lib/utils";
 import { awardXp } from "@/lib/xp";
+import { canonicalSubjectName } from "@/lib/stats-areas";
 import { RewardModal, SnakePath, type SnakeNode } from "@/components/SnakePath";
 
 const MATERIAL_XP = 30;
@@ -42,10 +43,20 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
     try {
       await onSave({ ...m.step_status, [active]: attempt.passed ? "done" : statusOf(m.step_status[active]) === "done" ? "done" : "doing", [`quiz:${active}`]: attempt });
       setResult(attempt);
-      if (attempt.passed && statusOf(m.step_status[active]) !== "done") {
-        awardXp("questao", { amount: MATERIAL_XP, label: `Trilha: ${current.title}` });
-        setReward(current.title);
-      }
+      const firstPass = attempt.passed && statusOf(m.step_status[active]) !== "done";
+      const materia = canonicalSubjectName(current.subject) ?? "Conteúdo do material";
+      void awardXp("materialEtapa", {
+        amount: firstPass ? MATERIAL_XP : 0,
+        label: `Trilha: ${current.title}`,
+        subject: materia,
+        attempts: questions.map((q, i) => ({
+          question_id: `material:${m.id}:${active}:${i}`,
+          dificuldade_questao: current.final ? "Dificil" : current.level === 1 ? "Facil" : current.level === 3 ? "Dificil" : "Media",
+          materia_questao: materia,
+          foi_correto: attempt.answers[i] === q.answer,
+        })),
+      });
+      if (firstPass) setReward(current.title);
     } catch { setError("Não conseguimos salvar o resultado. Tente novamente."); }
     finally { setBusy(false); }
   }

@@ -10,6 +10,12 @@ const examAttemptSchema = z.object({
   nota: z.number().int().min(0),
   tempo_gasto_segundos: z.number().int().min(0),
   finalizado_por_tempo: z.boolean(),
+  por_area: z
+    .record(
+      z.enum(["matematica", "natureza", "linguagens", "humanas"]),
+      z.object({ acertos: z.number().int().min(0), total: z.number().int().min(0), nota: z.number().int().min(0).max(1000) }),
+    )
+    .optional(),
 });
 
 /** Salva o resultado de uma prova completa, separado das tentativas de treino. */
@@ -29,6 +35,7 @@ export const registrarProva = createServerFn({ method: "POST" })
       nota: data.nota,
       tempo_gasto_segundos: data.tempo_gasto_segundos,
       finalizado_por_tempo: data.finalizado_por_tempo,
+      por_area: data.por_area ?? null,
     });
 
     if (error) {

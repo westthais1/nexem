@@ -13,6 +13,11 @@ export type StudentStats = {
   ultimaProva: { nome: string; nota: number; acertos: number; total: number; data: string } | null;
   diasDeEstudo: number;
   notaAlvo: number | null;
+  /** Última nota por área (somente provas salvas com detalhe por área). */
+  ultimaPorArea: Partial<Record<AreaKey, { nota: number; acertos: number; total: number; data: string }>>;
+  competencias: { c1: number; c2: number; c3: number; c4: number; c5: number } | null;
+  redacoesSerie: { data: string; nota: number }[];
+  xp: { totalXp: number; streak: number; bestStreak: number };
 };
 
 const AREA_KEYS: AreaKey[] = ["matematica", "natureza", "linguagens", "humanas"];
@@ -21,13 +26,14 @@ export const getStudentStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<StudentStats> => {
     const { supabase, userId } = context;
-    const [attempts, essays, exams, days, sp, prof] = await Promise.all([
+    const [attempts, essays, exams, days, sp, prof, xpRow] = await Promise.all([
       supabase.from("enem_user_attempts").select("materia_questao,foi_correto,created_at").eq("user_id", userId),
-      supabase.from("enem_essays").select("nota_total,created_at").eq("user_id", userId),
-      supabase.from("enem_exam_attempts").select("nome_prova,nota,acertos,total_questoes,created_at").eq("user_id", userId).order("created_at", { ascending: false }),
+      supabase.from("enem_essays").select("nota_total,c1,c2,c3,c4,c5,created_at").eq("user_id", userId).order("created_at", { ascending: true }),
+      supabase.from("enem_exam_attempts").select("nome_prova,nota,acertos,total_questoes,created_at,por_area").eq("user_id", userId).order("created_at", { ascending: false }),
       supabase.from("study_activity_days").select("day").eq("user_id", userId),
       supabase.from("student_profiles").select("answers").eq("user_id", userId).maybeSingle(),
       supabase.from("profiles").select("target_score").eq("id", userId).maybeSingle(),
+      supabase.from("student_xp").select("total_xp,streak,best_streak,last_active_day").eq("user_id", userId).maybeSingle(),
     ]);
     const err = attempts.error ?? essays.error ?? exams.error;
     if (err) throw new Error("Não foi possível carregar suas estatísticas.");
@@ -52,6 +58,20 @@ export const getStudentStats = createServerFn({ method: "GET" })
     const alvo = typeof answers["targetScore"] === "number" ? (answers["targetScore"] as number) : prof.data?.target_score ?? null;
     const last = ex[0];
 
+    const ultimaPorArea: StudentStats["ultimaPorArea"] = {};
+    for (const e of ex) {
+      const pa = e.por_area as Record<string, { nota: number; acertos: number; total: number }> | null;
+      if (!pa) continue;
+      for (const k of AREA_KEYS) {
+        const v = pa[k];
+        if (v && !ultimaPorArea[k]) ultimaPorArea[k] = { nota: v.nota, acertos: v.acertos, total: v.total, data: e.created_at };
+      }
+    }
+    const avg = (k: "c1" | "c2" | "c3" | "c4" | "c5") => Math.round(es.reduce((s, e) => s + (e[k] ?? 0), 0) / es.length);
+    const yesterday = new Date(Date.now() - 86_400_000).toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+    const x = xpRow.data;
+    const alive = !!x?.last_active_day && x.last_active_day >= yesterday;
+
     return {
       questoesResolvidas: att.length,
       areas,
@@ -61,5 +81,9 @@ export const getStudentStats = createServerFn({ method: "GET" })
       ultimaProva: last ? { nome: last.nome_prova, nota: last.nota, acertos: last.acertos, total: last.total_questoes, data: last.created_at } : null,
       diasDeEstudo: daySet.size,
       notaAlvo: alvo,
+      ultimaPorArea,
+      competencias: es.length ? { c1: avg("c1"), c2: avg("c2"), c3: avg("c3"), c4: avg("c4"), c5: avg("c5") } : null,
+      redacoesSerie: es.slice(-12).map((e) => ({ data: e.created_at, nota: e.nota_total })),
+      xp: { totalXp: x?.total_xp ?? 0, streak: alive ? x?.streak ?? 0 : 0, bestStreak: x?.best_streak ?? 0 },
     };
   });

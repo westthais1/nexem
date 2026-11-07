@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { EMPTY_XP, XP_EVENT, levelInfo, readXpState, stageForLevel, type XpState } from "@/lib/xp";
+import { EMPTY_XP, XP_EVENT, levelInfo, readXpState, stageForLevel, syncXpFromAccount, type XpState } from "@/lib/xp";
 
 const EMPTY: XpState = EMPTY_XP;
 
@@ -12,6 +12,7 @@ export function useXp() {
   useEffect(() => {
     setState(readXpState());
     setHydrated(true);
+    void syncXpFromAccount();
     const onChange = (e: Event) => setState((e as CustomEvent<XpState>).detail);
     const onStorage = () => setState(readXpState());
     window.addEventListener(XP_EVENT, onChange);
