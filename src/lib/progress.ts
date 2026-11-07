@@ -1,11 +1,10 @@
 /**
- * Progresso contínuo de proficiência por área (tabela public.nexem_user_progress).
+ * Progresso contínuo de proficiência por área (tabela public.student_area_progress, na conta do estudante).
  * Guarda os "thetas" de cada trilha para que o Desafio Diário continue de onde parou.
  */
 
-import { questionsSupabase } from "@/lib/external-supabase";
-import { fetchStudentProfile } from './student-profile';
-import { refinedLevels } from './student-onboarding';
+import { ensureAreaProgress } from "./area-progress.functions";
+import { recordActivity } from "./activity.functions";
 
 export const MASTERY_TARGET = 85;
 export const DEFAULT_TRACK_THETA = 50;
@@ -24,7 +23,6 @@ export const TRACK_LABEL: Record<TrackKey, string> = {
 
 export type UserProgress = {
   tracks: Tracks;
-  streakCounter: number;
   lastPlayedDate: string | null;
   triConsistencyRate: number;
 };
@@ -49,7 +47,6 @@ export function defaultTracks(): Tracks {
 export function defaultProgress(): UserProgress {
   return {
     tracks: defaultTracks(),
-    streakCounter: 0,
     lastPlayedDate: null,
     triConsistencyRate: 100,
   };
@@ -71,31 +68,13 @@ export function deviceUserId(): string {
 
 /**
  * Após o login: passa a usar o id da conta como identificador e garante que
- * exista uma linha de proficiência inicial para o estudante.
+ * exista uma linha de proficiência para o estudante.
  * Retorna true quando a linha acabou de ser criada (estudante novo).
  */
 export async function ensureProgressForUser(userId: string): Promise<boolean> {
   if (typeof window !== "undefined") window.localStorage.setItem(USER_KEY, userId);
-
-  const { data } = await questionsSupabase
-    .from("nexem_user_progress")
-    .select("user_id")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (data) return false;
-
-  const base = defaultProgress();
-  await questionsSupabase.from("nexem_user_progress").insert({
-    user_id: userId,
-    theta_matematica: base.tracks.matematica,
-    theta_linguagens: base.tracks.linguagens,
-    theta_humanas: base.tracks.humanas,
-    theta_natureza: base.tracks.natureza,
-    streak_counter: 0,
-    tri_consistency_rate: 100,
-  });
-  return true;
+  const res = await ensureAreaProgress();
+  return res.created;
 }
 
 /** Área do banco -> trilha. */
@@ -130,86 +109,25 @@ function cacheProgress(p: UserProgress) {
   window.dispatchEvent(new CustomEvent<UserProgress>(PROGRESS_EVENT, { detail: p }));
 }
 
-type Row = {
-  user_id: string;
-  theta_matematica: number | null;
-  theta_linguagens: number | null;
-  theta_humanas: number | null;
-  theta_natureza: number | null;
-  streak_counter: number | null;
-  last_played_date: string | null;
-  tri_consistency_rate: number | null;
-};
-
-function rowToProgress(row: Row): UserProgress {
-  return {
-    tracks: {
-      matematica: clampTheta(Number(row.theta_matematica) || DEFAULT_TRACK_THETA),
-      linguagens: clampTheta(Number(row.theta_linguagens) || DEFAULT_TRACK_THETA),
-      humanas: clampTheta(Number(row.theta_humanas) || DEFAULT_TRACK_THETA),
-      natureza: clampTheta(Number(row.theta_natureza) || DEFAULT_TRACK_THETA),
-    },
-    streakCounter: Number(row.streak_counter) || 0,
-    lastPlayedDate: row.last_played_date,
-    triConsistencyRate: Number(row.tri_consistency_rate ?? 100),
-  };
-}
-
-/** Lê a linha do estudante; cria uma com os valores padrão quando ainda não existe. */
+/** Lê os níveis por área salvos na conta (cria a linha na primeira vez). */
 export async function fetchProgress(): Promise<UserProgress> {
-  const userId = deviceUserId();
-  const student = await fetchStudentProfile(userId);
-  const initial = defaultProgress();
-  if (student.completed) {
-    const levels = refinedLevels(student.answers);
-    initial.tracks = Object.fromEntries(TRACKS.map(t => [t, 20 + (levels[t] - 1) * 15])) as Tracks;
-  }
-  const { data, error } = await questionsSupabase
-    .from("nexem_user_progress")
-    .select("*")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (error) throw new Error(`Erro ao carregar seu progresso: ${error.message}`);
-
-  if (!data) {
-    const base = initial;
-    await questionsSupabase.from("nexem_user_progress").insert({
-      user_id: userId,
-      theta_matematica: base.tracks.matematica,
-      theta_linguagens: base.tracks.linguagens,
-      theta_humanas: base.tracks.humanas,
-      theta_natureza: base.tracks.natureza,
-      streak_counter: 0,
-      tri_consistency_rate: 100,
-    });
-    cacheProgress(base);
-    return base;
-  }
-
-  const progress = rowToProgress(data as Row);
-  // Onboarding is an initial estimate only; completed challenges remain authoritative.
-  if (!progress.lastPlayedDate && student.completed) progress.tracks = initial.tracks;
+  const res = await ensureAreaProgress();
+  const progress: UserProgress = {
+    tracks: res.tracks,
+    lastPlayedDate: res.lastPlayedDate,
+    triConsistencyRate: res.triConsistencyRate,
+  };
   cacheProgress(progress);
   return progress;
 }
 
-/** Grava os novos níveis de proficiência para o desafio de amanhã. */
+/** Grava os novos níveis por área (via registro único de atividades). */
 export async function saveProgress(next: UserProgress): Promise<void> {
-  const userId = deviceUserId();
-  const { error } = await questionsSupabase.from("nexem_user_progress").upsert(
-    {
-      user_id: userId,
-      theta_matematica: next.tracks.matematica,
-      theta_linguagens: next.tracks.linguagens,
-      theta_humanas: next.tracks.humanas,
-      theta_natureza: next.tracks.natureza,
-      streak_counter: next.streakCounter,
-      last_played_date: next.lastPlayedDate,
-      tri_consistency_rate: next.triConsistencyRate,
-    },
-    { onConflict: "user_id" },
-  );
-  if (error) throw new Error(`Erro ao salvar seu progresso: ${error.message}`);
+  await recordActivity({ data: { kind: "blocoMaestria", xp: 0, progress: next } });
+  cacheProgress(next);
+}
+
+/** Atualiza o cache local quando outra parte do app já salvou o progresso. */
+export function setCachedProgress(next: UserProgress) {
   cacheProgress(next);
 }
