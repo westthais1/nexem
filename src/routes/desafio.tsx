@@ -40,7 +40,7 @@ import {
   defaultTracks,
   deviceUserId,
   fetchProgress,
-  saveProgress,
+  setCachedProgress,
   trackOf,
   type UserProgress,
 } from "@/lib/progress";
@@ -233,33 +233,30 @@ function DesafioPage() {
   useEffect(() => {
     if (!session || !done || session.rewarded || !resultado) return;
     const base = XP_REWARDS.desafioDiario;
-    awardXp("desafioDiario", {
-      amount: resultado.consistente ? base * 2 : base,
-      label: resultado.consistente
-        ? "Desafio Diário — ótimo desempenho"
-        : "Desafio Diário Nexem",
-    });
     writeTheta(resultado.novoTheta);
 
     // Calibração contínua: grava os novos níveis por trilha para o desafio de amanhã.
     const baseTracks = session.thetas ?? defaultTracks();
     const novosTracks = applyVelocity(baseTracks, session.answers);
     const hoje = todayKey();
-    // Sequência única: a mesma usada por todas as atividades (XP).
-    const streak = Math.max(1, readXpState().streak);
     const proximo: UserProgress = {
       tracks: novosTracks,
-      streakCounter: streak,
       lastPlayedDate: hoje,
       triConsistencyRate: resultado.taxaConsistencia,
     };
     setSavedTracks(novosTracks);
     // Anti-repetição: as questões do dia não voltam em sessões futuras.
     pushHistory(session.questionIds);
-    void saveProgress(proximo)
-      .then(() => progressQuery.refetch())
+    // Registro único: XP, sequência, dia de estudo e níveis por área na mesma chamada.
+    void awardXp("desafioDiario", {
+      amount: resultado.consistente ? base * 2 : base,
+      label: resultado.consistente
+        ? "Desafio Diário — ótimo desempenho"
+        : "Desafio Diário Nexem",
+      progress: proximo,
+    })
+      .then(() => { setCachedProgress(proximo); return progressQuery.refetch(); })
       .catch((e) => console.error("[Desafio] Falha ao salvar proficiência", e));
-
 
     void supabase
       .rpc("advance_daily_path", { p_acertos: resultado.acertos, p_day: hoje })
