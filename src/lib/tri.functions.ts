@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 type Attempt = {
   question_id: string;
@@ -77,15 +78,13 @@ function calcularNota(attempts: Attempt[]) {
   return { faceis, medias, dificeis, nota, status };
 }
 
-export const getTriEstimate = createServerFn({ method: "GET" }).handler(async (): Promise<TriResult> => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-  const desde = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000);
-  desde.setUTCHours(0, 0, 0, 0);
-
-  const { data, error } = await supabaseAdmin
+export const getTriEstimate = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<TriResult> => {
+  const { data, error } = await context.supabase
     .from("enem_user_attempts")
     .select("question_id,dificuldade_questao,materia_questao,foi_correto,created_at")
+    .eq("user_id", context.userId)
     .order("created_at", { ascending: true });
 
   if (error) throw new Error(`Erro ao ler o histórico de tentativas: ${error.message}`);

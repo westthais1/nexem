@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const attemptSchema = z.object({
   question_id: z.union([z.string(), z.number()]).transform((v) => String(v)),
@@ -9,14 +10,11 @@ const attemptSchema = z.object({
 });
 
 export const registrarTentativa = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => attemptSchema.parse(input))
-  .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { getOptionalUserId } = await import("./auth-user.server");
-    const userId = await getOptionalUserId();
-
-    const { error } = await supabaseAdmin.from("enem_user_attempts").insert({
-      user_id: userId,
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("enem_user_attempts").insert({
+      user_id: context.userId,
       question_id: data.question_id,
       dificuldade_questao: data.dificuldade_questao ?? null,
       materia_questao: data.materia_questao ?? null,
@@ -31,25 +29,21 @@ export const registrarTentativa = createServerFn({ method: "POST" })
   });
 
 /** Conta quantas questões o estudante respondeu hoje (missão diária). */
-export const contarTentativasHoje = createServerFn({ method: "GET" }).handler(async () => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { getOptionalUserId } = await import("./auth-user.server");
-  const userId = await getOptionalUserId();
+export const contarTentativasHoje = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
 
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
+    const { count, error } = await context.supabase
+      .from("enem_user_attempts")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", context.userId)
+      .gte("created_at", startOfDay.toISOString());
 
-  let query = supabaseAdmin
-    .from("enem_user_attempts")
-    .select("id", { count: "exact", head: true })
-    .gte("created_at", startOfDay.toISOString());
-  query = userId ? query.eq("user_id", userId) : query.is("user_id", null);
-
-  const { count, error } = await query;
-
-  if (error) {
-    console.error("[Tentativas] Falha ao contar tentativas do dia", error);
-    return { total: 0 };
-  }
-  return { total: count ?? 0 };
-});
+    if (error) {
+      console.error("[Tentativas] Falha ao contar tentativas do dia", error);
+      return { total: 0 };
+    }
+    return { total: count ?? 0 };
+  });
