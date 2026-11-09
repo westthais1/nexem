@@ -9,7 +9,7 @@ export const WEEKDAYS_PT = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Qu
 export function weekdayNamePt(date: Date = new Date()): string {
   const short = date.toLocaleDateString("en-US", { weekday: "short", timeZone: "America/Sao_Paulo" });
   const idx = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(short);
-  return WEEKDAYS_PT[idx < 0 ? 0 : idx];
+  return WEEKDAYS_PT[idx < 0 ? 0 : idx] ?? "Segunda-feira";
 }
 
 export type Tally = { key: string; total: number; acertos: number };

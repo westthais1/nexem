@@ -582,7 +582,7 @@ function Resultado({
         (errar fácil e acertar difícil) são penalizadas. Role para ver o gabarito comentado.
       </p>
       {(() => {
-        const fraca = [...areas].sort((x, y) => resultado[x].nota - resultado[y].nota)[0];
+        const fraca = [...areas].sort((x, y) => resultado[x].nota - resultado[y].nota)[0] ?? areas[0];
         return (
           <div className="mt-4 flex flex-wrap gap-3">
             <Link to="/simulado" search={{ subject: AREA_INFO[fraca].subject }} className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:bg-accent/90">
