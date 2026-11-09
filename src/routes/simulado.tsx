@@ -151,6 +151,7 @@ function MaestriaPage() {
     return subject ? { kind: 'niveis', subject } : { kind: 'materias' };
   });
 
+  const [blockRun, setBlockRun] = useState(0);
   const pool = useMemo(() => poolQuery.data ?? [], [poolQuery.data]);
   const progress = progressQuery.data ?? null;
   const mastery = masteryQuery.data ?? null;
@@ -191,13 +192,14 @@ function MaestriaPage() {
     return (
       <Shell>
         <BlockSession
+          key={blockRun}
           subject={view.subject}
           level={view.level}
           pool={pool}
           progress={progress}
           mastery={mastery}
           onExit={() => setView({ kind: "niveis", subject: view.subject })}
-          onStartLevel={(level) => setView({ kind: "bloco", subject: view.subject, level })}
+          onStartLevel={(level) => { setBlockRun((n) => n + 1); setView({ kind: "bloco", subject: view.subject, level }); }}
           onRefetchProgress={() => {
             void progressQuery.refetch();
             void masteryQuery.refetch();
