@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { AREA_INFO } from "@/lib/stats-areas";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, Clock, Loader2, Lock } from "lucide-react";
 
@@ -244,6 +245,10 @@ function ProvaCompletaPage() {
           {error}
         </div>
       )}
+      <Link to="/prova" className="mb-4 flex items-center justify-between rounded-lg border border-accent/40 bg-accent/5 p-4 text-sm transition-colors hover:border-accent">
+        <span><strong className="text-foreground">Provas anteriores</strong><span className="ml-2 text-muted-foreground">Refaça provas completas de edições passadas do ENEM.</span></span>
+        <span className="font-semibold text-accent">Abrir →</span>
+      </Link>
       <div className="grid gap-4 md:grid-cols-2">
         {([1, 2] as Day[]).map((d) => {
           const cfg = DAY_CONFIG[d];
@@ -576,6 +581,17 @@ function Resultado({
         Na TRI, a nota não é só a contagem de acertos: questões difíceis pesam mais e incoerências
         (errar fácil e acertar difícil) são penalizadas. Role para ver o gabarito comentado.
       </p>
+      {(() => {
+        const fraca = [...areas].sort((x, y) => resultado[x].nota - resultado[y].nota)[0];
+        return (
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link to="/simulado" search={{ subject: AREA_INFO[fraca].subject }} className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:bg-accent/90">
+              Treinar {AREA_INFO[fraca].name}
+            </Link>
+            <Link to="/estatisticas" className="rounded-lg border border-border bg-background/40 px-4 py-2 text-sm font-semibold text-foreground hover:border-primary/40">Ver minhas estatísticas</Link>
+          </div>
+        );
+      })()}
     </section>
   );
 }
@@ -647,6 +663,7 @@ function RedacaoTab({
               <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
                 {fb.dicas.map((d, i) => <li key={i}>{d}</li>)}
               </ul>
+              <Link to="/redacao" hash="historico" className="mt-3 inline-flex text-sm font-semibold text-primary hover:underline">Ver histórico de redações →</Link>
             </div>
           )}
         </div>
