@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, ChevronLeft, Loader2, Lock, Sparkles, Trophy } from "lucide-react";
 
