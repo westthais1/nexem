@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { COMPETENCIA_INFO, weakestCompetencia } from "@/lib/next-steps";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertCircle, Camera, CheckCircle2, Loader2, Sparkles, Trash2 } from "lucide-react";
 import { corrigirRedacao, type EssayCorrection } from "@/lib/essay.functions";
@@ -92,7 +94,70 @@ const COMPETENCIAS: { key: "c1" | "c2" | "c3" | "c4" | "c5"; label: string }[] =
   { key: "c5", label: "C5 · Proposta de intervenção" },
 ];
 
+const ESSAY_HISTORY_KEY = ["enem_essays", "historico"];
+
+type SavedEssay = { id: string; tema: string; nota_total: number; c1: number; c2: number; c3: number; c4: number; c5: number; comentario: string | null; feedback: unknown; created_at: string };
+
+async function fetchEssayHistory(): Promise<SavedEssay[]> {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return [];
+  const { data, error } = await supabase
+    .from("enem_essays")
+    .select("id,tema,nota_total,c1,c2,c3,c4,c5,comentario,feedback,created_at")
+    .eq("user_id", auth.user.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  if (error) throw new Error("Não foi possível carregar seu histórico de redações.");
+  return data as SavedEssay[];
+}
+
+function NextStepsAfterEssay({ fb }: { fb: EssayCorrection }) {
+  const k = weakestCompetencia(fb);
+  const info = COMPETENCIA_INFO[k];
+  const link = "rounded-lg border border-border bg-background/40 px-4 py-2 text-sm font-semibold text-foreground hover:border-primary/40";
+  return (
+    <div className="rounded-2xl border border-accent/40 bg-accent/5 p-6">
+      <p className="text-xs font-semibold uppercase tracking-wide text-accent">Sua competência mais fraca</p>
+      <h3 className="mt-1 text-base font-semibold text-foreground">{info.titulo} · {fb[k]}/200</h3>
+      <p className="mt-1 text-sm text-muted-foreground">{info.explica}</p>
+      <div className="mt-4 flex flex-wrap gap-3">
+        <Link to="/guia-enem" className={link}>Como a redação é corrigida</Link>
+        <Link to="/raio-x" className={link}>Repertório e temas recorrentes</Link>
+        <Link to="/estatisticas" className={link}>Histórico nas Estatísticas</Link>
+      </div>
+    </div>
+  );
+}
+
+function EssayHistory({ onOpen }: { onOpen: (e: SavedEssay) => void }) {
+  const { data, isLoading, isError } = useQuery({ queryKey: ESSAY_HISTORY_KEY, queryFn: fetchEssayHistory });
+  return (
+    <section id="historico" className="mt-10 scroll-mt-20 rounded-2xl border border-border bg-card p-6 card-glow">
+      <h2 className="text-lg font-semibold text-foreground">Suas redações anteriores</h2>
+      {isLoading && <p className="mt-3 text-sm text-muted-foreground">Carregando…</p>}
+      {isError && <p className="mt-3 text-sm text-destructive">Não foi possível carregar seu histórico.</p>}
+      {data && data.length === 0 && <p className="mt-3 text-sm text-muted-foreground">Nenhuma redação corrigida ainda. Sua primeira correção aparecerá aqui.</p>}
+      {data && data.length > 0 && (
+        <ul className="mt-4 divide-y divide-border">
+          {data.map((e) => (
+            <li key={e.id}>
+              <button type="button" onClick={() => onOpen(e)} className="flex w-full items-center justify-between gap-3 py-3 text-left text-sm hover:text-primary">
+                <span className="min-w-0">
+                  <span className="block truncate font-medium text-foreground">{e.tema}</span>
+                  <span className="text-xs text-muted-foreground">{new Date(e.created_at).toLocaleDateString("pt-BR")}</span>
+                </span>
+                <span className="shrink-0 font-semibold text-foreground">{e.nota_total}/1000</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 function RedacaoPage() {
+  const queryClient = useQueryClient();
   const [text, setText] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "done">("idle");
   const [error, setError] = useState<string | null>(null);
@@ -185,6 +250,7 @@ function RedacaoPage() {
       setFeedback(result);
       setStatus("done");
       awardXp("redacao");
+      void queryClient.invalidateQueries({ queryKey: ESSAY_HISTORY_KEY });
     } catch (err) {
       console.error("[Redação] Erro na correção:", err);
       setError(
@@ -483,6 +549,7 @@ function RedacaoPage() {
                     </p>
                   </div>
                 )}
+                <NextStepsAfterEssay fb={feedback} />
                 <div className="rounded-2xl border border-border bg-card p-6 card-glow">
 
                   <h3 className="text-sm font-semibold text-foreground">
@@ -501,6 +568,13 @@ function RedacaoPage() {
 
           </section>
         </div>
+        <EssayHistory
+          onOpen={(e) => {
+            setFeedback({ c1: e.c1, c2: e.c2, c3: e.c3, c4: e.c4, c5: e.c5, nota_total: e.nota_total, comentario: e.comentario ?? "", dicas: Array.isArray(e.feedback) ? (e.feedback as string[]) : [], transcricao: "" });
+            setStatus("done");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+        />
       </div>
     </main>
   );
