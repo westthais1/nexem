@@ -31,12 +31,35 @@ export const askTutor = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
     try {
 
+    // Duas matérias mais fracas do próprio estudante (apenas nomes de matérias, nada pessoal).
+    let fracas: string[] = [];
+    try {
+      const { data: rows } = await context.supabase.from('enem_user_attempts').select('materia_questao,foi_correto').eq('user_id', context.userId).order('created_at', { ascending: false }).limit(500);
+      const { subjectOf } = await import('./mastery');
+      const { pickWeakestN } = await import('./next-steps');
+      const map = new Map<string, { key: string; total: number; acertos: number }>();
+      for (const r of rows ?? []) {
+        const s = subjectOf(r.materia_questao, null);
+        if (!s) continue;
+        const t = map.get(s.label) ?? { key: s.label, total: 0, acertos: 0 };
+        t.total++;
+        if (r.foi_correto) t.acertos++;
+        map.set(s.label, t);
+      }
+      fracas = pickWeakestN([...map.values()].filter((t) => t.total >= 3), 2).map((t) => t.key);
+    } catch (e) {
+      console.error('[Tutor] Falha ao ler matérias fracas', e);
+    }
+
     const system = [
       "Você é o Nex, um tutor socrático para estudantes do ENEM.",
       "NUNCA revele a alternativa correta, nem diga qual letra eliminar como resposta final.",
       "Dê apenas dicas, perguntas orientadoras e lembretes de conceito, um passo por vez.",
       "Se o aluno insistir pela resposta, recuse gentilmente e ofereça mais uma pista.",
       "Responda em português do Brasil, em no máximo 4 frases curtas, tom acolhedor.",
+      fracas.length
+        ? `Matérias em que este estudante mais erra: ${fracas.join(' e ')}. Se a questão depender de um conceito dessas matérias, aponte esse conceito de base na pista (sem revelar a resposta).`
+        : "",
       `Área: ${data.area}`,
       `Questão: ${data.question}`,
       `Alternativas: ${data.options.join(" | ")}`,

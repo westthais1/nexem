@@ -10,6 +10,9 @@ import { Button } from '@/components/ui/button';
 import { awardXp, XP_REWARDS } from "@/lib/xp";
 import { useXp } from "@/hooks/use-xp";
 import { DailyFoxQuestion } from "@/components/DailyFoxQuestion";
+import { subjectOf } from "@/lib/mastery";
+import { AREA_INFO, areaOfMateria } from "@/lib/stats-areas";
+import { pickWeakest } from "@/lib/next-steps";
 import {
   DAILY_TOTAL,
   applyVelocity,
@@ -83,6 +86,28 @@ function optionText(q: DailyQuestion, letter: string): string {
   }
 }
 
+/** Matéria mais fraca e questões erradas do desafio de hoje (somente dados da sessão). */
+function dailyNextSteps(questions: DailyQuestion[], answers: DailySession["answers"]) {
+  const byId = new Map(questions.map((q) => [String(q.id), q]));
+  const tallies = new Map<string, { key: string; slug: string; label: string; total: number; acertos: number }>();
+  const missed: DailyQuestion[] = [];
+  for (const a of answers) {
+    const q = byId.get(a.questionId);
+    if (!q) continue;
+    if (!a.correto) missed.push(q);
+    const s = subjectOf(q.materia, q.area_conhecimento);
+    const area = areaOfMateria(q.materia ?? q.area_conhecimento);
+    const slug = s?.slug ?? (area ? AREA_INFO[area].subject : null);
+    const label = s?.label ?? (area ? AREA_INFO[area].name : null);
+    if (!slug || !label) continue;
+    const t = tallies.get(slug) ?? { key: slug, slug, label, total: 0, acertos: 0 };
+    t.total++;
+    if (a.correto) t.acertos++;
+    tallies.set(slug, t);
+  }
+  return { weakest: pickWeakest([...tallies.values()]), missed };
+}
+
 function DesafioPage() {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["enem_provas", "desafio-diario"],
@@ -107,6 +132,7 @@ function DesafioPage() {
   const [montando, setMontando] = useState(false);
   const [tutorOpen, setTutorOpen] = useState(false);
   const [hintToken, setHintToken] = useState(0);
+  const [reviewQ, setReviewQ] = useState<DailyQuestion | null>(null);
 
   useEffect(() => {
     setSession(readSession());
@@ -570,6 +596,32 @@ function DesafioPage() {
                   com {resultado.errosBasicos} erro(s) em questões fáceis. No ENEM real, a TRI reduz
                   o valor desses acertos.
                 </p>
+              )}
+              {(() => {
+                const ns = dailyNextSteps(questions, session.answers);
+                return (
+                  <div className="mt-6 rounded-xl border border-accent/40 bg-accent/5 p-4">
+                    <p className="text-sm font-semibold text-foreground">Próximos passos</p>
+                    <div className="mt-3 flex flex-wrap gap-3">
+                      {ns.weakest && (
+                        <Link to="/simulado" search={{ subject: ns.weakest.slug }} className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:bg-accent/90">
+                          Treinar {ns.weakest.label}
+                        </Link>
+                      )}
+                      <Link to="/estatisticas" className="rounded-lg border border-border bg-background/40 px-4 py-2 text-sm font-semibold text-foreground hover:border-primary/40">
+                        Ver minhas estatísticas
+                      </Link>
+                      {ns.missed.length > 0 && (
+                        <Button variant="outline" onClick={() => { setReviewQ(ns.missed[0] ?? null); setTutorOpen(true); setHintToken((v) => v + 1); }}>
+                          <Sparkles /> Perguntar ao Tutor sobre uma questão que errei
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+              {reviewQ && (
+                <TutorChat key={`review-${reviewQ.id}`} open={tutorOpen} onOpenChange={setTutorOpen} question={reviewQ.enunciado} options={LETTERS.map((letter) => `${letter}) ${optionText(reviewQ, letter)}`)} area={reviewQ.area_conhecimento ?? 'ENEM'} explicacao={reviewQ.explicacao} hintToken={hintToken} />
               )}
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link

@@ -1,4 +1,5 @@
 import type { ErrorComponentProps } from "@tanstack/react-router";
+import { Home, Flame, GraduationCap, ClipboardList, PenLine, FolderOpen, BarChart3, ScanSearch, UserRound } from "lucide-react";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import {
   Outlet,
@@ -140,14 +141,15 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 const NAV_ITEMS = [
-  { to: "/", label: "Inicio", icon: DashboardIcon },
-  { to: "/desafio", label: "Desafio Diário", icon: SimuladoIcon },
-  { to: "/simulado", label: "Treine com Tutor Nex", icon: SimuladoIcon },
-  { to: "/full-simulado", label: "Prova Completa", icon: SimuladoIcon },
-  { to: "/redacao", label: "Redação Inteligente", icon: RedacaoIcon },
-  { to: "/materiais", label: "Meus Materiais", icon: SimuladoIcon },
-  { to: "/estatisticas", label: "Estatísticas", icon: EstatisticasIcon },
-  { to: "/raio-x", label: "Entenda como funciona o ENEM\n", icon: EstatisticasIcon },
+  { to: "/", label: "Início", icon: Home },
+  { to: "/desafio", label: "Desafio Diário", icon: Flame },
+  { to: "/simulado", label: "Treine com Tutor Nex", icon: GraduationCap },
+  { to: "/full-simulado", label: "Prova Completa", icon: ClipboardList },
+  { to: "/redacao", label: "Redação Inteligente", icon: PenLine },
+  { to: "/materiais", label: "Meus Materiais", icon: FolderOpen },
+  { to: "/estatisticas", label: "Estatísticas", icon: BarChart3 },
+  { to: "/raio-x", label: "Entenda como funciona o ENEM", icon: ScanSearch },
+  { to: "/perfil", label: "Meu perfil e cronograma", icon: UserRound },
 ] as const;
 
 function Sidebar() {
@@ -401,40 +403,3 @@ function Footer() {
   );
 }
 
-/* --- Inline nav icons (stroke, currentColor) --- */
-type IconProps = { className?: string };
-function DashboardIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="9" rx="1.5" />
-      <rect x="14" y="3" width="7" height="5" rx="1.5" />
-      <rect x="14" y="11" width="7" height="10" rx="1.5" />
-      <rect x="3" y="15" width="7" height="6" rx="1.5" />
-    </svg>
-  );
-}
-function SimuladoIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 19V5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" />
-      <path d="M14 3v5h5" />
-      <path d="M9 13h6M9 17h4" />
-    </svg>
-  );
-}
-function RedacaoIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16 3l5 5L8 21l-5 1 1-5L16 3z" />
-      <path d="M14 5l5 5" />
-    </svg>
-  );
-}
-function EstatisticasIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 3v18h18" />
-      <path d="M7 15l4-4 3 3 5-6" />
-    </svg>
-  );
-}

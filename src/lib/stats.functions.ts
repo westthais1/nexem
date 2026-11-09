@@ -87,3 +87,64 @@ export const getStudentStats = createServerFn({ method: "GET" })
       xp: { totalXp: x?.total_xp ?? 0, streak: alive ? x?.streak ?? 0 : 0, bestStreak: x?.best_streak ?? 0 },
     };
   });
+
+export type DashboardData = {
+  schedule: import("./next-steps").PlanDay[] | null;
+  notaAlvo: number | null;
+  desafioFeitoHoje: boolean;
+  ultimaAtividade: { kind: string; label: string | null; subject: string | null; data: string } | null;
+  areaMaisFraca: { key: AreaKey; pct: number; total: number } | null;
+  /** Até duas matérias mais fracas (slug do Treine com Tutor Nex) a partir das tentativas do próprio estudante. */
+  materiasFracas: { slug: string; label: string; pct: number }[];
+  ultimaRedacao: { id: string; tema: string; nota: number; data: string } | null;
+  ultimoMaterial: { id: string; title: string; data: string } | null;
+};
+
+/** Dados reais para os próximos passos (painel, Raio-X, perfil). Somente leitura e do próprio estudante. */
+export const getDashboardData = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<DashboardData> => {
+    const { supabase, userId } = context;
+    const { pickWeakest, pickWeakestN } = await import("./next-steps");
+    const { subjectOf } = await import("./mastery");
+    const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+    const [sp, prof, ev, desafio, att, essay, mat] = await Promise.all([
+      supabase.from("student_profiles").select("answers,schedule").eq("user_id", userId).maybeSingle(),
+      supabase.from("profiles").select("target_score").eq("id", userId).maybeSingle(),
+      supabase.from("student_activity_events").select("kind,label,subject,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(1),
+      supabase.from("student_activity_events").select("created_at").eq("user_id", userId).eq("kind", "desafioDiario").order("created_at", { ascending: false }).limit(1),
+      supabase.from("enem_user_attempts").select("materia_questao,foi_correto").eq("user_id", userId).order("created_at", { ascending: false }).limit(1000),
+      supabase.from("enem_essays").select("id,tema,nota_total,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(1),
+      supabase.from("study_materials").select("id,title,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(1),
+    ]);
+    const answers = (sp.data?.answers ?? {}) as Record<string, unknown>;
+    const lastDesafio = desafio.data?.[0]?.created_at;
+    const rows = att.data ?? [];
+    const areaTallies = AREA_KEYS.map((key) => {
+      const l = rows.filter((a) => areaOfMateria(a.materia_questao) === key);
+      return { key, total: l.length, acertos: l.filter((a) => a.foi_correto).length };
+    });
+    const weakArea = pickWeakest(areaTallies);
+    const bySubject = new Map<string, { key: string; label: string; total: number; acertos: number }>();
+    for (const a of rows) {
+      const s = subjectOf(a.materia_questao, null);
+      if (!s) continue;
+      const t = bySubject.get(s.slug) ?? { key: s.slug, label: s.label, total: 0, acertos: 0 };
+      t.total++;
+      if (a.foi_correto) t.acertos++;
+      bySubject.set(s.slug, t);
+    }
+    const e = essay.data?.[0];
+    const m = mat.data?.[0];
+    const last = ev.data?.[0];
+    return {
+      schedule: (sp.data?.schedule as DashboardData["schedule"]) ?? null,
+      notaAlvo: typeof answers["targetScore"] === "number" ? (answers["targetScore"] as number) : prof.data?.target_score ?? null,
+      desafioFeitoHoje: !!lastDesafio && new Date(lastDesafio).toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" }) === today,
+      ultimaAtividade: last ? { kind: last.kind, label: last.label, subject: last.subject, data: last.created_at } : null,
+      areaMaisFraca: weakArea ? { key: weakArea.key as AreaKey, total: weakArea.total, pct: Math.round((weakArea.acertos / weakArea.total) * 100) } : null,
+      materiasFracas: pickWeakestN([...bySubject.values()], 2).map((s) => ({ slug: s.key, label: s.label, pct: Math.round((s.acertos / s.total) * 100) })),
+      ultimaRedacao: e ? { id: e.id, tema: e.tema, nota: e.nota_total, data: e.created_at } : null,
+      ultimoMaterial: m ? { id: m.id, title: m.title, data: m.created_at } : null,
+    };
+  });

@@ -10,6 +10,24 @@ import {
   peso,
   type Materia,
 } from "@/lib/enem-frequencia";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getDashboardData } from "@/lib/stats.functions";
+import { AREA_INFO, areaOfMateria } from "@/lib/stats-areas";
+import { subjectOf } from "@/lib/mastery";
+
+type Prioridade = { slugs: Set<string>; area: string | null };
+const NO_PRIORITY: Prioridade = { slugs: new Set(), area: null };
+
+function isPriority(p: Prioridade, topico: string, materia: string): boolean {
+  const slug = subjectOf(`${topico} ${materia}`, null)?.slug;
+  if (slug && p.slugs.has(slug)) return true;
+  return p.area !== null && areaOfMateria(materia) === p.area;
+}
+
+function PriorityBadge() {
+  return <span className="ml-2 inline-flex shrink-0 items-center rounded-full border border-accent/50 bg-accent/15 px-2 py-0.5 text-[10px] font-semibold text-accent">Prioridade para você</span>;
+}
 
 export const Route = createFileRoute("/raio-x")({
   component: RaioXPage,
@@ -41,7 +59,7 @@ function barColor(p: number) {
   return "from-muted-foreground/60 to-muted-foreground/30";
 }
 
-function MateriaCard({ materia }: { materia: Materia }) {
+function MateriaCard({ materia, prioridade }: { materia: Materia; prioridade: Prioridade }) {
   const maior = Math.max(...materia.topicos.map(peso));
   return (
     <article className="rounded-2xl border border-border bg-card p-5 card-glow">
@@ -62,7 +80,7 @@ function MateriaCard({ materia }: { materia: Materia }) {
           return (
             <li key={t.nome}>
               <div className="flex items-baseline justify-between gap-3">
-                <p className="min-w-0 text-sm text-foreground">{t.nome}</p>
+                <p className="min-w-0 text-sm text-foreground">{t.nome}{isPriority(prioridade, t.nome, materia.nome) && <PriorityBadge />}</p>
                 <span className="shrink-0 text-xs font-medium text-muted-foreground">{faixa}</span>
               </div>
               <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-secondary">
@@ -90,6 +108,11 @@ function MateriaCard({ materia }: { materia: Materia }) {
 function RaioXPage() {
   const [area, setArea] = useState<(typeof AREAS)[number]>("Todas");
   const materias = area === "Todas" ? MATERIAS : MATERIAS.filter((m) => m.area === area);
+  const dashFn = useServerFn(getDashboardData);
+  const dash = useQuery({ queryKey: ["dashboard-data"], queryFn: () => dashFn(), staleTime: 30_000 });
+  const prioridade: Prioridade = dash.data
+    ? { slugs: new Set(dash.data.materiasFracas.map((m) => m.slug)), area: dash.data.areaMaisFraca?.key ?? null }
+    : NO_PRIORITY;
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 md:px-8">
@@ -104,6 +127,14 @@ function RaioXPage() {
           O que realmente cai na prova, em ordem de peso. Estude de cima para baixo: os primeiros
           itens rendem muito mais ponto por hora do que os últimos.
         </p>
+        {dash.data && (dash.data.materiasFracas.length > 0 || dash.data.areaMaisFraca) && (
+          <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-accent/40 bg-accent/5 p-4 text-sm">
+            <span className="text-foreground">
+              Seus pontos fracos: <strong>{[...dash.data.materiasFracas.map((m) => m.label), ...(dash.data.areaMaisFraca ? [AREA_INFO[dash.data.areaMaisFraca.key].name] : [])].filter((v, i, a) => a.indexOf(v) === i).join(", ")}</strong>. Os assuntos marcados como “Prioridade para você” combinam com eles.
+            </span>
+            <Link to="/estatisticas" className="font-semibold text-primary hover:underline">Ver minhas estatísticas →</Link>
+          </div>
+        )}
       </header>
 
       {/* Como a prova funciona */}
@@ -157,7 +188,7 @@ function RaioXPage() {
                 {i + 1}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-foreground">{t.nome}</p>
+                <p className="truncate text-sm font-medium text-foreground">{t.nome}{isPriority(prioridade, t.nome, t.materia) && <PriorityBadge />}</p>
                 <p className="truncate text-xs text-muted-foreground">{t.materia}</p>
               </div>
               <span className="shrink-0 text-sm font-semibold text-foreground">
@@ -195,7 +226,7 @@ function RaioXPage() {
 
         <div className="mt-5 grid gap-4 lg:grid-cols-2">
           {materias.map((m) => (
-            <MateriaCard key={m.nome} materia={m} />
+            <MateriaCard key={m.nome} materia={m} prioridade={prioridade} />
           ))}
         </div>
       </section>

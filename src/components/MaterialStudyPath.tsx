@@ -8,7 +8,24 @@ import { gradeMaterialQuiz, hasAchievementPath, isStepUnlocked, LEVEL_REQUIRED_C
 import type { PathStep } from "@/lib/materials";
 import { cn } from "@/lib/utils";
 import { awardXp } from "@/lib/xp";
-import { canonicalSubjectName } from "@/lib/stats-areas";
+import { AREA_INFO, areaOfMateria, canonicalSubjectName } from "@/lib/stats-areas";
+import { subjectOf } from "@/lib/mastery";
+import { getStudentStats } from "@/lib/stats.functions";
+import { Link } from "@tanstack/react-router";
+
+/** Slug do Treine com Tutor Nex para um assunto livre do material (mesmos nomes do resto do app). */
+function practiceSlug(raw: string | null | undefined): string | undefined {
+  const s = subjectOf(raw ?? null, null);
+  if (s) return s.slug;
+  const area = areaOfMateria(raw ?? null);
+  return area ? AREA_INFO[area].subject : undefined;
+}
+
+function PracticeLink({ subject }: { subject: string | null | undefined }) {
+  return <Link to="/simulado" search={{ subject: practiceSlug(subject) }} className="inline-flex items-center gap-1 rounded-lg border border-accent/40 bg-accent/5 px-3 py-1.5 text-xs font-semibold text-accent hover:border-accent">Praticar questões deste assunto</Link>;
+}
+
+type Moved = { area: string; before: number | null; after: number | null; total: number };
 import { RewardModal, SnakePath, type SnakeNode } from "@/components/SnakePath";
 
 const MATERIAL_XP = 30;
@@ -22,6 +39,8 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
   const [answers, setAnswers] = useState<number[]>([]);
   const [result, setResult] = useState<QuizAttempt | null>(null);
   const [reward, setReward] = useState<string | null>(null);
+  const [moved, setMoved] = useState<Moved | null>(null);
+  const loadStats = useServerFn(getStudentStats);
   const ready = hasAchievementPath(m.path);
   const done = m.path.filter((_, i) => statusOf(m.step_status[i]) === "done").length;
   const groups = Array.from(new Set(m.path.filter((s) => !s.final).map((s) => s.subject || "Conteúdo do material")));
@@ -45,7 +64,10 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
       setResult(attempt);
       const firstPass = attempt.passed && statusOf(m.step_status[active]) !== "done";
       const materia = canonicalSubjectName(current.subject) ?? "Conteúdo do material";
-      void awardXp("materialEtapa", {
+      const areaKey = areaOfMateria(materia);
+      const before = areaKey ? await loadStats().catch(() => null) : null;
+      setMoved(null);
+      await awardXp("materialEtapa", {
         amount: firstPass ? MATERIAL_XP : 0,
         label: `Trilha: ${current.title}`,
         subject: materia,
@@ -57,6 +79,12 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
         })),
       });
       if (firstPass) setReward(current.title);
+      if (areaKey) {
+        const after = await loadStats().catch(() => null);
+        const a = after?.areas.find((x) => x.key === areaKey);
+        const b = before?.areas.find((x) => x.key === areaKey);
+        if (a) setMoved({ area: AREA_INFO[areaKey].name, before: b?.pct ?? null, after: a.pct, total: a.total });
+      }
     } catch { setError("Não conseguimos salvar o resultado. Tente novamente."); }
     finally { setBusy(false); }
   }
@@ -72,7 +100,7 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
     {error && <p role="alert" className="text-destructive">{error}</p>}
   </section>;
   if (current) return <section className="mx-auto max-w-3xl space-y-6">
-    <div className="flex flex-wrap items-center justify-between gap-3"><Badge variant="secondary">{current.subject} · {current.final ? "Simulado final" : `Nível ${current.level}`}</Badge><Button variant="ghost" onClick={() => setActive(null)}><X />Voltar à trilha</Button></div>
+    <div className="flex flex-wrap items-center justify-between gap-3"><Badge variant="secondary">{current.subject} · {current.final ? "Simulado final" : `Nível ${current.level}`}</Badge><div className="flex flex-wrap gap-2">{!current.final && <PracticeLink subject={current.subject} />}<Button variant="ghost" onClick={() => setActive(null)}><X />Voltar à trilha</Button></div></div>
     <h2 className="font-display text-2xl font-semibold">{current.title}</h2>
     {!result ? <>
       <p className="text-sm text-muted-foreground">{answers.filter((a) => a >= 0).length}/{questions.length} respondidas · {current.final ? `conquista com ${PASS_PERCENT}% de acertos` : `${LEVEL_REQUIRED_CORRECT} acertos liberam o próximo nível`}</p>
@@ -87,6 +115,7 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
     </> : <>
       <div className="flex items-start gap-4 rounded-lg border border-border bg-card p-5">{result.passed ? <Trophy className="h-12 w-12 shrink-0 text-primary" /> : <RefreshCw className="h-12 w-12 shrink-0 text-primary" />}<div><p className="font-display text-3xl font-semibold">{result.score}%</p><p className="text-sm text-muted-foreground">{result.passed ? current.final ? "Material concluído! Conquista final desbloqueada." : "Conquista desbloqueada! Próximo nível liberado." : current.final ? `Você acertou ${correctCount} de ${questions.length}. São necessários ${PASS_PERCENT}% para concluir o material.` : `Você acertou ${correctCount} de ${questions.length}. Bastam ${LEVEL_REQUIRED_CORRECT} acertos para liberar o próximo nível.`}</p>{!result.passed && <p className="mt-1 text-sm text-muted-foreground">Revise as explicações abaixo e tente de novo — você continua aqui, sem perder o progresso.</p>}</div></div>
       {questions.map((q, i) => <article key={i} className="space-y-2 border-b border-border pb-4"><h3 className="font-medium">{i + 1}. {q.prompt}</h3><p className={result.answers[i] === q.answer ? "text-primary" : "text-destructive"}>{result.answers[i] === q.answer ? "Acertou" : "Precisa revisar"} · Sua resposta: {String.fromCharCode(65 + (result.answers[i] ?? 0))}</p><p className="text-sm font-medium">Correta: {String.fromCharCode(65 + q.answer)}. {q.options[q.answer]}</p><p className="text-sm leading-relaxed text-muted-foreground">{q.explanation}</p></article>)}
+      {moved && <div className="rounded-lg border border-accent/40 bg-accent/5 p-4 text-sm"><p className="font-semibold text-foreground">Seu progresso em {moved.area}</p><p className="mt-1 text-muted-foreground">Acertos na área: {moved.before ?? "—"}% → <strong className="text-foreground">{moved.after ?? "—"}%</strong> · {moved.total} questões contadas nas suas Estatísticas.</p><Link to="/estatisticas" className="mt-2 inline-flex font-semibold text-primary hover:underline">Ver nas Estatísticas →</Link></div>}
       <div className="flex flex-wrap gap-3">{result.passed ? <><Button onClick={() => setActive(null)}>Ver conquistas<ChevronRight /></Button><Button variant="outline" onClick={retry}>Tentar novamente</Button></> : <><Button onClick={retry}><RefreshCw />Tentar novamente</Button><Button variant="outline" onClick={() => setActive(null)}>Ver conquistas<ChevronRight /></Button></>}</div>
     </>}
     {error && <p role="alert" className="text-destructive">{error}</p>}
@@ -109,6 +138,7 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
   const nodes = m.path.map(toNode);
   return <section className="space-y-8">
     <header className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="font-display text-2xl font-semibold">Trilha de conquistas</h2><p className="mt-1 text-sm text-muted-foreground">{groups.length} assuntos · {done}/{m.path.length} conquistas · +{MATERIAL_XP} XP por desafio</p></div><Badge variant="outline"><GraduationCap className="mr-2 h-4 w-4" />{done === m.path.length ? "Material dominado" : "Em evolução"}</Badge></header>
+    <div className="flex flex-wrap gap-3">{groups.map((g) => <div key={g} className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card px-3 py-2"><span className="text-sm font-medium text-foreground">{g}</span><PracticeLink subject={g} /></div>)}</div>
     <SnakePath nodes={nodes} className="pb-8" />
   </section>;
 }

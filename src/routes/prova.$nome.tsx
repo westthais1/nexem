@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { AREA_INFO } from "@/lib/stats-areas";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
@@ -60,6 +61,7 @@ function ProvaRunnerPage() {
   const [remaining, setRemaining] = useState(EXAM_DURATION_SECONDS);
   const [submitted, setSubmitted] = useState(false);
   const [byTimeout, setByTimeout] = useState(false);
+  const [porAreaRes, setPorAreaRes] = useState<Partial<Record<TrackKey, { acertos: number; total: number; nota: number }>> | null>(null);
   const savedRef = useRef(false);
 
   const finish = useCallback(
@@ -84,6 +86,7 @@ function ProvaRunnerPage() {
       }
       for (const v of Object.values(porArea)) if (v) v.nota = v.total > 0 ? Math.round((v.acertos / v.total) * 1000) : 0;
 
+      setPorAreaRes(porArea);
       awardXp("provaCompleta", { label: `Prova Completa · ${nome}` });
 
       void registrarProva({
@@ -187,6 +190,29 @@ function ProvaRunnerPage() {
               <p className="text-4xl font-semibold text-primary">+{XP_REWARDS.provaCompleta}</p>
             </div>
           </div>
+          {porAreaRes && Object.keys(porAreaRes).length > 0 && (() => {
+            const entries = (Object.entries(porAreaRes) as [TrackKey, { acertos: number; total: number; nota: number }][]);
+            const fraca = [...entries].sort((x, y) => x[1].nota - y[1].nota)[0];
+            return (
+              <div className="mt-5">
+                <p className="text-sm font-semibold text-foreground">Nota por área</p>
+                <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {entries.map(([k, v]) => (
+                    <div key={k} className="rounded-lg border border-border bg-background/40 p-3">
+                      <p className="text-xs text-muted-foreground">{AREA_INFO[k].name}</p>
+                      <p className="text-2xl font-semibold text-foreground">{v.nota}</p>
+                      <p className="text-xs text-muted-foreground">{v.acertos}/{v.total} acertos</p>
+                    </div>
+                  ))}
+                </div>
+                {fraca && (
+                  <Link to="/simulado" search={{ subject: AREA_INFO[fraca[0]].subject }} className="mt-3 mr-3 inline-flex rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:bg-accent/90">
+                    Treinar {AREA_INFO[fraca[0]].name}
+                  </Link>
+                )}
+              </div>
+            );
+          })()}
           <Link
             to="/prova"
             className="mt-5 inline-flex rounded-lg border border-border bg-background/40 px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-accent/10"
