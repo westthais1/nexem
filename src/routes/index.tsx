@@ -184,7 +184,7 @@ function TodayCard() {
   );
 }
 
-type ContinueTarget = { desc: string; to: '/desafio' | '/simulado' | '/redacao' | '/full-simulado' | '/materiais'; subject?: string };
+type ContinueTarget = { desc: string; to: '/desafio' | '/simulado' | '/redacao' | '/full-simulado' | '/materiais'; subject?: string | undefined };
 function activityLink(d: DashboardData): ContinueTarget | null {
   const a = d.ultimaAtividade;
   if (!a) return null;
