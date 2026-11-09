@@ -5,7 +5,15 @@ import { DailyFoxPath } from "@/components/DailyFoxPath";
 import { MASTERY_QUERY_KEY, fetchMasteryProgress } from "@/lib/mastery-progress";
 import { useSubscription } from '@/hooks/use-subscription';
 import { Button } from '@/components/ui/button';
-import { Lock } from 'lucide-react';
+import { Lock, CalendarDays, Flame, Sparkles, Target, PenLine, BookOpen, History, TrendingDown } from 'lucide-react';
+import { useServerFn } from '@tanstack/react-start';
+import { getDashboardData, type DashboardData } from '@/lib/stats.functions';
+import { planToday, weekdayNamePt } from '@/lib/next-steps';
+import { AREA_INFO } from '@/lib/stats-areas';
+import { AREA_LABELS } from '@/lib/student-onboarding';
+import { useXp } from '@/hooks/use-xp';
+import { XP_LABELS, type XpSource } from '@/lib/xp';
+import { subjectOf } from '@/lib/mastery';
 
 
 export const Route = createFileRoute("/")({
@@ -33,6 +41,7 @@ function DashboardPage() {
     <main className="w-full flex-1 overflow-y-auto">
       <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8 md:px-10 md:py-12">
         <HeroBanner />
+        <TodayCard />
         <DailyChallengeCard />
         <DailyFoxPath className="mt-8" />
         <TutorNexCard />
