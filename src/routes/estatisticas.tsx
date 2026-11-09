@@ -35,11 +35,11 @@ function EstatisticasPage() {
   const fmt = (n: number) => n.toLocaleString("pt-BR");
 
   const cards = [
-    { label: "Nota TRI estimada", value: notaTri != null ? fmt(notaTri) : "—", hint: d?.notaAlvo != null ? `Meta: ${fmt(d.notaAlvo)}${gap != null ? (gap > 0 ? ` · faltam ${fmt(gap)}` : " · meta atingida!") : ""}` : "Defina sua meta no perfil" },
-    { label: "Questões resolvidas", value: d ? fmt(d.questoesResolvidas) : "—" },
-    { label: "Dias de estudo", value: d ? fmt(d.diasDeEstudo) : "—" },
-    { label: "Redações corrigidas", value: d ? fmt(d.redacoesCorrigidas) : "—", hint: d?.mediaRedacoes != null ? `Média: ${fmt(d.mediaRedacoes)}` : undefined },
-    { label: "Provas completas feitas", value: d ? fmt(d.provasFeitas) : "—", hint: d?.ultimaProva ? `Última: ${fmt(d.ultimaProva.nota)} (${d.ultimaProva.acertos}/${d.ultimaProva.total})` : undefined },
+    { label: "Nota TRI estimada", value: notaTri != null ? fmt(notaTri) : "—", hint: d?.notaAlvo != null ? `Meta: ${fmt(d.notaAlvo)}${gap != null ? (gap > 0 ? ` · faltam ${fmt(gap)}` : " · meta atingida!") : ""}` : "Defina sua meta no perfil", to: "/perfil" as const, cta: "Ajustar meta" },
+    { label: "Questões resolvidas", value: d ? fmt(d.questoesResolvidas) : "—", to: "/desafio" as const, cta: "Responder mais" },
+    { label: "Dias de estudo", value: d ? fmt(d.diasDeEstudo) : "—", to: "/desafio" as const, cta: "Estudar hoje" },
+    { label: "Redações corrigidas", value: d ? fmt(d.redacoesCorrigidas) : "—", hint: d?.mediaRedacoes != null ? `Média: ${fmt(d.mediaRedacoes)}` : undefined, to: "/redacao" as const, cta: "Ver redações" },
+    { label: "Provas completas feitas", value: d ? fmt(d.provasFeitas) : "—", hint: d?.ultimaProva ? `Última: ${fmt(d.ultimaProva.nota)} (${d.ultimaProva.acertos}/${d.ultimaProva.total})` : undefined, to: "/prova" as const, cta: "Provas anteriores" },
   ];
 
   const serie = tri.data?.serieSemanal ?? [];
@@ -69,6 +69,7 @@ function EstatisticasPage() {
                 {stats.isPending && stat.label !== "Nota TRI estimada" ? <Loader2 className="h-5 w-5 animate-spin text-primary" /> : stat.value}
               </p>
               {stat.hint && <p className="mt-1 text-xs text-muted-foreground">{stat.hint}</p>}
+              <Link to={stat.to} className="mt-2 inline-flex text-xs font-semibold text-primary hover:underline">{stat.cta} →</Link>
             </div>
           ))}
         </div>
@@ -116,7 +117,8 @@ function EstatisticasPage() {
             <p className="mt-1 text-sm text-muted-foreground">Da sua prova completa mais recente em cada área.</p>
             {d && Object.keys(d.ultimaPorArea).length === 0 ? (
               <p className="mt-5 text-sm text-muted-foreground">
-                Termine uma Prova Completa para ver sua nota em cada área.
+                Termine uma Prova Completa para ver sua nota em cada área.{" "}
+                <Link to="/full-simulado" className="font-semibold text-primary hover:underline">Fazer uma prova →</Link>
               </p>
             ) : (
               <ul className="mt-5 space-y-3">
@@ -125,8 +127,8 @@ function EstatisticasPage() {
                   return (
                     <li key={k} className="flex items-center justify-between rounded-xl border border-border bg-background/40 px-4 py-3 text-sm">
                       <span className="font-medium text-foreground">{AREA_INFO[k].name}</span>
-                      <span className="text-muted-foreground">
-                        {v ? <><span className="font-semibold text-foreground">{fmt(v.nota)}</span> · {v.acertos}/{v.total}</> : "—"}
+                      <span className="flex items-center gap-3 text-muted-foreground">
+                        {v ? <><span><span className="font-semibold text-foreground">{fmt(v.nota)}</span> · {v.acertos}/{v.total}</span><Link to="/prova" className="text-xs font-semibold text-primary hover:underline">Ver provas</Link></> : "—"}
                       </span>
                     </li>
                   );
@@ -138,7 +140,7 @@ function EstatisticasPage() {
           <div className="rounded-2xl border border-border bg-card p-6 card-glow">
             <h2 className="text-lg font-semibold text-foreground">Redação por competência</h2>
             {d && !d.competencias ? (
-              <p className="mt-5 text-sm text-muted-foreground">Corrija sua primeira redação para ver a média por competência.</p>
+              <p className="mt-5 text-sm text-muted-foreground">Corrija sua primeira redação para ver a média por competência. <Link to="/redacao" className="font-semibold text-primary hover:underline">Escrever uma redação →</Link></p>
             ) : (
               <>
                 <ul className="mt-5 space-y-3">
@@ -147,7 +149,7 @@ function EstatisticasPage() {
                     return (
                       <li key={k}>
                         <div className="flex justify-between text-sm">
-                          <span className="text-foreground">Competência {i + 1}</span>
+                          <Link to="/guia-enem" className="text-foreground hover:text-primary hover:underline" title="Como esta competência é avaliada">Competência {i + 1}</Link>
                           <span className="text-muted-foreground">{v}/200</span>
                         </div>
                         <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-secondary">
