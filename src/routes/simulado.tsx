@@ -197,6 +197,7 @@ function MaestriaPage() {
           progress={progress}
           mastery={mastery}
           onExit={() => setView({ kind: "niveis", subject: view.subject })}
+          onStartLevel={(level) => setView({ kind: "bloco", subject: view.subject, level })}
           onRefetchProgress={() => {
             void progressQuery.refetch();
             void masteryQuery.refetch();
@@ -398,6 +399,7 @@ function BlockSession({
   progress,
   mastery,
   onExit,
+  onStartLevel,
   onRefetchProgress,
 }: {
   subject: Subject;
@@ -406,6 +408,7 @@ function BlockSession({
   progress: UserProgress;
   mastery: MasteryProgress | null;
   onExit: () => void;
+  onStartLevel: (level: MasteryLevel) => void;
   onRefetchProgress: () => void;
 }) {
   const [questions] = useState<QuestionRow[]>(() =>
@@ -598,6 +601,20 @@ function BlockSession({
             >
               Voltar aos níveis
             </button>
+          </div>
+          <div className="mt-6 rounded-xl border border-accent/40 bg-accent/5 p-4">
+            <p className="text-sm font-semibold text-foreground">Próximos passos</p>
+            <div className="mt-3 flex flex-wrap gap-3">
+              {(() => {
+                const next = LEVELS.find((l) => l.id === level.id + 1);
+                if (!next) return <span className="text-sm text-muted-foreground">Você está no nível mais alto de {subject.label}.</span>;
+                return novoTheta >= next.requisito
+                  ? <button type="button" onClick={() => onStartLevel(next)} className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:bg-accent/90">Ir para {next.label}</button>
+                  : <button type="button" onClick={() => onStartLevel(level)} className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:bg-accent/90">Novo bloco deste nível (faltam {next.requisito - novoTheta} pts para {next.label.split(':')[0]})</button>;
+              })()}
+              <Link to="/raio-x" className="rounded-lg border border-border bg-background/40 px-4 py-2 text-sm font-semibold text-foreground hover:border-primary/40">Ver este assunto no Raio-X</Link>
+              <Link to="/estatisticas" className="rounded-lg border border-border bg-background/40 px-4 py-2 text-sm font-semibold text-foreground hover:border-primary/40">Ver minha evolução</Link>
+            </div>
           </div>
         </div>
 
