@@ -16,11 +16,12 @@ function runDto(row: RunRow): GameRun {
 }
 export const getGameState = createServerFn({ method: 'POST' }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
   const day = gameDay();
+  const {supabaseAdmin} = await import('@/integrations/supabase/client.server');
   const date = new Date(`${day}T12:00:00Z`);
   date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7));
   const week = date.toISOString().slice(0,10);
   const [run, medals, missions, xp, events, days] = await Promise.all([
-    context.supabase.from('daily_challenge_runs').select('*').eq('user_id', context.userId).eq('day', day).maybeSingle(),
+    supabaseAdmin.from('daily_challenge_runs').select('*').eq('user_id', context.userId).eq('day', day).maybeSingle(),
     context.supabase.from('student_achievements').select('achievement_key,earned_at').eq('user_id', context.userId).order('earned_at', { ascending: false }),
     context.supabase.from('student_daily_missions').select('mission_key,progress,target,rewarded_at').eq('user_id', context.userId).eq('day',day),
     context.supabase.from('student_xp').select('*').eq('user_id',context.userId).maybeSingle(),
@@ -32,7 +33,8 @@ export const getGameState = createServerFn({ method: 'POST' }).middleware([requi
 });
 
 export const startDailyChallenge = createServerFn({ method: 'POST' }).middleware([requireSupabaseAuth]).handler(async ({ context }): Promise<GameRun> => {
-  const { data: existing, error } = await context.supabase.from('daily_challenge_runs').select('*').eq('user_id',context.userId).eq('day',gameDay()).maybeSingle();
+  const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+  const { data: existing, error } = await supabaseAdmin.from('daily_challenge_runs').select('*').eq('user_id',context.userId).eq('day',gameDay()).maybeSingle();
   if (error) throw new Error('Não foi possível retomar seu desafio.');
   if (existing) return runDto(existing);
   const { data: p } = await context.supabase.from('student_area_progress').select('*').eq('user_id',context.userId).maybeSingle();
@@ -54,7 +56,6 @@ export const startDailyChallenge = createServerFn({ method: 'POST' }).middleware
   if (questions.length !== 10) throw new Error('Ainda não há 10 questões disponíveis para seu desafio. Tente novamente mais tarde.');
   const trusted = questions.map(q => ({ ...q,resposta_correta:q.resposta_correta?.trim().toUpperCase(), dificuldade:diffOf(q,averageTheta(tracks)),track:trackOf(q.area_conhecimento) }));
   if (trusted.some(q => !['A','B','C','D','E'].includes(q.resposta_correta))) throw new Error('Há uma questão sem gabarito disponível. Tente novamente.');
-  const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
   const { data: row, error: saveError } = await supabaseAdmin.rpc('start_daily_run',{p_user:context.userId,p_questions:trusted,p_thetas:tracks});
   if (saveError || !row) throw new Error('Não foi possível salvar seu desafio.');
   return runDto(row);

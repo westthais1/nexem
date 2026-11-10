@@ -133,7 +133,9 @@ export const recordActivity = createServerFn({ method: "POST" })
     const xp = data.kind === 'questao' ? (trustedCorrect === true ? 10 : 0) : (MAX_XP[data.kind] ?? 0);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     if (trustedCorrect !== null) {
-      const { error } = await supabaseAdmin.rpc('record_training_answer', { p_user:userId,p_question:data.attempts?.[0]?.question_id ?? '',p_correct:trustedCorrect });
+      const a = data.attempts?.[0];
+      if (!a) throw new Error('Resposta não encontrada.');
+      const { error } = await supabaseAdmin.rpc('record_verified_training', { p_user:userId,p_question:a.question_id,p_correct:trustedCorrect,p_subject:a.materia_questao ?? '',p_difficulty:a.dificuldade_questao ?? '' });
       if (error) throw new Error('Não foi possível salvar sua resposta.');
       const { data: saved } = await supabase.from('student_xp').select('*').eq('user_id',userId).maybeSingle();
       return snapshot(supabase,userId,saved);
