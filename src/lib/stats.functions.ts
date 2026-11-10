@@ -33,7 +33,7 @@ export const getStudentStats = createServerFn({ method: "GET" })
       supabase.from("study_activity_days").select("day").eq("user_id", userId),
       supabase.from("student_profiles").select("answers").eq("user_id", userId).maybeSingle(),
       supabase.from("profiles").select("target_score").eq("id", userId).maybeSingle(),
-      supabase.from("student_xp").select("total_xp,streak,best_streak,last_active_day").eq("user_id", userId).maybeSingle(),
+      supabase.from("student_xp").select("total_xp,streak,best_streak,last_active_day,streak_shields").eq("user_id", userId).maybeSingle(),
     ]);
     const err = attempts.error ?? essays.error ?? exams.error;
     if (err) throw new Error("Não foi possível carregar suas estatísticas.");
@@ -70,7 +70,8 @@ export const getStudentStats = createServerFn({ method: "GET" })
     const avg = (k: "c1" | "c2" | "c3" | "c4" | "c5") => Math.round(es.reduce((s, e) => s + (e[k] ?? 0), 0) / es.length);
     const yesterday = new Date(Date.now() - 86_400_000).toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
     const x = xpRow.data;
-    const alive = !!x?.last_active_day && x.last_active_day >= yesterday;
+    const beforeYesterday = new Date(Date.now()-2*86_400_000).toLocaleDateString('en-CA',{timeZone:'America/Sao_Paulo'});
+    const alive = Boolean(x?.last_active_day && (x.last_active_day >= yesterday || (x.last_active_day===beforeYesterday && x.streak_shields>0)));
 
     return {
       questoesResolvidas: att.length,

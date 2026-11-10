@@ -54,7 +54,7 @@ function DesafioPage() {
   const [selected,setSelected]=useState<Letter|null>(null); const [busy,setBusy]=useState(false); const [error,setError]=useState('');
   const [tutorOpen,setTutorOpen]=useState(false); const [hintToken,setHintToken]=useState(0); const [reviewQ,setReviewQ]=useState<DailyQuestion|null>(null);
   const [celebrate,setCelebrate]=useState(false); const [feedbackXp,setFeedbackXp]=useState(0);
-  useEffect(() => { if (game.data?.run && !run) { setRun(game.data.run); setIndex(game.data.run.answers.length); } },[game.data,run]);
+  useEffect(() => { if (game.data?.run && (!run || game.data.run.answers.length>run.answers.length || game.data.run.missionXp!==run.missionXp)) { setRun(game.data.run); if (!run) setIndex(game.data.run.answers.length); } },[game.data,run]);
   useEffect(() => { if (!celebrate) return; const timer=setTimeout(() => setCelebrate(false),3500); return () => clearTimeout(timer); },[celebrate]);
   const current=run?.questions[index]; const confirmed=Boolean(run?.answers[index]); const done=Boolean(run?.completed && index>=10);
   const theta=run ? averageTheta(run.thetas) : progress.data ? averageTheta(progress.data.tracks) : 50;
@@ -72,11 +72,10 @@ function DesafioPage() {
     setBusy(true);setError('');
     try {
       const saved=await answer({data:{index,letter:selected}});setRun(saved);setFeedbackXp(saved.answers[index]?.xp ?? 0);
-      if (saved.completed && saved.stars===3) setCelebrate(true);
       await refresh();
     } catch(e) {setError(e instanceof Error ? e.message : 'Não foi possível confirmar a resposta.');} finally {setBusy(false);}
   }
-  function next() { setIndex(i => i+1);setSelected(null);setFeedbackXp(0);setTutorOpen(false);setHintToken(0); }
+  function next() { if(index===9 && run?.stars===3) setCelebrate(true);setIndex(i => i+1);setSelected(null);setFeedbackXp(0);setTutorOpen(false);setHintToken(0); }
   function openTutor(q:DailyQuestion) {setReviewQ(q);setTutorOpen(true);setHintToken(t => t+1);}
   return <main className="w-full flex-1 overflow-y-auto"><div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 md:py-10">
     <header className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wide text-primary">Sua jornada de hoje</p><h1 className="mt-1 text-3xl font-semibold tracking-normal">Desafio Diário Nexem</h1><p className="mt-2 text-sm text-muted-foreground">10 questões · nível {theta}/100 · um passo por dia</p></div><span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-semibold text-primary"><Flame className="h-4 w-4"/>{xp.streak} {xp.streak===1 ? 'dia' : 'dias'}</span></header>

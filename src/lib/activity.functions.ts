@@ -88,6 +88,8 @@ export const recordActivity = createServerFn({ method: "POST" })
     }
     let trustedCorrect: boolean | null = null;
     if (data.kind === 'questao' && data.attempts?.[0]?.letra) {
+      const { requirePremium } = await import('./subscription.server');
+      await requirePremium(supabase,userId);
       const { questionsSupabase } = await import('./external-supabase');
       const a = data.attempts[0];
       const { data: question, error } = await questionsSupabase.from('enem_provas').select('resposta_correta,materia,area_conhecimento,dificuldade').eq('id',a.question_id).maybeSingle();
@@ -98,7 +100,7 @@ export const recordActivity = createServerFn({ method: "POST" })
       a.dificuldade_questao = String(question.dificuldade ?? 50);
     }
 
-    if (data.attempts?.length) {
+    if (data.attempts?.length && trustedCorrect===null) {
       const { error } = await supabase.from("enem_user_attempts").insert(
         data.attempts.map((a) => ({
           user_id: userId,
@@ -159,11 +161,11 @@ const browserSchema = z.object({
   history: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).max(120),
 });
 
-/** Lê o XP salvo na conta; na primeira vez, importa os valores do navegador (nunca diminui). */
+/** Reads committed account XP; legacy imports remain intact but are no longer accepted. */
 export const getXpState = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ browser: browserSchema.nullable().optional() }).parse(input ?? {}))
-  .handler(async ({ data, context }): Promise<XpSnapshot> => {
+  .handler(async ({ context }): Promise<XpSnapshot> => {
     const { supabase, userId } = context;
     const { data: row } = await supabase
       .from("student_xp")

@@ -52,7 +52,8 @@ export const startDailyChallenge = createServerFn({ method: 'POST' }).middleware
   const { trackOf, averageTheta } = await import('./progress');
   const questions = await buildDailySetFromDb(tracks,(attempts ?? []).map(a => a.question_id));
   if (questions.length !== 10) throw new Error('Ainda não há 10 questões disponíveis para seu desafio. Tente novamente mais tarde.');
-  const trusted = questions.map(q => ({ ...q, dificuldade:diffOf(q,averageTheta(tracks)),track:trackOf(q.area_conhecimento) }));
+  const trusted = questions.map(q => ({ ...q,resposta_correta:q.resposta_correta?.trim().toUpperCase(), dificuldade:diffOf(q,averageTheta(tracks)),track:trackOf(q.area_conhecimento) }));
+  if (trusted.some(q => !['A','B','C','D','E'].includes(q.resposta_correta))) throw new Error('Há uma questão sem gabarito disponível. Tente novamente.');
   const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
   const { data: row, error: saveError } = await supabaseAdmin.rpc('start_daily_run',{p_user:context.userId,p_questions:trusted,p_thetas:tracks});
   if (saveError || !row) throw new Error('Não foi possível salvar seu desafio.');
