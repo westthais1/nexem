@@ -113,6 +113,13 @@
       "when": 1794351264848,
       "tag": "0015_daily_gamification",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1794351370614,
+      "tag": "0016_verified_training_rewards",
+      "breakpoints": true
     }
   ]
 }

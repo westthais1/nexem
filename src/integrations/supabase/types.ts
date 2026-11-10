@@ -939,6 +939,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      record_training_answer: {
+        Args: { p_correct: boolean; p_question: string; p_user: string }
+        Returns: undefined
+      }
       reserve_nexem_tutor_consultation: {
         Args: { p_request_id: string }
         Returns: boolean

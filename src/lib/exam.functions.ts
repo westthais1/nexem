@@ -26,7 +26,7 @@ export const registrarProva = createServerFn({ method: "POST" })
     const { requirePremium } = await import('./subscription.server');
     await requirePremium(context.supabase, context.userId);
 
-    const { error } = await context.supabase.from("enem_exam_attempts").insert({
+    const { data: saved, error } = await context.supabase.from("enem_exam_attempts").insert({
       user_id: context.userId,
       nome_prova: data.nome_prova,
       respostas: data.respostas,
@@ -36,11 +36,16 @@ export const registrarProva = createServerFn({ method: "POST" })
       tempo_gasto_segundos: data.tempo_gasto_segundos,
       finalizado_por_tempo: data.finalizado_por_tempo,
       por_area: data.por_area ?? null,
-    });
+    }).select('id').single();
 
     if (error) {
       console.error("[Prova] Falha ao salvar resultado", error);
       return { ok: false as const, error: error.message };
+    }
+    if (saved) {
+      const {supabaseAdmin} = await import('@/integrations/supabase/client.server');
+      const {error: rewardError} = await supabaseAdmin.rpc('reward_student_once',{p_user:context.userId,p_key:`exam:${saved.id}`,p_kind:'provaCompleta',p_xp:100,p_label:`Prova Completa · ${data.nome_prova}`});
+      if (rewardError) console.error('[Prova] Falha ao registrar recompensa',rewardError);
     }
     return { ok: true as const };
   });

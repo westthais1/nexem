@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 
 const EssayInput = z
   .object({
@@ -130,8 +131,9 @@ export type EssayCorrection = {
 
 
 export const corrigirRedacao = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => EssayInput.parse(input))
-  .handler(async ({ data }): Promise<EssayCorrection> => {
+  .handler(async ({ data, context }): Promise<EssayCorrection> => {
     const apiKey = process.env["ANTHROPIC_API_KEY"];
     if (!apiKey) throw new Error("Chave da Anthropic não configurada.");
 
@@ -141,8 +143,7 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
       | { type: "image"; source: { type: "url"; url: string } }
       | null = null;
     if (data.imagem_path) {
-      const { getOptionalUserId } = await import("./auth-user.server");
-      const owner = await getOptionalUserId();
+      const owner = context.userId;
       if (!owner) throw new Error("Entre na sua conta para corrigir a foto da redação.");
       if (!data.imagem_path.startsWith(`${owner}/`) || data.imagem_path.includes(".."))
         throw new Error("Esta foto não pertence à sua conta.");
@@ -285,9 +286,8 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
 
     try {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { getOptionalUserId } = await import("./auth-user.server");
-      await supabaseAdmin.from("enem_essays").insert({
-        user_id: await getOptionalUserId(),
+      const {data: saved,error} = await supabaseAdmin.from("enem_essays").insert({
+        user_id: context.userId,
         tema: data.tema,
         texto: data.texto.trim() || correction.transcricao,
         imagem_path: data.imagem_path ?? null,
@@ -299,7 +299,12 @@ export const corrigirRedacao = createServerFn({ method: "POST" })
         nota_total: correction.nota_total,
         feedback: correction.dicas,
         comentario: correction.comentario,
-      });
+      }).select('id').single();
+      if (error) throw error;
+      if (saved) {
+        const {error: rewardError} = await supabaseAdmin.rpc('reward_student_once',{p_user:context.userId,p_key:`essay:${saved.id}`,p_kind:'redacao',p_xp:50,p_label:'Redação corrigida'});
+        if (rewardError) console.error('[Redação] Falha ao registrar recompensa',rewardError);
+      }
     } catch (err) {
       console.error("[Redação] Falha ao salvar correção:", err);
     }

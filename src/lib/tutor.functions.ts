@@ -7,6 +7,7 @@ const TutorInput = z.object({
   options: z.array(z.string()).min(2),
   area: z.string().min(1),
   explicacao: z.string().nullable().optional(),
+  review: z.object({day:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),questionId:z.string().max(200)}).optional(),
   messages: z
     .array(
       z.object({
@@ -109,6 +110,10 @@ export const askTutor = createServerFn({ method: "POST" })
     if (!content) throw new Error('Não consegui formular uma dica agora. Tente novamente.');
     const { error: logError } = await supabaseAdmin.from('nexem_tutor_transactions').update({ status: 'succeeded', completed_at: new Date().toISOString() }).eq('id', transactionId).eq('user_id', context.userId);
     if (logError) console.error('[Tutor] Falha ao concluir transação', logError);
+    if (!logError && data.review) {
+      const {error} = await supabaseAdmin.rpc('review_daily_error',{p_user:context.userId,p_day:data.review.day,p_question:data.review.questionId});
+      if (error) console.error('[Tutor] Falha ao registrar revisão',error);
+    }
     return { content, limitReached: false };
     } catch (error) {
       const { error: logError } = await supabaseAdmin.from('nexem_tutor_transactions').update({ status: 'failed', completed_at: new Date().toISOString() }).eq('id', transactionId).eq('user_id', context.userId);
