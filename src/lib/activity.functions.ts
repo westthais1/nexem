@@ -103,7 +103,7 @@ export const recordActivity = createServerFn({ method: "POST" })
       data.attempts=(step.questions ?? []).map((q,i)=>({question_id:`material:${m.id}:${m.index}:${i}`,foi_correto:m.answers[i]===q.answer,materia_questao:data.subject,dificuldade_questao:step.final?'Dificil':step.level===1?'Facil':'Media'}));
       const {supabaseAdmin}=await import('@/integrations/supabase/client.server');
       if (data.attempts.length) {
-        const {error:saveError}=await supabase.from('enem_user_attempts').insert(data.attempts.map(a=>({...a,user_id:userId})));
+        const {error:saveError}=await supabase.from('enem_user_attempts').insert(data.attempts.map(a=>({question_id:a.question_id,foi_correto:a.foi_correto,materia_questao:a.materia_questao ?? null,dificuldade_questao:a.dificuldade_questao ?? null,user_id:userId})));
         if(saveError) throw new Error('Não foi possível salvar suas respostas.');
       }
       if(graded.passed) {
