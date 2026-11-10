@@ -1,9 +1,9 @@
 import { Check, X, Swords, Flame } from 'lucide-react';
 import type { GameRun } from '@/lib/gamification.functions';
 export function DailyQuestTrail({run,index}:{run:GameRun;index:number}) {
-  const bossHits = run.answers.slice(8).filter(a => a.correto).length;
+  const bossHits = run.answers.filter(a => a.correto).length;
   return <section className="mt-6" aria-label="Trilha de 10 questões"><div className="flex items-center justify-between gap-3"><p className="text-sm font-semibold">Sua jornada · {run.answers.length}/10</p><span className="text-xs text-muted-foreground">2 aquecimento · 6 no nível · 2 chefe</span></div><ol className="quest-trail mt-5" aria-label="Progresso das questões">{Array.from({length:10},(_,i) => {
     const a = run.answers[i]; const current = i===index && !a;
     return <li key={i} className="quest-node"><span aria-current={current ? 'step' : undefined} aria-label={`Questão ${i+1}, ${i>=8 ? 'chefe final, ' : ''}${a ? a.correto ? 'acertou' : 'errou' : current ? 'atual' : 'aguardando'}`} className={`quest-token ${a ? a.correto ? 'border-success bg-success/15 text-primary' : 'border-answer-error bg-answer-error/10 text-answer-error' : current ? 'node-ring border-primary bg-primary text-primary-foreground' : 'border-border bg-secondary text-muted-foreground'}`}>{a ? a.correto ? <Check/> : <X/> : i>=8 ? <Swords/> : i<2 ? <Flame/> : i+1}</span><span className="mt-2 text-xs text-muted-foreground">{i+1}</span></li>;
-  })}</ol><div className="mt-5 flex items-center gap-3"><Swords className="h-5 w-5 text-accent"/><div className="flex-1"><div className="flex justify-between text-xs"><span className="font-semibold">Chefe final</span><span>{bossHits===2 ? 'Derrotado ✓' : `${2-bossHits}/2 de energia`}</span></div><progress className="game-progress boss-progress mt-2 h-2 w-full" aria-label="Energia do chefe" max={2} value={2-bossHits}/></div></div></section>;
+  })}</ol><div className="mt-5 flex items-center gap-3"><Swords className="h-5 w-5 text-accent"/><div className="flex-1"><div className="flex justify-between text-xs"><span className="font-semibold">Chefe final</span><span>{bossHits===10 ? 'Energia esgotada ✓' : `${10-bossHits}/10 de energia`}</span></div><progress className="game-progress boss-progress mt-2 h-2 w-full" aria-label="Energia do chefe" max={10} value={10-bossHits}/></div></div></section>;
 }

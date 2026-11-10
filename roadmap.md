@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Gamificar Desafio Diário com sessão e recompensas no servidor, combo, chefe, baú, missões, escudo e conquistas; integrar perfil/dashboard/Estatísticas e verificar sem login nem dados de teste.
+- [x] Gamificar Desafio Diário com sessão e recompensas no servidor, combo, chefe, baú, missões, escudo e conquistas; integrar perfil/dashboard/Estatísticas. Compilação e 61 testes passaram; páginas carregadas sem login. Concessões reais e telas autenticadas não verificadas, conforme restrição de não acessar contas nem gravar testes.
 
 - [ ] Criar cronograma persistido com tópicos editáveis, data configurável, priorização, adaptação semanal, calendário e sessões de hoje; verificar regras e fluxo real.
 
