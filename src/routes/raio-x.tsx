@@ -30,7 +30,7 @@ function PriorityBadge() {
 }
 
 export const Route = createFileRoute("/raio-x")({
-  validateSearch: (search: Record<string,unknown>) => ({ subject: typeof search.subject==='string' ? search.subject : undefined }),
+  validateSearch: (search: Record<string,unknown>): {subject?:string} => typeof search['subject']==='string' ? {subject:search['subject']} : {},
   component: RaioXPage,
   head: () => ({
     meta: [
