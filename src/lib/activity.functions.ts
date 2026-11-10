@@ -35,6 +35,7 @@ const activitySchema = z.object({
   subject: z.string().max(120).optional(),
   attempts: z.array(attemptSchema).max(60).optional(),
   progress: progressSchema.optional(),
+  material: z.object({id:z.string().uuid(),index:z.number().int().min(0).max(500),answers:z.array(z.number().int().min(0).max(4)).max(60)}).optional(),
 });
 
 export type XpSnapshot = {
@@ -87,6 +88,34 @@ export const recordActivity = createServerFn({ method: "POST" })
       return snapshot(supabase,userId,saved);
     }
     let trustedCorrect: boolean | null = null;
+    if (data.kind==='materialEtapa') {
+      if (!data.material) throw new Error('Envie as respostas da etapa do material.');
+      const m=data.material;
+      const {data:record,error}=await supabase.from('study_materials').select('path,step_status').eq('id',m.id).eq('user_id',userId).single();
+      if (error || !record) throw new Error('Material não encontrado.');
+      const {gradeMaterialQuiz,isStepUnlocked}=await import('./material-path');
+      const steps=record.path as import('./materials').PathStep[];
+      const step=steps[m.index];
+      if (!step || !isStepUnlocked(m.index,record.step_status as import('./material-path').MaterialProgress)) throw new Error('Esta etapa ainda está bloqueada.');
+      const graded=gradeMaterialQuiz(step,m.answers);
+      const {canonicalSubjectName}=await import('./stats-areas');
+      data.subject=canonicalSubjectName(step.subject) ?? 'Conteúdo do material';
+      data.attempts=(step.questions ?? []).map((q,i)=>({question_id:`material:${m.id}:${m.index}:${i}`,foi_correto:m.answers[i]===q.answer,materia_questao:data.subject,dificuldade_questao:step.final?'Dificil':step.level===1?'Facil':'Media'}));
+      const {supabaseAdmin}=await import('@/integrations/supabase/client.server');
+      if (data.attempts.length) {
+        const {error:saveError}=await supabase.from('enem_user_attempts').insert(data.attempts.map(a=>({...a,user_id:userId})));
+        if(saveError) throw new Error('Não foi possível salvar suas respostas.');
+      }
+      if(graded.passed) {
+        const {error:rewardError}=await supabaseAdmin.rpc('reward_student_once',{p_user:userId,p_key:`material:${m.id}:${m.index}`,p_kind:'materialEtapa',p_xp:30,p_label:`Trilha: ${step.title}`});
+        if(rewardError) throw new Error('Não foi possível salvar a recompensa.');
+      } else {
+        const {error:activityError}=await supabaseAdmin.rpc('record_activity',{p_user:userId,p_kind:'materialEtapa',p_xp:0,p_label:`Tentativa: ${step.title}`,p_subject:data.subject});
+        if(activityError) throw new Error('Não foi possível salvar a atividade.');
+      }
+      const {data:saved}=await supabase.from('student_xp').select('*').eq('user_id',userId).maybeSingle();
+      return snapshot(supabase,userId,saved);
+    }
     if (data.kind === 'questao' && data.attempts?.[0]?.letra) {
       const { requirePremium } = await import('./subscription.server');
       await requirePremium(supabase,userId);
@@ -130,7 +159,7 @@ export const recordActivity = createServerFn({ method: "POST" })
       if (error) console.error("[Atividade] Falha ao salvar progresso por área", error);
     }
 
-    const xp = data.kind === 'questao' ? (trustedCorrect === true ? 10 : 0) : (MAX_XP[data.kind] ?? 0);
+    const xp = data.kind === 'questao' && trustedCorrect === true ? 10 : 0;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     if (trustedCorrect !== null) {
       const a = data.attempts?.[0];

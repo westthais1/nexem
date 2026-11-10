@@ -71,6 +71,7 @@ export function MaterialStudyPath({ material: m, onSave, onRefresh }: Props) {
         amount: firstPass ? MATERIAL_XP : 0,
         label: `Trilha: ${current.title}`,
         subject: materia,
+        material:{id:m.id,index:active,answers:attempt.answers},
         attempts: questions.map((q, i) => ({
           question_id: `material:${m.id}:${active}:${i}`,
           dificuldade_questao: current.final ? "Dificil" : current.level === 1 ? "Facil" : current.level === 3 ? "Dificil" : "Media",

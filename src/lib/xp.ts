@@ -194,7 +194,7 @@ export type ActivityAttempt = {
  */
 export async function awardXp(
   source: XpSource,
-  options?: { amount?: number; label?: string; subject?: string; attempts?: ActivityAttempt[]; progress?: UserProgress },
+  options?: { amount?: number; label?: string; subject?: string; attempts?: ActivityAttempt[]; progress?: UserProgress;material?:{id:string;index:number;answers:number[]} },
 ): Promise<void> {
   if (typeof window === "undefined") return;
   const amount = Math.max(0, Math.round(options?.amount ?? XP_REWARDS[source]));
@@ -210,6 +210,7 @@ export async function awardXp(
         ...(options?.subject ? { subject: options.subject } : {}),
         ...(options?.attempts?.length ? { attempts: options.attempts } : {}),
         ...(options?.progress ? { progress: options.progress } : {}),
+        ...(options?.material ? {material:options.material} : {}),
       },
     });
     writeXpState(fromSnapshot(snap));
