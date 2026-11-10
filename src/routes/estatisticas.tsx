@@ -8,6 +8,7 @@ import { TriSimulator } from "@/components/TriSimulator";
 import { getStudentStats } from "@/lib/stats.functions";
 import { AREA_INFO } from "@/lib/stats-areas";
 import { getTriEstimate } from "@/lib/tri.functions";
+import { GameOverview } from '@/components/GameProgress';
 
 export const Route = createFileRoute("/estatisticas")({
   head: () => ({
@@ -30,7 +31,7 @@ function EstatisticasPage() {
   const tri = useQuery({ queryKey: ["tri-estimate"], queryFn: () => triFn(), retry: false });
   const d = stats.data;
   const temTri = tri.data && tri.data.status !== "sem_dados";
-  const notaTri = temTri ? tri.data!.nota : null;
+  const notaTri = temTri ? tri.data?.nota ?? null : null;
   const gap = notaTri != null && d?.notaAlvo != null ? d.notaAlvo - notaTri : null;
   const fmt = (n: number) => n.toLocaleString("pt-BR");
 
@@ -75,6 +76,7 @@ function EstatisticasPage() {
         </div>
 
         <TriSimulator />
+        <GameOverview compact/>
 
         <section className="mt-6 rounded-2xl border border-border bg-card p-6 card-glow">
           <h2 className="text-lg font-semibold text-foreground">Acertos por área</h2>
@@ -186,7 +188,7 @@ function EstatisticasPage() {
                     <div className="flex w-full items-end justify-center" style={{ height: "160px" }}>
                       <div
                         className={`w-full max-w-[48px] rounded-t-lg ${vazio ? "border border-dashed border-border bg-transparent" : "bg-gradient-to-t from-primary/40 to-primary"}`}
-                        style={{ height: vazio ? "4%" : `${Math.max(4, (p.nota! / 1000) * 100)}%` }}
+                        style={{ height: vazio ? "4%" : `${Math.max(4, ((p.nota ?? 0) / 1000) * 100)}%` }}
                       />
                     </div>
                     <span className="text-xs text-muted-foreground">

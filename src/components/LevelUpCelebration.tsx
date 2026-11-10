@@ -35,7 +35,7 @@ export function ConfettiBurst({ pieces = 140 }: { pieces?: number }) {
 }
 
 /** Tela cheia de comemoração ao subir de nível na trilha. */
-export function LevelUpCelebration({ open, level, onClose }: { open: boolean; level: string; onClose: () => void }) {
+export function LevelUpCelebration({ open, level, onClose, confetti=true }: { open: boolean; level: string; onClose: () => void; confetti?:boolean }) {
   useEffect(() => {
     if (!open) return;
     const t = setTimeout(onClose, 9000);
@@ -44,7 +44,7 @@ export function LevelUpCelebration({ open, level, onClose }: { open: boolean; le
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm" onClick={onClose}>
-      <ConfettiBurst />
+      {confetti && <ConfettiBurst />}
       <div role="dialog" aria-modal className="levelup-pop relative w-full max-w-sm rounded-3xl border-2 border-primary/40 bg-card p-8 text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="levelup-rays pointer-events-none absolute inset-x-0 -top-16 mx-auto h-40 w-40 rounded-full" aria-hidden />
         <Crown className="levelup-crown relative mx-auto h-10 w-10 fill-primary text-primary" />
@@ -54,7 +54,7 @@ export function LevelUpCelebration({ open, level, onClose }: { open: boolean; le
           {level}
         </h2>
         <div className="mt-4 flex items-center justify-center gap-4 text-sm font-semibold">
-          <span className="flex items-center gap-1 text-primary"><Sparkles className="h-4 w-4" /> +50 XP</span>
+          <span className="flex items-center gap-1 text-primary"><Sparkles className="h-4 w-4" /> Nova etapa</span>
           <span className="flex items-center gap-1 text-accent"><Flame className="h-4 w-4" /> Sequência mantida</span>
         </div>
         <button type="button" onClick={onClose} className="mt-6 w-full rounded-2xl border-b-4 border-primary/60 bg-primary py-3 text-lg font-bold text-primary-foreground transition-transform hover:-translate-y-0.5 active:translate-y-1 active:border-b-0">

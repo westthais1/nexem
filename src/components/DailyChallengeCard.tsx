@@ -1,35 +1,18 @@
-import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Flame } from "lucide-react";
 
 import { useXp } from "@/hooks/use-xp";
 import { XP_REWARDS } from "@/lib/xp";
-import {
-  DAILY_EVENT,
-  DAILY_TOTAL,
-  readSession,
-  readTheta,
-  type DailySession,
-} from "@/lib/daily-challenge";
+import { useGameState } from '@/components/GameProgress';
+import { averageTheta } from '@/lib/progress';
 
 /** Módulo "Desafio Diário Nexem" da Dashboard, com sequência e progresso do dia. */
 export function DailyChallengeCard() {
   const xp = useXp();
-  const [session, setSession] = useState<DailySession | null>(null);
-  const [theta, setTheta] = useState(50);
-
-  useEffect(() => {
-    setSession(readSession());
-    setTheta(readTheta());
-    const onChange = (e: Event) => {
-      setSession((e as CustomEvent<DailySession>).detail);
-      setTheta(readTheta());
-    };
-    window.addEventListener(DAILY_EVENT, onChange);
-    return () => window.removeEventListener(DAILY_EVENT, onChange);
-  }, []);
-
-  const total = session?.questionIds.length || DAILY_TOTAL;
+  const game = useGameState();
+  const session = game.data?.run;
+  const theta = session ? averageTheta(session.thetas) : null;
+  const total = 10;
   const done = session?.answers.length ?? 0;
   const completo = Boolean(session?.completed) || (session != null && done >= total);
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
@@ -51,8 +34,8 @@ export function DailyChallengeCard() {
               </span>
             </div>
             <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-              10 questões por dia, cerca de 15 minutos: 2 de aquecimento, 6 no seu nível ({theta}
-              /100) e 2 de chefe final. Concluir as 10 mantém sua sequência acesa.
+              10 questões por dia, cerca de 15 minutos: 2 de aquecimento, 6 no seu nível{theta !== null ? ` (${theta}/100)` : ''}
+              e 2 de chefe final. Concluir as 10 abre seu baú diário.
             </p>
 
             <div className="mt-5 h-2.5 w-full max-w-md overflow-hidden rounded-full bg-secondary">

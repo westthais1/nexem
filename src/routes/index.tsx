@@ -14,6 +14,7 @@ import { AREA_LABELS } from '@/lib/student-onboarding';
 import { useXp } from '@/hooks/use-xp';
 import { XP_LABELS, type XpSource } from '@/lib/xp';
 import { subjectOf } from '@/lib/mastery';
+import { GameOverview } from '@/components/GameProgress';
 
 
 export const Route = createFileRoute("/")({
@@ -42,6 +43,7 @@ function DashboardPage() {
       <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8 md:px-10 md:py-12">
         <HeroBanner />
         <TodayCard />
+        <GameOverview />
         <DailyChallengeCard />
         <DailyFoxPath className="mt-8" />
         <TutorNexCard />

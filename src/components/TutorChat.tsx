@@ -16,6 +16,7 @@ export function TutorChat({
   area,
   explicacao,
   hintToken,
+  review,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -25,6 +26,7 @@ export function TutorChat({
   explicacao?: string | null;
   /** Incrementa a cada clique no botão de ajuda: dispara a primeira pista proativa. */
   hintToken: number;
+  review?: { day:string; questionId:string };
 }) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -42,10 +44,11 @@ export function TutorChat({
     setLoading(true);
     try {
       const res = await ask({
-        data: { question, options, area, explicacao: explicacao ?? null, messages: next },
+        data: { question, options, area, explicacao: explicacao ?? null, messages: next, review },
       });
       if (res.limitReached) { setLimitReached(true); return; }
       setLimitReached(false);
+      if (review) window.dispatchEvent(new Event('nexem-game-change'));
       setMessages([...next, { role: "assistant", content: res.content }]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro ao falar com o tutor.");

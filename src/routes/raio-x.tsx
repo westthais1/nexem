@@ -30,6 +30,7 @@ function PriorityBadge() {
 }
 
 export const Route = createFileRoute("/raio-x")({
+  validateSearch: (search: Record<string,unknown>): {subject?:string|undefined} => typeof search['subject']==='string' ? {subject:search['subject']} : {},
   component: RaioXPage,
   head: () => ({
     meta: [
@@ -106,7 +107,10 @@ function MateriaCard({ materia, prioridade }: { materia: Materia; prioridade: Pr
 }
 
 function RaioXPage() {
-  const [area, setArea] = useState<(typeof AREAS)[number]>("Todas");
+  const {subject} = Route.useSearch();
+  const matched = subjectOf(subject ?? null,null);
+  const selectedArea = matched ? ({matematica:'Matemática',natureza:'Ciências da Natureza',humanas:'Ciências Humanas',linguagens:'Linguagens'} as const)[matched.track] : 'Todas';
+  const [area, setArea] = useState<(typeof AREAS)[number]>(selectedArea);
   const materias = area === "Todas" ? MATERIAS : MATERIAS.filter((m) => m.area === area);
   const dashFn = useServerFn(getDashboardData);
   const dash = useQuery({ queryKey: ["dashboard-data"], queryFn: () => dashFn(), staleTime: 30_000 });
@@ -123,6 +127,7 @@ function RaioXPage() {
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
           Raio-X do ENEM
         </h1>
+        {matched && <p className="mt-2 text-sm font-semibold text-primary">Revisão do Desafio: {matched.label}</p>}
         <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground">
           O que realmente cai na prova, em ordem de peso. Estude de cima para baixo: os primeiros
           itens rendem muito mais ponto por hora do que os últimos.

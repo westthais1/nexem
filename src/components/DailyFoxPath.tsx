@@ -104,7 +104,7 @@ export function DailyFoxPath({ className }: { className?: string }) {
           </>
         ) : null}
       </p>
-      <LevelUpCelebration open={festa} level={PATH_LEVELS[nivel] ?? "Novo nível"} onClose={() => setFesta(false)} />
+      <LevelUpCelebration open={festa} level={PATH_LEVELS[nivel] ?? "Novo nível"} onClose={() => setFesta(false)} confetti={false} />
     </section>
   );
 }

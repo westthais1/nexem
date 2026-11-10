@@ -107,7 +107,7 @@ export const FOX_STAGES: FoxStage[] = [
 ];
 
 export function stageForLevel(level: number): FoxStage {
-  let stage = FOX_STAGES[0]!;
+  let stage: FoxStage = { id:1, name:'Raposinha', title:'Filhote curioso', minLevel:1 };
   for (const s of FOX_STAGES) if (level >= s.minLevel) stage = s;
   return stage;
 }
@@ -115,12 +115,6 @@ export function stageForLevel(level: number): FoxStage {
 /** Dia no fuso de São Paulo (o mesmo usado pelo banco). */
 export function spDayKey(date: Date = new Date()): string {
   return date.toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
-}
-function today(): string {
-  return spDayKey();
-}
-function yesterday(): string {
-  return spDayKey(new Date(Date.now() - 86_400_000));
 }
 
 export function readXpState(): XpState {
@@ -174,19 +168,7 @@ export function syncXpFromAccount(force = false): Promise<void> {
       const uid = data.session?.user.id ?? null;
       if (!uid) return;
       if (!force && syncedFor === uid) return;
-      const cached = readXpState();
-      const mine = cached.owner == null || cached.owner === uid;
-      const browser = mine && cached.owner == null && cached.totalXp + cached.history.length > 0
-        ? {
-            totalXp: cached.totalXp,
-            streak: cached.streak,
-            bestStreak: cached.bestStreak,
-            lastActiveDay: cached.lastActiveDay,
-            lastActivity: cached.lastActivity,
-            history: cached.history,
-          }
-        : null;
-      const snap = await getXpState({ data: { browser } });
+      const snap = await getXpState({ data: {} });
       syncedFor = uid;
       writeXpState(fromSnapshot(snap));
     } catch (e) {
@@ -203,6 +185,7 @@ export type ActivityAttempt = {
   dificuldade_questao?: string | null;
   materia_questao?: string | null;
   foi_correto: boolean;
+  letra?: 'A' | 'B' | 'C' | 'D' | 'E';
 };
 
 /**
@@ -211,44 +194,13 @@ export type ActivityAttempt = {
  */
 export async function awardXp(
   source: XpSource,
-  options?: { amount?: number; label?: string; subject?: string; attempts?: ActivityAttempt[]; progress?: UserProgress },
+  options?: { amount?: number; label?: string; subject?: string; attempts?: ActivityAttempt[]; progress?: UserProgress;material?:{id:string;index:number;answers:number[]} },
 ): Promise<void> {
   if (typeof window === "undefined") return;
   const amount = Math.max(0, Math.round(options?.amount ?? XP_REWARDS[source]));
   const label = options?.label ?? XP_LABELS[source];
 
-  if (amount > 0) {
-    const before = readXpState();
-    const antes = levelInfo(before.totalXp);
-    const stageAntes = stageForLevel(antes.level);
-    const day = today();
-    let streak = before.streak;
-    if (before.lastActiveDay !== day) streak = before.lastActiveDay === yesterday() ? before.streak + 1 : 1;
-    if (streak === 0) streak = 1;
-    const next: XpState = {
-      ...before,
-      totalXp: before.totalXp + amount,
-      streak,
-      bestStreak: Math.max(before.bestStreak, streak),
-      lastActiveDay: day,
-      lastActivity: label,
-      history: before.history.includes(day) ? before.history.slice(-60) : [...before.history, day].slice(-60),
-    };
-    writeXpState(next);
-    const depois = levelInfo(next.totalXp);
-    const stageDepois = stageForLevel(depois.level);
-    window.dispatchEvent(new CustomEvent<XpGainDetail>(XP_GAIN_EVENT, {
-      detail: {
-        amount,
-        label,
-        leveledUp: depois.level > antes.level,
-        evolved: stageDepois.id !== stageAntes.id,
-        level: depois.level,
-        stageName: stageDepois.name,
-      },
-    }));
-  }
-
+  const before = readXpState();
   try {
     const snap = await recordActivity({
       data: {
@@ -258,9 +210,16 @@ export async function awardXp(
         ...(options?.subject ? { subject: options.subject } : {}),
         ...(options?.attempts?.length ? { attempts: options.attempts } : {}),
         ...(options?.progress ? { progress: options.progress } : {}),
+        ...(options?.material ? {material:options.material} : {}),
       },
     });
     writeXpState(fromSnapshot(snap));
+    const gained = Math.max(0,snap.totalXp-before.totalXp);
+    if (gained > 0) {
+      const previous = levelInfo(before.totalXp);
+      const next = levelInfo(snap.totalXp);
+      window.dispatchEvent(new CustomEvent<XpGainDetail>(XP_GAIN_EVENT,{detail:{amount:gained,label,leveledUp:next.level>previous.level,evolved:stageForLevel(next.level).id!==stageForLevel(previous.level).id,level:next.level,stageName:stageForLevel(next.level).name}}));
+    }
   } catch (e) {
     console.error("[XP] Falha ao salvar atividade na conta", e);
     void syncXpFromAccount(true);
