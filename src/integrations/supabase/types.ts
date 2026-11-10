@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      daily_challenge_runs: {
+        Row: {
+          answers: Json
+          base_xp: number
+          best_combo: number
+          chest_xp: number
+          combo: number
+          combo_xp: number
+          completed_at: string | null
+          day: string
+          mission_xp: number
+          questions: Json
+          stars: number
+          thetas: Json
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          base_xp?: number
+          best_combo?: number
+          chest_xp?: number
+          combo?: number
+          combo_xp?: number
+          completed_at?: string | null
+          day?: string
+          mission_xp?: number
+          questions?: Json
+          stars?: number
+          thetas?: Json
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          base_xp?: number
+          best_combo?: number
+          chest_xp?: number
+          combo?: number
+          combo_xp?: number
+          completed_at?: string | null
+          day?: string
+          mission_xp?: number
+          questions?: Json
+          stars?: number
+          thetas?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_path_progress: {
         Row: {
           box: number
@@ -347,12 +395,31 @@ export type Database = {
         }
         Relationships: []
       }
+      student_achievements: {
+        Row: {
+          achievement_key: string
+          earned_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_key: string
+          earned_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_key?: string
+          earned_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       student_activity_events: {
         Row: {
           created_at: string
           id: string
           kind: string
           label: string | null
+          reward_key: string | null
           subject: string | null
           user_id: string
           xp: number
@@ -362,6 +429,7 @@ export type Database = {
           id?: string
           kind: string
           label?: string | null
+          reward_key?: string | null
           subject?: string | null
           user_id: string
           xp?: number
@@ -371,6 +439,7 @@ export type Database = {
           id?: string
           kind?: string
           label?: string | null
+          reward_key?: string | null
           subject?: string | null
           user_id?: string
           xp?: number
@@ -412,6 +481,33 @@ export type Database = {
           theta_natureza?: number
           tri_consistency_rate?: number
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      student_daily_missions: {
+        Row: {
+          day: string
+          mission_key: string
+          progress: number
+          rewarded_at: string | null
+          target: number
+          user_id: string
+        }
+        Insert: {
+          day: string
+          mission_key: string
+          progress?: number
+          rewarded_at?: string | null
+          target: number
+          user_id: string
+        }
+        Update: {
+          day?: string
+          mission_key?: string
+          progress?: number
+          rewarded_at?: string | null
+          target?: number
           user_id?: string
         }
         Relationships: []
@@ -460,34 +556,46 @@ export type Database = {
       }
       student_xp: {
         Row: {
+          answer_combo: number
           best_streak: number
           browser_imported_at: string | null
           last_active_day: string | null
           last_activity: string | null
+          shield_day: string | null
           streak: number
+          streak_shields: number
           total_xp: number
           updated_at: string
           user_id: string
+          weekly_goal: number
         }
         Insert: {
+          answer_combo?: number
           best_streak?: number
           browser_imported_at?: string | null
           last_active_day?: string | null
           last_activity?: string | null
+          shield_day?: string | null
           streak?: number
+          streak_shields?: number
           total_xp?: number
           updated_at?: string
           user_id: string
+          weekly_goal?: number
         }
         Update: {
+          answer_combo?: number
           best_streak?: number
           browser_imported_at?: string | null
           last_active_day?: string | null
           last_activity?: string | null
+          shield_day?: string | null
           streak?: number
+          streak_shields?: number
           total_xp?: number
           updated_at?: string
           user_id?: string
+          weekly_goal?: number
         }
         Relationships: []
       }
@@ -778,14 +886,18 @@ export type Database = {
           p_user: string
         }
         Returns: {
+          answer_combo: number
           best_streak: number
           browser_imported_at: string | null
           last_active_day: string | null
           last_activity: string | null
+          shield_day: string | null
           streak: number
+          streak_shields: number
           total_xp: number
           updated_at: string
           user_id: string
+          weekly_goal: number
         }
         SetofOptions: {
           from: "*"
@@ -793,6 +905,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      progress_daily_mission: {
+        Args: { p_key: string; p_progress: number; p_user: string }
+        Returns: undefined
       }
       record_activity: {
         Args: {
@@ -803,14 +919,18 @@ export type Database = {
           p_xp: number
         }
         Returns: {
+          answer_combo: number
           best_streak: number
           browser_imported_at: string | null
           last_active_day: string | null
           last_activity: string | null
+          shield_day: string | null
           streak: number
+          streak_shields: number
           total_xp: number
           updated_at: string
           user_id: string
+          weekly_goal: number
         }
         SetofOptions: {
           from: "*"
@@ -821,6 +941,20 @@ export type Database = {
       }
       reserve_nexem_tutor_consultation: {
         Args: { p_request_id: string }
+        Returns: boolean
+      }
+      review_daily_error: {
+        Args: { p_day: string; p_question: string; p_user: string }
+        Returns: undefined
+      }
+      reward_student_once: {
+        Args: {
+          p_key: string
+          p_kind: string
+          p_label: string
+          p_user: string
+          p_xp: number
+        }
         Returns: boolean
       }
       save_study_week: {
@@ -841,6 +975,58 @@ export type Database = {
           p_week: string
         }
         Returns: string
+      }
+      set_weekly_xp_goal: {
+        Args: { p_goal: number; p_user: string }
+        Returns: undefined
+      }
+      start_daily_run: {
+        Args: { p_questions: Json; p_thetas: Json; p_user: string }
+        Returns: {
+          answers: Json
+          base_xp: number
+          best_combo: number
+          chest_xp: number
+          combo: number
+          combo_xp: number
+          completed_at: string | null
+          day: string
+          mission_xp: number
+          questions: Json
+          stars: number
+          thetas: Json
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "daily_challenge_runs"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      submit_daily_answer: {
+        Args: { p_index: number; p_letter: string; p_user: string }
+        Returns: {
+          answers: Json
+          base_xp: number
+          best_combo: number
+          chest_xp: number
+          combo: number
+          combo_xp: number
+          completed_at: string | null
+          day: string
+          mission_xp: number
+          questions: Json
+          stars: number
+          thetas: Json
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "daily_challenge_runs"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
     }
     Enums: {
