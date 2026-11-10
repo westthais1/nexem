@@ -494,6 +494,7 @@ function BlockSession({
         dificuldade_questao: String(dificuldade),
         materia_questao: subject.label,
         foi_correto: correto,
+        letra: selected as 'A' | 'B' | 'C' | 'D' | 'E',
       }],
     }).catch((e) => console.error("[Maestria] Falha ao registrar tentativa", e));
 

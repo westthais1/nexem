@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-/** XP máximo aceito por tipo de atividade (os valores reais vêm de XP_REWARDS no navegador). */
+/** Rewards are server-owned; browser amounts cannot authorize XP. */
 const MAX_XP: Record<string, number> = {
   questao: 10,
   simuladoAdaptativo: 25,
@@ -18,6 +18,7 @@ const attemptSchema = z.object({
   dificuldade_questao: z.string().max(40).nullable().optional(),
   materia_questao: z.string().max(120).nullable().optional(),
   foi_correto: z.boolean(),
+  letra: z.enum(['A','B','C','D','E']).optional(),
 });
 
 const trackValue = z.number().int().min(1).max(100);
@@ -60,7 +61,8 @@ async function snapshot(supabase: any, userId: string, row: XpRow): Promise<XpSn
     .order("day", { ascending: false }).limit(60);
   const last = row?.last_active_day ?? null;
   // A sequência só continua viva se a última atividade foi hoje ou ontem.
-  const alive = last !== null && last >= spDay(-1);
+  const { data: protection } = await supabase.from('student_xp').select('streak_shields').eq('user_id',userId).maybeSingle();
+  const alive = last !== null && (last >= spDay(-1) || (last === spDay(-2) && (protection?.streak_shields ?? 0) > 0));
   return {
     userId,
     totalXp: row?.total_xp ?? 0,
@@ -78,6 +80,23 @@ export const recordActivity = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => activitySchema.parse(input))
   .handler(async ({ data, context }): Promise<XpSnapshot> => {
     const { supabase, userId } = context;
+
+    // These flows are now awarded where the server confirms the saved result.
+    if (['desafioDiario','redacao','provaCompleta'].includes(data.kind)) {
+      const { data: saved } = await supabase.from('student_xp').select('*').eq('user_id',userId).maybeSingle();
+      return snapshot(supabase,userId,saved);
+    }
+    let trustedCorrect: boolean | null = null;
+    if (data.kind === 'questao' && data.attempts?.[0]?.letra) {
+      const { questionsSupabase } = await import('./external-supabase');
+      const a = data.attempts[0];
+      const { data: question, error } = await questionsSupabase.from('enem_provas').select('resposta_correta,materia,area_conhecimento,dificuldade').eq('id',a.question_id).maybeSingle();
+      if (error || !question) throw new Error('Não foi possível conferir o gabarito.');
+      trustedCorrect = a.letra === question.resposta_correta?.trim().toUpperCase();
+      a.foi_correto = trustedCorrect;
+      a.materia_questao = question.materia ?? question.area_conhecimento;
+      a.dificuldade_questao = String(question.dificuldade ?? 50);
+    }
 
     if (data.attempts?.length) {
       const { error } = await supabase.from("enem_user_attempts").insert(
@@ -109,8 +128,14 @@ export const recordActivity = createServerFn({ method: "POST" })
       if (error) console.error("[Atividade] Falha ao salvar progresso por área", error);
     }
 
-    const xp = Math.min(data.xp, MAX_XP[data.kind] ?? 0);
+    const xp = data.kind === 'questao' ? (trustedCorrect === true ? 10 : 0) : (MAX_XP[data.kind] ?? 0);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (trustedCorrect !== null) {
+      const { error } = await supabaseAdmin.rpc('record_training_answer', { p_user:userId,p_question:data.attempts?.[0]?.question_id ?? '',p_correct:trustedCorrect });
+      if (error) throw new Error('Não foi possível salvar sua resposta.');
+      const { data: saved } = await supabase.from('student_xp').select('*').eq('user_id',userId).maybeSingle();
+      return snapshot(supabase,userId,saved);
+    }
     const { data: row, error } = await supabaseAdmin.rpc("record_activity", {
       p_user: userId,
       p_kind: data.kind,
@@ -146,20 +171,6 @@ export const getXpState = createServerFn({ method: "POST" })
       .eq("user_id", userId)
       .maybeSingle();
 
-    if (data.browser && !row?.browser_imported_at) {
-      const b = data.browser;
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data: imported, error } = await supabaseAdmin.rpc("import_browser_xp", {
-        p_user: userId,
-        p_total: b.totalXp,
-        p_streak: b.streak,
-        p_best: b.bestStreak,
-        p_last_day: b.lastActiveDay as string,
-        p_last_activity: b.lastActivity as string,
-        p_days: b.history,
-      });
-      if (!error) return snapshot(supabase, userId, imported as XpRow);
-      console.error("[XP] Falha ao importar dados do navegador", error);
-    }
+    // Legacy imported records stay intact; never accept browser values as rewards.
     return snapshot(supabase, userId, row as XpRow);
   });
