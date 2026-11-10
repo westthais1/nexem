@@ -120,6 +120,13 @@
       "when": 1794351370614,
       "tag": "0016_verified_training_rewards",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794351630999,
+      "tag": "0017_private_gabarito_atomic_training",
+      "breakpoints": true
     }
   ]
 }

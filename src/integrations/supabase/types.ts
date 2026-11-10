@@ -943,6 +943,16 @@ export type Database = {
         Args: { p_correct: boolean; p_question: string; p_user: string }
         Returns: undefined
       }
+      record_verified_training: {
+        Args: {
+          p_correct: boolean
+          p_difficulty: string
+          p_question: string
+          p_subject: string
+          p_user: string
+        }
+        Returns: undefined
+      }
       reserve_nexem_tutor_consultation: {
         Args: { p_request_id: string }
         Returns: boolean
