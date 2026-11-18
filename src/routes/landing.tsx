@@ -1,27 +1,32 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowDown, ArrowRight, Check, Clock3, Menu, Sparkles } from "lucide-react";
-import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
+import {
+  ArrowDown,
+  ArrowRight,
+  BrainCircuit,
+  Check,
+  Clock3,
+  Flame,
+  Gauge,
+  GraduationCap,
+  Menu,
+  X,
+  Sparkles,
+  Target,
+  Trophy,
+  Zap,
+} from "lucide-react";
+import { useEffect, useRef, useState, type ComponentType, type MouseEvent } from "react";
+
 import { AuthModal } from "@/components/AuthModal";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
-import {
-  ChallengeMockup,
-  DiagnosisMockup,
-  TutorMockup,
-  JourneyMockup,
-  EssayMockup,
-  MaterialsMockup,
-  ExamMockup,
-  TimeMockup,
-} from "@/components/landing/Mockups";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import nexemLogo from "@/assets/nexem-logo.png.asset.json";
-import studentPhoto from "@/assets/landing/teen-student-2.jpg";
+import heroVideo from "@/assets/landing/teen-hero.mp4.asset.json";
+import heroWebVideo from "@/assets/landing/teen-hero.webm.asset.json";
+import heroPoster from "@/assets/landing/teen-hero.jpg";
+import student1 from "@/assets/landing/teen-student-1.jpg";
+import student2 from "@/assets/landing/teen-student-2.jpg";
+import student3 from "@/assets/landing/teen-student-3.jpg";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureProgressForUser } from "@/lib/progress";
@@ -29,8 +34,7 @@ import { ensureProfile, markOnboarded } from "@/lib/profile";
 
 export const Route = createFileRoute("/landing")({
   validateSearch: (search: Record<string, unknown>): { preview?: boolean } => ({
-    preview:
-      search["preview"] === true || search["preview"] === "true" || search["preview"] === "1",
+    preview: search["preview"] === true || search["preview"] === "true" || search["preview"] === "1",
   }),
   head: () => ({
     meta: [
@@ -53,6 +57,66 @@ export const Route = createFileRoute("/landing")({
   component: LandingPage,
 });
 
+type Feature = {
+  icon: ComponentType<{ className?: string }>;
+  title: string;
+  text: string;
+  tone: string;
+  tag: string;
+};
+
+const FEATURES: Feature[] = [
+  {
+    icon: Flame,
+    title: "Desafio Diário",
+    text: "O coração do Nexem: 10 questões no seu nível em 15 minutos. Grátis, todo dia.",
+    tone: "bg-primary/15 text-primary",
+    tag: "Seus 15 minutos",
+  },
+  {
+    icon: BrainCircuit,
+    title: "Tutor Nex",
+    text: "Durante os seus 15 minutos, uma IA orienta seu raciocínio com pistas e perguntas, sem entregar a resposta.",
+    tone: "bg-accent/15 text-accent",
+    tag: "Ajuda inteligente",
+  },
+  {
+    icon: Trophy,
+    title: "Níveis de Maestria",
+    text: "Cada desafio diário conta: avance por matéria das Fundações ao Domínio Avançado.",
+    tone: "bg-warning/25 text-warning-foreground",
+    tag: "Evolução visível",
+  },
+  {
+    icon: Clock3,
+    title: "Simulado Completo",
+    text: "Quando os 15 minutos diários viraram hábito, treine resistência com a estrutura real do ENEM.",
+    tone: "bg-secondary text-secondary-foreground",
+    tag: "Modo prova",
+  },
+];
+
+const STEPS = [
+  {
+    n: "01",
+    icon: Gauge,
+    title: "Entender",
+    text: "Um diagnóstico rápido mostra seu nível atual em cada área.",
+  },
+  {
+    n: "02",
+    icon: Target,
+    title: "Treinar 15 minutos",
+    text: "Todo dia, 10 questões ajustadas ao seu nível. Seus acertos e erros calibram o desafio de amanhã.",
+  },
+  {
+    n: "03",
+    icon: GraduationCap,
+    title: "Evoluir",
+    text: "15 minutos por dia somam mais de 7 horas por mês de treino focado onde você mais precisa.",
+  },
+] as const;
+
 const LANDING_MENU = [
   { href: "#como-funciona", label: "Como funciona" },
   { to: "/entenda-tri", label: "Entenda a TRI" },
@@ -66,6 +130,24 @@ function LandingPage() {
   const { preview } = Route.useSearch();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = true;
+    const resume = () => { video.play().catch(() => {}); };
+    video.play().catch(() => {
+      document.addEventListener("pointerdown", resume, { once: true });
+      document.addEventListener("touchstart", resume, { once: true });
+    });
+    return () => {
+      document.removeEventListener("pointerdown", resume);
+      document.removeEventListener("touchstart", resume);
+    };
+  }, []);
+
+
   useEffect(() => {
     // Explicit preview keeps the landing visible without signing the student out.
     if (preview) return;
@@ -118,481 +200,451 @@ function LandingPage() {
     setMenuOpen(false);
     if (!target) return;
     document.getElementById(target)?.scrollIntoView({
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? "instant"
-        : "smooth",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
       block: "start",
     });
   }
 
   return (
-    <div className="nexem-landing min-h-screen bg-background text-foreground">
-      <a
-        href="#conteudo"
-        className="sr-only fixed left-4 top-3 z-[110] rounded-md bg-primary px-4 py-3 text-primary-foreground focus:not-sr-only"
-      >
-        Pular para o conteúdo
-      </a>
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-border/70 bg-card/95 backdrop-blur-xl">
-        <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-          <a href="#conteudo" aria-label="Nexem — início">
-            <img src={nexemLogo.url} alt="nexem" className="h-7 w-auto sm:h-8" />
-          </a>
-          <nav aria-label="Menu da landing" className="hidden items-center xl:flex">
+    <main className="min-h-screen overflow-hidden bg-background">
+      <header className="sticky top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
+          <img src={nexemLogo.url} alt="nexem" className="h-8 w-auto" />
+          <nav aria-label="Menu da landing" className="hidden items-center gap-1 lg:flex">
             {LANDING_MENU.map((item) => (
-              <Button
-                key={item.label}
-                asChild
-                variant="ghost"
-                className="px-3 text-xs hover:bg-primary/5 hover:text-primary"
-              >
+              <Button key={item.label} asChild variant="ghost" className="text-foreground hover:bg-primary/10 hover:text-primary">
                 {"to" in item ? (
                   <Link to={item.to}>{item.label}</Link>
                 ) : (
-                  <a href={item.href} onClick={scrollToHow}>
-                    {item.label}
-                  </a>
+                  <a href={item.href} onClick={scrollToHow}>{item.label}</a>
                 )}
               </Button>
             ))}
           </nav>
-          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-            <Button variant="ghost" onClick={openAuth} className="hidden px-3 sm:inline-flex">
-              Entrar
-            </Button>
-            <Button onClick={openAuth} className="px-3 sm:px-4">
-              Começar grátis <ArrowRight aria-hidden="true" className="hidden sm:block" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="xl:hidden"
-              aria-label="Abrir menu"
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen(true)}
-            >
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={openAuth} className="rounded-full px-5">Entrar</Button>
+            <Button variant="ghost" size="icon" aria-label="Abrir menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}>
               <Menu />
             </Button>
           </div>
         </div>
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-          <SheetContent side="right" className="w-[85vw] max-w-sm">
+          <SheetContent side="right" className="w-[45vw] min-w-[280px] sm:max-w-none">
             <SheetHeader>
-              <SheetTitle>Nexem</SheetTitle>
-              <SheetDescription>Seu próximo passo para o ENEM.</SheetDescription>
+              <SheetTitle>Menu</SheetTitle>
             </SheetHeader>
-            <nav aria-label="Menu lateral da landing" className="mt-6 grid gap-2">
+            <nav aria-label="Menu lateral da landing" className="mt-6 grid gap-1">
               {LANDING_MENU.map((item) => (
-                <Button
-                  key={item.label}
-                  asChild
-                  variant="ghost"
-                  className="h-11 justify-start hover:bg-primary/5 hover:text-primary"
-                >
+                <Button key={item.label} asChild variant="ghost" className="h-11 justify-start text-base text-foreground hover:bg-primary/10 hover:text-primary">
                   {"to" in item ? (
-                    <Link to={item.to} onClick={() => setMenuOpen(false)}>
-                      {item.label}
-                    </Link>
+                    <Link to={item.to} onClick={() => setMenuOpen(false)}>{item.label}</Link>
                   ) : (
-                    <a href={item.href} onClick={scrollToHow}>
-                      {item.label}
-                    </a>
+                    <a href={item.href} onClick={(e) => { setMenuOpen(false); scrollToHow(e); }}>{item.label}</a>
                   )}
                 </Button>
               ))}
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setMenuOpen(false);
-                  openAuth();
-                }}
-              >
-                Entrar
-              </Button>
-              <Button
-                onClick={() => {
-                  setMenuOpen(false);
-                  openAuth();
-                }}
-              >
-                Começar grátis <ArrowRight aria-hidden="true" />
-              </Button>
+              <Button className="mt-4 rounded-full" onClick={() => { setMenuOpen(false); openAuth(); }}>Entrar</Button>
             </nav>
           </SheetContent>
         </Sheet>
       </header>
-      <main id="conteudo" className="pt-[72px]">
-        <section className="relative border-b border-border px-5 pb-12 pt-12 sm:px-8 sm:py-20 lg:pb-20 lg:pt-24">
-          <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1.08fr_1fr] lg:gap-14">
-            <div>
-              <Eyebrow n="01" label="SEUS 15 MINUTOS" />
-              <h1 className="mt-6 font-display text-5xl font-semibold leading-[1.08] sm:text-6xl">
-                15 minutos por dia.
-                <span className="mt-1 block text-primary">
-                  Um passo a mais
-                  {" "}para o ENEM.
-                </span>
-              </h1>
-              <p className="mt-6 max-w-md text-base leading-7 text-muted-foreground sm:text-lg">
-                10 questões no seu nível. Uma pista quando você trava. Um novo desafio amanhã.
-                Estudar pode caber no seu dia.
-              </p>
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <Button onClick={openAuth} size="lg" className="h-12 px-5 text-sm">
-                  Começar meus 15 minutos <ArrowRight aria-hidden="true" />
-                </Button>
-                <Button asChild variant="ghost" className="h-12 text-primary hover:bg-primary/5">
-                  <a href="#como-funciona" onClick={scrollToHow}>
-                    Como funciona <ArrowDown aria-hidden="true" />
-                  </a>
-                </Button>
-              </div>
-              <p className="mt-5 flex items-center gap-2 text-xs text-muted-foreground">
-                <Check aria-hidden="true" className="h-4 w-4 text-primary" />
-                Desafio Diário grátis, todos os dias.
-              </p>
-              <div className="mt-8 flex max-w-sm items-center gap-4 border-t border-border pt-5">
-                <img
-                  src={studentPhoto}
-                  alt="Adolescente fazendo anotações enquanto estuda na biblioteca"
-                  className="h-16 w-20 shrink-0 rounded-lg object-cover"
-                />
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  Na biblioteca, em casa, no intervalo.
-                  <br />
-                  <span className="font-medium text-foreground">Seu ritmo também conta.</span>
-                </p>
-              </div>
-            </div>
-            <ChallengeMockup />
-          </div>
-          <div className="mx-auto mt-10 flex max-w-6xl flex-wrap items-center gap-x-8 gap-y-3 border-t border-border pt-5 text-xs font-medium text-muted-foreground">
-            <span className="inline-flex items-center gap-2">
-              <Clock3 aria-hidden="true" className="h-4 w-4 text-primary" />
-              ≈15 minutos
+
+      <section className="px-3 pt-4 md:px-6 md:pt-6">
+        <div className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[32px] shadow-2xl shadow-foreground/10">
+          <video
+            ref={videoRef}
+            className="absolute inset-0 h-full w-full object-cover"
+            poster={heroPoster}
+            autoPlay
+            muted
+            loop
+            preload="auto"
+            playsInline
+            {...{ "webkit-playsinline": "true" }}
+            aria-hidden="true"
+          >
+            <source src={heroWebVideo.url} type="video/webm" />
+            <source src={heroVideo.url} type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-foreground/45" aria-hidden="true" />
+          <div className="relative flex min-h-[78vh] flex-col items-center justify-center px-6 py-24 text-center md:min-h-[84vh]">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm motion-safe:animate-fade-in-up">
+              <Clock3 className="h-3.5 w-3.5" />
+              Desafio Diário · grátis
             </span>
-            <span>10 questões por dia</span>
-            <span>4 áreas do ENEM</span>
-            <span className="ml-auto hidden items-center gap-2 sm:inline-flex">
-              Um começo simples <ArrowDown aria-hidden="true" className="h-3 w-3" />
-            </span>
-          </div>
-        </section>
-        <FeatureSection
-          n="02"
-          label="COMO FUNCIONA"
-          id="como-funciona"
-          title="Não organize tudo."
-          punch="Dê o primeiro passo."
-          reverse
-          mockup={<DiagnosisMockup />}
-        >
-          <p>
-            O Nexem conhece seu ponto de partida e transforma isso em um treino curto. Você só
-            precisa começar.
-          </p>
-          <ol className="mt-7 space-y-5">
-            {[
-              {
-                title: "Um diagnóstico rápido.",
-                text: "Conte seu objetivo e descubra seu nível inicial por área.",
-              },
-              {
-                title: "10 questões, cerca de 15 minutos.",
-                text: "Treine no seu nível, com o Tutor Nex para guiar o raciocínio.",
-              },
-              {
-                title: "Amanhã tem um novo passo.",
-                text: "O próximo desafio se ajusta aos seus acertos e erros.",
-              },
-            ].map((step, i) => (
-              <li key={step.title} className="flex gap-4">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-primary/25 text-sm font-semibold text-primary">
-                  {i + 1}
-                </span>
-                <div>
-                  <h3 className="text-sm font-semibold text-foreground">{step.title}</h3>
-                  <p className="mt-1 text-sm leading-relaxed">{step.text}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </FeatureSection>
-        <FeatureSection
-          n="03"
-          label="TUTOR NEX"
-          title="A pista certa."
-          punch="A resposta é sua."
-          mockup={<TutorMockup />}
-        >
-          <p>
-            Não entrega a resposta, guia o raciocínio. O Tutor Nex faz perguntas, aponta caminhos e
-            ajuda você a entender o que está fazendo.
-          </p>
-          <p className="mt-5">Porque acertar é bom. Saber por quê é melhor.</p>
-          <p className="mt-6 border-l-2 border-accent pl-4 text-sm text-foreground">
-            No plano grátis: <strong>3 consultas a cada 24 horas.</strong>
-          </p>
-        </FeatureSection>
-        <FeatureSection
-          n="04"
-          label="SEU RITMO, SUA SEQUÊNCIA"
-          title="Voltar amanhã."
-          punch="Já é uma conquista."
-          reverse
-          mockup={<JourneyMockup />}
-        >
-          <p>
-            Uma chama para sua sequência. Uma trilha para cada passo. Seu treino ganha ritmo sem
-            transformar o erro em punição.
-          </p>
-          <ul className="mt-6 space-y-3 text-sm">
-            {[
-              "10 questões para abrir o baú diário.",
-              "2 questões finais para enfrentar o chefe.",
-              "Combos, XP e medalhas para celebrar o caminho.",
-              "A raposa acompanha sua evolução.",
-            ].map((text) => (
-              <li key={text} className="flex items-start gap-3">
-                <Check aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                {text}
-              </li>
-            ))}
-          </ul>
-        </FeatureSection>
-        <FeatureSection
-          n="05"
-          label="REDAÇÃO INTELIGENTE"
-          title="Além de uma nota."
-          punch="Um caminho de melhora."
-          mockup={<EssayMockup />}
-        >
-          <p>
-            Envie sua redação e receba uma avaliação pelas cinco competências do ENEM. Veja onde seu
-            argumento perde força e como reescrever com mais clareza.
-          </p>
-          <p className="mt-5">
-            Da escrita formal à proposta de intervenção: comentários específicos para cada
-            competência, não só uma nota no final.
-          </p>
-          <p className="mt-6 text-xs">
-            As notas de redação são estimativas, não resultados oficiais do INEP.
-          </p>
-        </FeatureSection>
-        <FeatureSection
-          n="06"
-          label="UM CONTEÚDO, VÁRIAS FORMAS"
-          id="materiais"
-          title="Seu material."
-          punch="Novas formas de aprender."
-          reverse
-          mockup={<MaterialsMockup />}
-        >
-          <p>
-            Envie PDF, anotações ou fotos. O Nexem cria resumos, flashcards e uma trilha de estudo a
-            partir do que você está aprendendo.
-          </p>
-          <p className="mt-5">
-            Entenda o conceito, recupere de memória e teste com uma questão. O assunto continua o
-            mesmo; a forma de estudar muda.
-          </p>
-        </FeatureSection>
-        <FeatureSection
-          n="07"
-          label="PROVA COMPLETA E RAIO-X"
-          title="Treine o formato."
-          punch="Enxergue as prioridades."
-          mockup={<ExamMockup />}
-        >
-          <p>
-            Quando quiser ir além dos 15 minutos, a Prova Completa coloca você no ritmo real do
-            ENEM, com 90 questões por dia e nota TRI.
-          </p>
-          <div className="mt-6 space-y-4 border-y border-border py-5 text-sm">
-            <p>
-              <strong className="text-foreground">Dia 1 · 5h30</strong>
-              <br />
-              Linguagens, Humanas e Redação.
+            <h1 className="mt-7 max-w-4xl text-5xl font-bold leading-[0.98] text-white motion-safe:animate-fade-in-up md:text-7xl" style={{ animationDelay: "80ms" }}>
+              15 minutos por dia.<br />Até a sua aprovação.
+            </h1>
+            <p className="mt-6 max-w-xl text-base leading-relaxed text-white/85 motion-safe:animate-fade-in-up md:text-lg" style={{ animationDelay: "160ms" }}>
+              Todo dia, 10 questões no seu nível e o Tutor Nex guiando o raciocínio. Um treino curto
+              que cabe em qualquer rotina e vira pontos no ENEM.
             </p>
-            <p>
-              <strong className="text-foreground">Dia 2 · 5h</strong>
-              <br />
-              Natureza e Matemática.
-            </p>
-          </div>
-          <p className="mt-5 text-sm">
-            No Raio-X, explore a frequência dos temas nas provas de 2009–2024 e identifique o que
-            mais aparece.
-          </p>
-          <Button asChild variant="link" className="mt-3 h-auto px-0 text-accent">
-            <Link to="/nexem-pro">
-              Conhecer a Prova Completa no Nexem Pro <ArrowRight aria-hidden="true" />
-            </Link>
-          </Button>
-        </FeatureSection>
-        <FeatureSection
-          n="08"
-          label="COM O TEMPO"
-          title="Pequenos treinos."
-          punch="Um histórico só seu."
-          reverse
-          mockup={<TimeMockup />}
-        >
-          <p>
-            O primeiro dia mostra onde você está. Os seguintes revelam o que ficou mais fácil — e o
-            que vale revisar.
-          </p>
-          <p className="mt-5">
-            De Fundações a Aprofundamento e Domínio Avançado, seus níveis acompanham seu desempenho.
-            As estatísticas por área ajudam a enxergar a evolução.
-          </p>
-          <p className="mt-6 font-medium text-primary">Seu progresso fica salvo na sua conta.</p>
-        </FeatureSection>
-        <section className="border-t border-border bg-primary/5 px-5 py-20 text-center sm:px-8 sm:py-24">
-          <Sparkles aria-hidden="true" className="mx-auto h-7 w-7 text-primary" />
-          <h2 className="mx-auto mt-5 max-w-3xl font-display text-4xl font-semibold leading-tight sm:text-5xl">
-            Os 15 minutos de hoje
-            <br />
-            <span className="text-primary">começam com um passo.</span>
-          </h2>
-          <p className="mt-5 text-muted-foreground">
-            Você não precisa resolver o ENEM inteiro hoje.
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Button size="lg" className="h-12" onClick={openAuth}>
-              Começar grátis <ArrowRight aria-hidden="true" />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="h-12 hover:bg-primary/10 hover:text-primary"
-              onClick={openAuth}
-            >
-              Entrar
-            </Button>
-          </div>
-          <p className="mt-5 text-xs text-muted-foreground">
-            Grátis para sempre no Desafio Diário.{" "}
-            <Link to="/nexem-pro" className="font-medium text-primary underline underline-offset-4">
-              Nexem Pro opcional
-            </Link>
-            .
-          </p>
-        </section>
-      </main>
-      <footer className="bg-foreground px-5 py-12 text-background sm:px-8">
-        <div className="mx-auto grid max-w-6xl gap-8 sm:grid-cols-[1.5fr_1fr_1fr_1fr]">
-          <div>
-            <img src={nexemLogo.url} alt="nexem" className="h-8 w-auto brightness-0 invert" />
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-background/70">
-              15 minutos por dia.
-              <br />
-              Seu próximo passo para o ENEM.
-            </p>
-          </div>
-          <div>
-            <h3 className="mb-4 text-xs font-semibold uppercase">Produto</h3>
-            <div className="grid justify-items-start gap-3 text-sm text-background/70">
-              <a href="#como-funciona" onClick={scrollToHow} className="hover:text-background">
-                Como funciona
-              </a>
-              <Link to="/nexem-pro" className="hover:text-background">
-                Nexem Pro
-              </Link>
-            </div>
-          </div>
-          <div>
-            <h3 className="mb-4 text-xs font-semibold uppercase">Aprender</h3>
-            <div className="grid justify-items-start gap-3 text-sm text-background/70">
-              {LANDING_MENU.filter((item) => "to" in item && item.to !== "/nexem-pro").map(
-                (item) =>
-                  "to" in item && (
-                    <Link key={item.label} to={item.to} className="hover:text-background">
-                      {item.label}
-                    </Link>
-                  ),
-              )}
-            </div>
-          </div>
-          <div>
-            <h3 className="mb-3 text-xs font-semibold uppercase">Conta</h3>
-            <div className="grid justify-items-start gap-1">
-              <Button
-                variant="ghost"
-                onClick={openAuth}
-                className="h-9 px-0 text-background/70 hover:bg-transparent hover:text-background"
-              >
-                Entrar
+            <div className="mt-9 flex flex-col gap-3 motion-safe:animate-fade-in-up sm:flex-row" style={{ animationDelay: "240ms" }}>
+              <Button onClick={openAuth} size="lg" className="h-13 rounded-full px-7 text-base shadow-lg shadow-primary/30 transition-transform hover:-translate-y-0.5">
+                Começar meus 15 minutos <ArrowRight />
               </Button>
-              <Button
-                variant="ghost"
-                onClick={openAuth}
-                className="h-9 px-0 text-background/70 hover:bg-transparent hover:text-background"
-              >
-                Começar grátis <ArrowRight aria-hidden="true" />
+              <Button asChild size="lg" variant="outline" className="h-13 rounded-full border-white/40 bg-white/10 px-7 text-base text-white backdrop-blur-sm hover:bg-white/20 hover:text-white">
+                <a href="#como-funciona" onClick={scrollToHow}>
+                  Como funciona <ArrowDown />
+                </a>
               </Button>
+            </div>
+            <div className="mt-9 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm font-medium text-white/80 motion-safe:animate-fade-in-up" style={{ animationDelay: "320ms" }}>
+              <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-primary-foreground" /> 10 questões</span>
+              <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-primary-foreground" /> 15 minutos</span>
+              <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-primary-foreground" /> Grátis, todo dia</span>
             </div>
           </div>
         </div>
-        <div className="mx-auto mt-10 flex max-w-6xl flex-wrap justify-between gap-3 border-t border-background/15 pt-5 text-xs text-background/60">
-          <p>© 2026 Nexem. Todos os direitos reservados.</p>
-          <p>Notas de redação são estimativas.</p>
+      </section>
+
+      <div className="mt-10 overflow-hidden bg-background py-4" aria-hidden="true">
+        <div className="flex w-max animate-marquee gap-10 pr-10">
+          {[0, 1].map((copy) => (
+            <div key={copy} className="flex items-center gap-10 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
+              {["15 minutos por dia", "Desafio Diário", "Tutor Nex", "Níveis de Maestria", "Simulado Completo", "Redação Inteligente", "Estatísticas TRI"].map((item) => (
+                <span key={item} className="inline-flex items-center gap-10">
+                  {item} <Sparkles className="h-3.5 w-3.5 text-primary" />
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <section className="px-5 py-20 md:px-8 md:py-28">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid items-center gap-12 lg:grid-cols-[1fr_0.9fr]">
+            <div>
+              <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-warning/25 text-warning-foreground">
+                <Zap className="h-7 w-7" />
+              </span>
+              <h2 className="mt-6 text-4xl font-bold leading-tight text-foreground md:text-6xl">
+                O objetivo de cada dia: 15 minutos.
+              </h2>
+              <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
+                Você não precisa de horas. Precisa aparecer todo dia. O Nexem transforma 15 minutos em um treino certeiro:
+                10 questões no seu nível, com o Tutor Nex ajudando quando você trava.
+              </p>
+              <Button onClick={openAuth} size="lg" className="mt-8 h-13 rounded-xl px-6 text-base">
+                Fazer meus 15 minutos de hoje <ArrowRight />
+              </Button>
+            </div>
+
+            <div className="relative grid gap-4">
+              {[{ n: "01", v: "15 minutos", s: "a meta diária do Nexem" }, { n: "02", v: "10 questões", s: "no seu nível, sem sobrecarga" }, { n: "03", v: "todo dia", s: "sequência que vira progresso" }].map((item, index) => (
+                <div key={item.n} className={`flex items-center gap-5 border border-border bg-card p-5 shadow-sm transition-transform hover:translate-x-2 ${index === 1 ? "lg:ml-10" : ""}`}>
+                  <span className="text-sm font-bold text-primary">{item.n}</span>
+                  <div>
+                    <strong className="block text-xl font-bold uppercase text-foreground">{item.v}</strong>
+                    <span className="text-sm text-muted-foreground">{item.s}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-5 py-16 md:px-8 md:py-24">
+        <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-sm font-bold uppercase text-accent">Quem estuda com o Nexem</p>
+            <h2 className="mt-3 text-4xl font-bold leading-tight text-foreground md:text-5xl">
+              Estudo de verdade, no seu dia a dia.
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-muted-foreground md:text-lg">
+              Em casa, na biblioteca, no intervalo ou no ônibus: 15 minutos por dia cabem em qualquer rotina.
+            </p>
+          </div>
+          <div className="mt-12 grid gap-5 sm:grid-cols-3">
+            {[
+              { src: student1, alt: "Adolescente estudando para o ENEM e escrevendo no caderno em casa" },
+              { src: student2, alt: "Adolescente revisando um livro e fazendo anotações na biblioteca" },
+              { src: student3, alt: "Dois adolescentes estudando juntos com caderno e notebook" },
+            ].map((photo, index) => (
+              <figure
+                key={photo.src}
+                style={{ animationDelay: `${index * 100}ms` }}
+                className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm motion-safe:animate-fade-in-up"
+              >
+                <img
+                  src={photo.src}
+                  alt={photo.alt}
+                  loading="lazy"
+                  width={1280}
+                  height={960}
+                  className="aspect-[4/5] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                />
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-card px-5 py-16 md:px-8 md:py-24">
+        <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-sm font-bold uppercase text-primary">Veja o treino em ação</p>
+            <h2 className="mt-3 text-4xl font-bold leading-tight text-foreground md:text-5xl">
+              Uma questão. Uma pista. Um passo a mais.
+            </h2>
+          </div>
+          <div className="mt-12">
+            <ProductMockup />
+          </div>
+        </div>
+        <div className="mx-auto mt-16 grid max-w-5xl grid-cols-3 divide-x divide-border rounded-2xl border border-border bg-background px-3 py-5 shadow-sm md:px-8">
+          {[{ n: "15 min", l: "meta diária" }, { n: "10", l: "questões por dia" }, { n: "4", l: "áreas do ENEM" }].map((item) => (
+            <div key={item.l} className="text-center">
+              <strong className="block text-xl font-bold text-foreground md:text-3xl">{item.n}</strong>
+              <span className="mt-1 block text-[10px] font-semibold uppercase text-muted-foreground md:text-xs">{item.l}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section id="como-funciona" className="scroll-mt-20 bg-card px-5 py-20 md:px-8 md:py-28">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-6 md:grid-cols-[1.1fr_0.9fr] md:items-end">
+            <div>
+              <p className="text-sm font-bold uppercase text-accent">Feito para o seu ritmo</p>
+              <h2 className="mt-3 max-w-3xl text-4xl font-bold leading-tight text-foreground md:text-6xl">
+                Como funciona o Nexem.
+              </h2>
+            </div>
+            <p className="max-w-md text-base leading-relaxed text-muted-foreground md:pb-2 md:text-lg">
+              Crie sua conta, conte sua série e sua meta no questionário inicial e escolha por onde começar. Seu treino e seu progresso ficam ligados à sua conta.
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {FEATURES.map((feature, index) => {
+              const Icon = feature.icon;
+              return (
+                <article
+                  key={feature.title}
+                  style={{ animationDelay: `${index * 80}ms` }}
+                  className="group flex min-h-80 flex-col border-t-4 border-primary bg-background p-6 shadow-sm transition-all duration-500 ease-out hover:-translate-y-2 hover:shadow-xl motion-safe:animate-fade-in-up"
+                >
+                  <span className={`flex h-14 w-14 items-center justify-center rounded-2xl ${feature.tone}`}>
+                    <Icon className="h-7 w-7" />
+                  </span>
+                  <p className="mt-6 text-xs font-bold uppercase text-muted-foreground">{feature.tag}</p>
+                  <h3 className="mt-2 text-xl font-bold text-foreground">{feature.title}</h3>
+                  <p className="mt-3 flex-1 text-sm leading-7 text-muted-foreground">{feature.text}</p>
+                  <Button variant="ghost" onClick={openAuth} className="mt-5 justify-between px-0 text-primary hover:bg-transparent hover:text-primary/80">
+                    Experimentar <ArrowRight />
+                  </Button>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="relative overflow-hidden bg-foreground px-5 py-20 text-background md:px-8 md:py-28">
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-1.5 bg-primary" aria-hidden="true" />
+        <div className="relative mx-auto grid max-w-7xl gap-14 lg:grid-cols-[0.82fr_1.18fr] lg:gap-20">
+          <div className="lg:sticky lg:top-28 lg:self-start">
+            <p className="text-sm font-bold uppercase text-primary">Treino adaptativo</p>
+            <h2 className="mt-4 text-4xl font-bold leading-[1.08] md:text-6xl">
+              Seu treino não deveria ser igual ao de todo mundo.
+            </h2>
+            <p className="mt-8 text-lg text-background/70">Mais precisão. Menos desperdício. Mais evolução.</p>
+          </div>
+
+          <ol className="space-y-5">
+            {STEPS.map((step, index) => {
+              const Icon = step.icon;
+              return (
+                <li
+                  key={step.n}
+                  style={{ animationDelay: `${index * 100}ms` }}
+                  className="group grid grid-cols-[56px_1fr] gap-5 rounded-2xl border border-background/15 bg-background/5 p-6 transition-all duration-500 hover:border-primary/70 hover:bg-background/10 motion-safe:animate-fade-in-up md:p-8"
+                >
+                  <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground transition-transform group-hover:rotate-3 group-hover:scale-105">
+                    <Icon className="h-7 w-7" />
+                  </span>
+                  <div>
+                    <p className="text-xs font-bold uppercase text-primary">Passo {step.n}</p>
+                    <h3 className="mt-1 text-2xl font-bold">{step.title}</h3>
+                    <p className="mt-2 leading-relaxed text-background/65">{step.text}</p>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      </section>
+
+      <section className="relative overflow-hidden bg-primary px-5 py-20 text-primary-foreground md:px-8 md:py-28">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full border-[40px] border-primary-foreground/10" aria-hidden="true" />
+        <div className="relative mx-auto max-w-4xl text-center">
+          <Sparkles className="mx-auto h-10 w-10" />
+          <h2 className="mt-5 text-4xl font-bold leading-tight md:text-6xl">
+            Seus 15 minutos de hoje
+            <span className="mt-2 block text-background">começam agora.</span>
+          </h2>
+          <p className="mx-auto mt-6 max-w-xl text-lg text-primary-foreground/80">
+            Não é estudar mais. É estudar 15 minutos, todo dia, no lugar certo.
+          </p>
+          <Button onClick={openAuth} size="lg" className="mt-9 h-13 rounded-xl bg-background px-7 text-base text-foreground hover:bg-background/90">
+            Começar meus 15 minutos <ArrowRight />
+          </Button>
+        </div>
+      </section>
+
+      <footer className="border-t border-border bg-background px-5 py-10">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 sm:flex-row">
+          <img src={nexemLogo.url} alt="nexem" className="h-8 w-auto" />
+          <p className="text-center text-xs text-muted-foreground sm:text-right">
+            Nexem — 15 minutos por dia para o ENEM. Pratique no seu nível e evolua todos os dias.
+          </p>
         </div>
       </footer>
+
       <AuthModal open={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
-    </div>
+    </main>
   );
 }
 
-function Eyebrow({ n, label }: { n: string; label: string }) {
+function ProductMockup() {
+  const [demoStep, setDemoStep] = useState(0);
+  const selected = demoStep >= 1 ? "B" : null;
+  const confirmed = demoStep >= 3;
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setDemoStep((step) => (step + 1) % 5);
+    }, 2200);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const answers = [
+    ["A", "1,53 kWh"],
+    ["B", "7,65 kWh"],
+    ["C", "9,00 kWh"],
+    ["D", "15,30 kWh"],
+    ["E", "76,50 kWh"],
+  ] as const;
+
   return (
-    <p className="flex items-center gap-3 text-[11px] font-semibold uppercase text-muted-foreground">
-      <span className="inline-flex h-6 w-8 items-center justify-center rounded-md border border-primary/20 bg-primary/5 text-primary">
-        {n}
-      </span>
-      {label}
-    </p>
-  );
-}
-function FeatureSection({
-  n,
-  label,
-  id,
-  title,
-  punch,
-  reverse = false,
-  mockup,
-  children,
-}: {
-  n: string;
-  label: string;
-  id?: string;
-  title: string;
-  punch: string;
-  reverse?: boolean;
-  mockup: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <section
-      id={id}
-      aria-labelledby={`section-${n}`}
-      className={`scroll-mt-24 border-b border-border px-5 py-14 sm:px-8 sm:py-20 lg:py-24 ${reverse ? "bg-secondary/35" : "bg-card"}`}
-    >
-      <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-2 lg:gap-20">
-        <div className={reverse ? "lg:order-2" : ""}>
-          <Eyebrow n={n} label={label} />
-          <h2
-            id={`section-${n}`}
-            className="mt-5 font-display text-4xl font-semibold leading-[1.15] sm:text-5xl"
-          >
-            {title}
-            <span className="mt-1 block text-primary">{punch}</span>
-          </h2>
-          <div className="mt-6 max-w-lg text-base leading-7 text-muted-foreground">{children}</div>
-        </div>
-        <div className={`min-w-0 ${reverse ? "lg:order-1" : ""}`}>{mockup}</div>
+    <div className="relative mx-auto w-full max-w-[640px] motion-safe:animate-fade-in-up" style={{ animationDelay: "120ms" }} aria-label="Exemplo da experiência do Desafio Diário">
+      <div className="absolute -right-3 -top-5 z-20 rounded-full bg-accent px-4 py-2 text-xs font-bold text-accent-foreground shadow-lg" aria-live="polite">
+        {confirmed ? "+10 XP" : "Treino ao vivo"}
       </div>
-    </section>
+      <div className="overflow-hidden rounded-[28px] border-[10px] border-foreground bg-card shadow-2xl shadow-foreground/20">
+        <div className="grid min-h-[500px] md:grid-cols-[0.38fr_1fr_0.6fr]">
+          <aside className="hidden border-r border-border bg-card p-5 md:flex md:flex-col">
+            <img src={nexemLogo.url} alt="" className="h-5 w-auto self-start" />
+            <div className="mt-10 rounded-lg bg-secondary px-3 py-2 text-xs font-semibold text-primary">Desafio diário</div>
+            <div className="mt-3 px-3 py-2 text-xs text-muted-foreground">Meu progresso</div>
+            <div className="mt-1 px-3 py-2 text-xs text-muted-foreground">Simulados</div>
+            <div className="mt-auto rounded-xl bg-primary/15 p-3">
+              <Flame className="h-5 w-5 text-primary" />
+              <p className="mt-2 text-xs font-bold text-foreground">Sequência: 12 dias</p>
+              <p className="mt-1 text-[10px] text-muted-foreground">Seu melhor ritmo até agora.</p>
+            </div>
+          </aside>
+
+          <div className="p-5 md:p-7">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase text-accent">Treine com Tutor Nex</p>
+                <h3 className="mt-1 text-xl font-bold text-foreground">Física · Fundações</h3>
+              </div>
+              <span className="rounded-full bg-secondary px-3 py-1 text-[10px] font-bold text-accent">{confirmed ? "5" : "4"} de 5</span>
+            </div>
+            <div className="mt-5 h-2 overflow-hidden rounded-full bg-muted">
+              <div className={`h-full rounded-full bg-gradient-to-r from-accent to-primary transition-all duration-1000 ${confirmed ? "w-full" : "w-4/5"}`} />
+            </div>
+            <div key={confirmed ? "answered" : "question"} className="mt-6 animate-fade-in-up rounded-xl border border-border p-5">
+              <div className="flex gap-2">
+                <span className="rounded-full bg-secondary px-3 py-1 text-[10px] font-semibold text-secondary-foreground">Física</span>
+                <span className="rounded-full bg-primary/15 px-3 py-1 text-[10px] font-semibold text-primary">Dificuldade 38</span>
+              </div>
+              <p className="mt-5 text-sm font-semibold leading-relaxed text-foreground">
+                Uma lâmpada de 60 W é substituída por uma LED de 9 W, usada 5 horas por dia. Em 30 dias, qual é a redução no consumo?
+              </p>
+              <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                {answers.map(([letter, text]) => {
+                  const active = selected === letter;
+                  const correct = confirmed && letter === "B";
+                  return (
+                    <button
+                      key={letter}
+                      type="button"
+                      disabled={confirmed}
+                      onClick={() => setDemoStep(letter === "B" ? 1 : 0)}
+                      className={`flex items-center gap-2 rounded-lg border px-3 py-3 text-left text-xs transition-all duration-500 ${
+                        correct
+                          ? "scale-[1.02] border-success bg-success/10 font-bold text-foreground"
+                          : active
+                            ? "border-accent bg-secondary font-bold text-accent shadow-sm"
+                            : "border-border text-muted-foreground hover:border-primary/50"
+                      }`}
+                    >
+                      <span className="font-bold">{letter}.</span> {text}
+                    </button>
+                  );
+                })}
+              </div>
+              {confirmed && (
+                <p className="mt-3 animate-fade-in-up text-xs font-semibold text-success">
+                  Correto: (60 − 9) × 5 × 30 = 7,65 kWh.
+                </p>
+              )}
+            </div>
+            <div className="mt-5 flex items-center justify-between gap-3 text-xs font-semibold text-muted-foreground">
+              <span className="inline-flex items-center gap-2"><Clock3 className="h-4 w-4" /> ~15 min no total</span>
+              <Button
+                type="button"
+                size="sm"
+                disabled={!selected || confirmed}
+                onClick={() => setDemoStep(3)}
+                className="h-9 rounded-lg px-3 text-xs"
+              >
+                Confirmar <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+
+          <aside className="border-t border-border bg-secondary p-5 md:border-l md:border-t-0 md:p-6">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-accent-foreground"><BrainCircuit className="h-5 w-5" /></span>
+              <div><p className="text-sm font-bold text-foreground">Tutor Nex</p><p className="text-[10px] text-muted-foreground">Online para ajudar</p></div>
+            </div>
+            <div className="mt-6 rounded-xl bg-card p-4 text-xs leading-relaxed text-foreground shadow-sm">
+              Não vou entregar a resposta. Primeiro: qual é a diferença de potência entre as duas lâmpadas?
+            </div>
+            {demoStep >= 1 && (
+              <div className="ml-auto mt-3 max-w-[88%] animate-fade-in-up rounded-xl bg-foreground p-4 text-xs leading-relaxed text-background">
+                51 W. Depois multiplico pelas horas de uso?
+              </div>
+            )}
+            {demoStep >= 2 && (
+              <div className="mt-3 animate-fade-in-up rounded-xl bg-card p-4 text-xs leading-relaxed text-foreground shadow-sm">
+                <strong className="text-accent">Isso.</strong> Multiplique por 5 horas e 30 dias. No fim, lembre de converter Wh para kWh.
+              </div>
+            )}
+            {confirmed && (
+              <div className="mt-3 animate-fade-in-up rounded-xl border border-success/40 bg-success/10 p-4 text-xs leading-relaxed text-foreground">
+                <strong>Raciocínio consistente.</strong><br />Você chegou a 7,65 kWh sem depender do gabarito.
+              </div>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setDemoStep((step) => Math.max(2, step))}
+              className="mt-4 w-full rounded-lg text-xs"
+            >
+              <Sparkles className="h-3.5 w-3.5" /> Pedir uma pista
+            </Button>
+          </aside>
+        </div>
+      </div>
+    </div>
   );
 }

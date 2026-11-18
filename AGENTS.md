@@ -29,5 +29,4 @@
 - Keep shared pure gamification rules in gamification.ts with unit tests, server entry points in gamification.functions.ts, and reusable account summaries in GameProgress; reward evidence comes from server-graded runs and saved results, never profile metadata.
 - Cross-feature "next step" decisions (today card, weakest subject/area, weakest essay competency) live in the pure browser-safe src/lib/next-steps.ts with tests, fed by owner-scoped read-only server data (getDashboardData); AI never decides them.
 - Keep gamification motion in global CSS and shared presentation helpers; animate only committed component values, respect reduced motion, and never block navigation or award rewards from an animation.
-- Keep public landing demonstrations isolated from account data and reward APIs; label illustrative scores as examples and preserve session handling in the landing route.
 - Align transitive React and React DOM versions with the app through package overrides; the legacy auth UI otherwise bundles a second dispatcher and cannot open.

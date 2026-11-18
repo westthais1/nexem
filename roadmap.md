@@ -1,6 +1,6 @@
 # Roadmap
 
-- [x] Redesenhar landing em oito seções com exemplos interativos, preservando sessão, preview, menu, metadados e planos. Tipos, compilação e 79 testes passaram; desktop 1280 e mobile 390 sem erros, todos os botões Começar, quatro abas, flashcard, questão e menu verificados. Sem publicação.
+- [x] Redesenho da landing em oito seções revertido a pedido do usuário; versão anterior restaurada e correção da abertura do formulário de acesso mantida.
 
 - [x] Animar somente a apresentação de baú, respostas, combo, chefe, trilhas, sequência, celebrações, barras, medalhas e convite diário; tipos, compilação automática e 79 testes passaram. Landing conferida sem erros; /desafio redireciona sem login, portanto jornada autenticada não verificada. Sem dados reais escritos nem publicação.
 
