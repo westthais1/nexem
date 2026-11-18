@@ -454,3 +454,15 @@
   .game-progress::-webkit-progress-value { transition: none; }
   .game-shine,.medal-new::after,.daily-cta-shine::after,.chest-glow { display: none; }
 }
+
+/* Public landing examples never read or write student state. */
+.nexem-landing h1, .nexem-landing h2, .nexem-landing h3 { letter-spacing: 0; }
+.landing-flip { perspective: 900px; }
+.landing-flip-inner { position: relative; display: block; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .55s ease; }
+.landing-flip-inner.is-flipped { transform: rotateY(180deg); }
+.landing-flip-front, .landing-flip-back { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 24px; backface-visibility: hidden; }
+.landing-flip-back { transform: rotateY(180deg); }
+@media (prefers-reduced-motion: reduce) {
+  .landing-flip-inner { transition: none; }
+  .nexem-landing [data-state] { animation: none !important; transition: none !important; }
+}

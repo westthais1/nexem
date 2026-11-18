@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Redesenhar landing em oito seções com exemplos interativos, preservando sessão, preview, menu, metadados e planos. Tipos, compilação e 79 testes passaram; desktop 1280 e mobile 390 sem erros, todos os botões Começar, quatro abas, flashcard, questão e menu verificados. Sem publicação.
+
 - [x] Animar somente a apresentação de baú, respostas, combo, chefe, trilhas, sequência, celebrações, barras, medalhas e convite diário; tipos, compilação automática e 79 testes passaram. Landing conferida sem erros; /desafio redireciona sem login, portanto jornada autenticada não verificada. Sem dados reais escritos nem publicação.
 
 - [x] Gamificar Desafio Diário com sessão e recompensas no servidor, combo, chefe, baú, missões, escudo e conquistas; integrar perfil/dashboard/Estatísticas. Compilação e 61 testes passaram; páginas carregadas sem login. Concessões reais e telas autenticadas não verificadas, conforme restrição de não acessar contas nem gravar testes.
