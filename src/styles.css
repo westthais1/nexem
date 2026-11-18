@@ -454,3 +454,17 @@
   .game-progress::-webkit-progress-value { transition: none; }
   .game-shine,.medal-new::after,.daily-cta-shine::after,.chest-glow { display: none; }
 }
+
+/* Landing call-to-action feedback: press scale everywhere, shine sweep only on pointer devices. */
+.landing-press { transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 200ms ease; }
+.landing-press:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) {
+  .landing-press:hover { transform: translateY(-2px); }
+  .landing-press:active { transform: scale(0.97); }
+  .landing-shine::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(100deg, transparent 30%, color-mix(in oklab, white 45%, transparent) 50%, transparent 70%); transform: translateX(-120%); }
+  .landing-shine:hover::after { transform: translateX(120%); transition: transform 700ms cubic-bezier(0.23, 1, 0.32, 1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-press, .landing-press:hover, .landing-press:active { transform: none; transition: none; }
+  .landing-shine::after { display: none; }
+}

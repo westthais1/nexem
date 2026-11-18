@@ -31,3 +31,4 @@
 - Keep gamification motion in global CSS and shared presentation helpers; animate only committed component values, respect reduced motion, and never block navigation or award rewards from an animation.
 - Align transitive React and React DOM versions with the app through package overrides; the legacy auth UI otherwise bundles a second dispatcher and cannot open.
 - Use the shared Motion-based `Reveal` components for scroll entrances; enable motion only after hydration, with native observation available and reduced motion off, so server-rendered content stays readable.
+- Landing-only pointer and scroll effects (progress bar, hero spotlight and chips, velocity marquee, tilt cards, step line, orbit rings) live in src/components/landing/LandingMotion.tsx and use `useRevealMotion`; they are decorative, pointer-only where hover is involved, and render static without motion.

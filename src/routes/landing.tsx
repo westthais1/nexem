@@ -22,6 +22,7 @@ import { AuthModal } from "@/components/AuthModal";
 import { ParallaxImage } from "@/components/ParallaxImage";
 import { Reveal, RevealItem, RevealStagger, RevealStepIcon, useRevealMotion } from "@/components/Reveal";
 import { WordsReveal } from "@/components/WordsReveal";
+import { FloatingChips, HeroSpotlight, OrbitRings, ScrollLine, ScrollProgress, TiltCard, VelocityMarquee } from "@/components/landing/LandingMotion";
 import { useCountUp } from "@/hooks/use-count-up";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -213,6 +214,7 @@ function LandingPage() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-background">
+      <ScrollProgress />
       <header className="sticky top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
           <img src={nexemLogo.url} alt="nexem" className="h-8 w-auto" />
@@ -256,7 +258,7 @@ function LandingPage() {
       </header>
 
       <section className="px-3 pt-4 md:px-6 md:pt-6">
-        <div className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[32px] shadow-2xl shadow-foreground/10">
+        <HeroSpotlight className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[32px] shadow-2xl shadow-foreground/10">
           <motion.video
             initial={false}
             animate={motionEnabled ? { scale: [1.08, 1] } : { scale: 1, transition: { duration: 0 } }}
@@ -276,7 +278,8 @@ function LandingPage() {
             <source src={heroVideo.url} type="video/mp4" />
           </motion.video>
           <div className="absolute inset-0 bg-foreground/45" aria-hidden="true" />
-          <div className="relative flex min-h-[78vh] flex-col items-center justify-center px-6 py-24 text-center md:min-h-[84vh]">
+          <FloatingChips />
+          <div className="relative z-[3] flex min-h-[78vh] flex-col items-center justify-center px-6 py-24 text-center md:min-h-[84vh]">
             <Reveal as="span" variant="zoom" className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm">
               <Clock3 className="h-3.5 w-3.5" />
               Desafio Diário · grátis
@@ -291,10 +294,10 @@ function LandingPage() {
               que cabe em qualquer rotina e vira pontos no ENEM.
             </Reveal>
             <Reveal variant="rise" delay={450} className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Button onClick={openAuth} size="lg" className="h-13 rounded-full px-7 text-base shadow-lg shadow-primary/30 transition-transform hover:-translate-y-0.5">
+              <Button onClick={openAuth} size="lg" className="landing-press landing-shine relative h-13 overflow-hidden rounded-full px-7 text-base shadow-lg shadow-primary/30">
                 Começar meus 15 minutos <ArrowRight />
               </Button>
-              <Button asChild size="lg" variant="outline" className="h-13 rounded-full border-white/40 bg-white/10 px-7 text-base text-white backdrop-blur-sm hover:bg-white/20 hover:text-white">
+              <Button asChild size="lg" variant="outline" className="landing-press h-13 rounded-full border-white/40 bg-white/10 px-7 text-base text-white backdrop-blur-sm hover:bg-white/20 hover:text-white">
                 <a href="#como-funciona" onClick={scrollToHow}>
                   Como funciona <ArrowDown />
                 </a>
@@ -306,21 +309,19 @@ function LandingPage() {
               <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-primary-foreground" /> Grátis, todo dia</span>
             </Reveal>
           </div>
-        </div>
+        </HeroSpotlight>
       </section>
 
-      <div className="mt-10 overflow-hidden bg-background py-4" aria-hidden="true">
-        <div className={`flex w-max gap-10 pr-10 ${motionEnabled ? "motion-safe:animate-marquee" : ""}`}>
-          {[0, 1].map((copy) => (
-            <div key={copy} className="flex items-center gap-10 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
-              {["15 minutos por dia", "Desafio Diário", "Tutor Nex", "Níveis de Maestria", "Simulado Completo", "Redação Inteligente", "Estatísticas TRI"].map((item) => (
-                <span key={item} className="inline-flex items-center gap-10">
-                  {item} <Sparkles className="h-3.5 w-3.5 text-primary" />
-                </span>
-              ))}
-            </div>
-          ))}
-        </div>
+      <div className="mt-10 bg-background py-4" aria-hidden="true">
+        <VelocityMarquee>
+          <div className="flex items-center gap-10 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
+            {["15 minutos por dia", "Desafio Diário", "Tutor Nex", "Níveis de Maestria", "Simulado Completo", "Redação Inteligente", "Estatísticas TRI"].map((item) => (
+              <span key={item} className="inline-flex items-center gap-10">
+                {item} <Sparkles className="h-3.5 w-3.5 text-primary" />
+              </span>
+            ))}
+          </div>
+        </VelocityMarquee>
       </div>
 
       <section className="px-5 py-20 md:px-8 md:py-28">
@@ -335,7 +336,7 @@ function LandingPage() {
                 Você não precisa de horas. Precisa aparecer todo dia. O Nexem transforma 15 minutos em um treino certeiro:
                 10 questões no seu nível, com o Tutor Nex ajudando quando você trava.
               </p>
-              <Button onClick={openAuth} size="lg" className="mt-8 h-13 rounded-xl px-6 text-base">
+              <Button onClick={openAuth} size="lg" className="landing-press landing-shine relative mt-8 h-13 overflow-hidden rounded-xl px-6 text-base">
                 Fazer meus 15 minutos de hoje <ArrowRight />
               </Button>
             </Reveal>
@@ -428,10 +429,10 @@ function LandingPage() {
                 <RevealItem
                   as="article"
                   variant="blur"
-                  lift
                   key={feature.title}
-                  className="group flex min-h-80 flex-col border-t-4 border-primary bg-background p-6 shadow-sm"
+                  className="group flex min-h-80 flex-col border-t-4 border-primary bg-background shadow-sm transition-shadow duration-300 hover:shadow-xl"
                 >
+                  <TiltCard className="flex h-full flex-1 flex-col p-6">
                   <span className={`flex h-14 w-14 items-center justify-center rounded-2xl ${feature.tone}`}>
                     <Icon className="h-7 w-7" />
                   </span>
@@ -439,8 +440,9 @@ function LandingPage() {
                   <h3 className="mt-2 text-xl font-bold text-foreground">{feature.title}</h3>
                   <p className="mt-3 flex-1 text-sm leading-7 text-muted-foreground">{feature.text}</p>
                   <Button variant="ghost" onClick={openAuth} className="mt-5 justify-between px-0 text-primary hover:bg-transparent hover:text-primary/80">
-                    Experimentar <ArrowRight />
+                    Experimentar <ArrowRight className="transition-transform duration-200 group-hover:translate-x-1" />
                   </Button>
+                  </TiltCard>
                 </RevealItem>
               );
             })}
@@ -457,6 +459,7 @@ function LandingPage() {
             <p className="mt-8 text-lg text-background/70">Mais precisão. Menos desperdício. Mais evolução.</p>
           </Reveal>
 
+          <ScrollLine>
           <RevealStagger as="ol" className="space-y-5">
             {STEPS.map((step) => {
               const Icon = step.icon;
@@ -465,7 +468,7 @@ function LandingPage() {
                   as="li"
                   variant="right"
                   key={step.n}
-                  className="group grid grid-cols-[56px_1fr] gap-5 rounded-2xl border border-background/15 bg-background/5 p-6 transition-all duration-500 hover:border-primary/70 hover:bg-background/10 md:p-8"
+                  className="group relative grid grid-cols-[56px_1fr] gap-5 rounded-2xl border border-background/15 bg-background/5 p-6 transition-all duration-500 hover:border-primary/70 hover:bg-background/10 md:p-8"
                 >
                   <RevealStepIcon className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
                     <Icon className="h-7 w-7" />
@@ -479,11 +482,12 @@ function LandingPage() {
               );
             })}
           </RevealStagger>
+          </ScrollLine>
         </div>
       </section>
 
       <section className="relative overflow-hidden bg-primary px-5 py-20 text-primary-foreground md:px-8 md:py-28">
-        <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full border-[40px] border-primary-foreground/10" aria-hidden="true" />
+        <OrbitRings />
         <Reveal variant="zoom" className="relative mx-auto max-w-4xl text-center">
           <motion.span
             aria-hidden="true"
@@ -501,7 +505,7 @@ function LandingPage() {
           <p className="mx-auto mt-6 max-w-xl text-lg text-primary-foreground/80">
             Não é estudar mais. É estudar 15 minutos, todo dia, no lugar certo.
           </p>
-          <Button onClick={openAuth} size="lg" className="mt-9 h-13 rounded-xl bg-background px-7 text-base text-foreground hover:bg-background/90">
+          <Button onClick={openAuth} size="lg" className="landing-press landing-shine relative mt-9 h-13 overflow-hidden rounded-xl bg-background px-7 text-base text-foreground hover:bg-background/90">
             Começar meus 15 minutos <ArrowRight />
           </Button>
         </Reveal>
