@@ -18,6 +18,7 @@ import {
 import { useEffect, useRef, useState, type ComponentType, type MouseEvent } from "react";
 
 import { AuthModal } from "@/components/AuthModal";
+import { Reveal } from "@/components/Reveal";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import nexemLogo from "@/assets/nexem-logo.png.asset.json";
@@ -268,18 +269,18 @@ function LandingPage() {
           </video>
           <div className="absolute inset-0 bg-foreground/45" aria-hidden="true" />
           <div className="relative flex min-h-[78vh] flex-col items-center justify-center px-6 py-24 text-center md:min-h-[84vh]">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm motion-safe:animate-fade-in-up">
+            <Reveal as="span" className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm">
               <Clock3 className="h-3.5 w-3.5" />
               Desafio Diário · grátis
-            </span>
-            <h1 className="mt-7 max-w-4xl text-5xl font-bold leading-[0.98] text-white motion-safe:animate-fade-in-up md:text-7xl" style={{ animationDelay: "80ms" }}>
+            </Reveal>
+            <Reveal as="h1" delay={80} className="mt-7 max-w-4xl text-5xl font-bold leading-[0.98] text-white md:text-7xl">
               15 minutos por dia.<br />Até a sua aprovação.
-            </h1>
-            <p className="mt-6 max-w-xl text-base leading-relaxed text-white/85 motion-safe:animate-fade-in-up md:text-lg" style={{ animationDelay: "160ms" }}>
+            </Reveal>
+            <Reveal as="p" delay={160} className="mt-6 max-w-xl text-base leading-relaxed text-white/85 md:text-lg">
               Todo dia, 10 questões no seu nível e o Tutor Nex guiando o raciocínio. Um treino curto
               que cabe em qualquer rotina e vira pontos no ENEM.
-            </p>
-            <div className="mt-9 flex flex-col gap-3 motion-safe:animate-fade-in-up sm:flex-row" style={{ animationDelay: "240ms" }}>
+            </Reveal>
+            <Reveal delay={240} className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Button onClick={openAuth} size="lg" className="h-13 rounded-full px-7 text-base shadow-lg shadow-primary/30 transition-transform hover:-translate-y-0.5">
                 Começar meus 15 minutos <ArrowRight />
               </Button>
@@ -288,12 +289,12 @@ function LandingPage() {
                   Como funciona <ArrowDown />
                 </a>
               </Button>
-            </div>
-            <div className="mt-9 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm font-medium text-white/80 motion-safe:animate-fade-in-up" style={{ animationDelay: "320ms" }}>
+            </Reveal>
+            <Reveal delay={320} className="mt-9 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm font-medium text-white/80">
               <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-primary-foreground" /> 10 questões</span>
               <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-primary-foreground" /> 15 minutos</span>
               <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-primary-foreground" /> Grátis, todo dia</span>
-            </div>
+            </Reveal>
           </div>
         </div>
       </section>
@@ -313,7 +314,7 @@ function LandingPage() {
       </div>
 
       <section className="px-5 py-20 md:px-8 md:py-28">
-        <div className="mx-auto max-w-6xl">
+        <Reveal className="mx-auto max-w-6xl">
           <div className="grid items-center gap-12 lg:grid-cols-[1fr_0.9fr]">
             <div>
               <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-warning/25 text-warning-foreground">
@@ -333,21 +334,21 @@ function LandingPage() {
 
             <div className="relative grid gap-4">
               {[{ n: "01", v: "15 minutos", s: "a meta diária do Nexem" }, { n: "02", v: "10 questões", s: "no seu nível, sem sobrecarga" }, { n: "03", v: "todo dia", s: "sequência que vira progresso" }].map((item, index) => (
-                <div key={item.n} className={`flex items-center gap-5 border border-border bg-card p-5 shadow-sm transition-transform hover:translate-x-2 ${index === 1 ? "lg:ml-10" : ""}`}>
+                <Reveal key={item.n} delay={index * 100} className={`flex items-center gap-5 border border-border bg-card p-5 shadow-sm transition-transform hover:translate-x-2 ${index === 1 ? "lg:ml-10" : ""}`}>
                   <span className="text-sm font-bold text-primary">{item.n}</span>
                   <div>
                     <strong className="block text-xl font-bold uppercase text-foreground">{item.v}</strong>
                     <span className="text-sm text-muted-foreground">{item.s}</span>
                   </div>
-                </div>
+                </Reveal>
               ))}
             </div>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       <section className="px-5 py-16 md:px-8 md:py-24">
-        <div className="mx-auto max-w-7xl">
+        <Reveal className="mx-auto max-w-7xl">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-bold uppercase text-accent">Quem estuda com o Nexem</p>
             <h2 className="mt-3 text-4xl font-bold leading-tight text-foreground md:text-5xl">
@@ -363,10 +364,11 @@ function LandingPage() {
               { src: student2, alt: "Adolescente revisando um livro e fazendo anotações na biblioteca" },
               { src: student3, alt: "Dois adolescentes estudando juntos com caderno e notebook" },
             ].map((photo, index) => (
-              <figure
+              <Reveal
+                as="figure"
                 key={photo.src}
-                style={{ animationDelay: `${index * 100}ms` }}
-                className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm motion-safe:animate-fade-in-up"
+                delay={index * 100}
+                className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm"
               >
                 <img
                   src={photo.src}
@@ -376,36 +378,38 @@ function LandingPage() {
                   height={960}
                   className="aspect-[4/5] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 />
-              </figure>
+              </Reveal>
             ))}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       <section className="bg-card px-5 py-16 md:px-8 md:py-24">
-        <div className="mx-auto max-w-7xl">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-bold uppercase text-primary">Veja o treino em ação</p>
-            <h2 className="mt-3 text-4xl font-bold leading-tight text-foreground md:text-5xl">
-              Uma questão. Uma pista. Um passo a mais.
-            </h2>
-          </div>
-          <div className="mt-12">
-            <ProductMockup />
-          </div>
-        </div>
-        <div className="mx-auto mt-16 grid max-w-5xl grid-cols-3 divide-x divide-border rounded-2xl border border-border bg-background px-3 py-5 shadow-sm md:px-8">
-          {[{ n: "15 min", l: "meta diária" }, { n: "10", l: "questões por dia" }, { n: "4", l: "áreas do ENEM" }].map((item) => (
-            <div key={item.l} className="text-center">
-              <strong className="block text-xl font-bold text-foreground md:text-3xl">{item.n}</strong>
-              <span className="mt-1 block text-[10px] font-semibold uppercase text-muted-foreground md:text-xs">{item.l}</span>
+        <Reveal>
+          <div className="mx-auto max-w-7xl">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="text-sm font-bold uppercase text-primary">Veja o treino em ação</p>
+              <h2 className="mt-3 text-4xl font-bold leading-tight text-foreground md:text-5xl">
+                Uma questão. Uma pista. Um passo a mais.
+              </h2>
             </div>
-          ))}
-        </div>
+            <div className="mt-12">
+              <ProductMockup />
+            </div>
+          </div>
+          <div className="mx-auto mt-16 grid max-w-5xl grid-cols-3 divide-x divide-border rounded-2xl border border-border bg-background px-3 py-5 shadow-sm md:px-8">
+            {[{ n: "15 min", l: "meta diária" }, { n: "10", l: "questões por dia" }, { n: "4", l: "áreas do ENEM" }].map((item, index) => (
+              <Reveal key={item.l} delay={index * 100} className="text-center">
+                <strong className="block text-xl font-bold text-foreground md:text-3xl">{item.n}</strong>
+                <span className="mt-1 block text-[10px] font-semibold uppercase text-muted-foreground md:text-xs">{item.l}</span>
+              </Reveal>
+            ))}
+          </div>
+        </Reveal>
       </section>
 
       <section id="como-funciona" className="scroll-mt-20 bg-card px-5 py-20 md:px-8 md:py-28">
-        <div className="mx-auto max-w-7xl">
+        <Reveal className="mx-auto max-w-7xl">
           <div className="grid gap-6 md:grid-cols-[1.1fr_0.9fr] md:items-end">
             <div>
               <p className="text-sm font-bold uppercase text-accent">Feito para o seu ritmo</p>
@@ -422,10 +426,11 @@ function LandingPage() {
             {FEATURES.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <article
+                <Reveal
+                  as="article"
                   key={feature.title}
-                  style={{ animationDelay: `${index * 80}ms` }}
-                  className="group flex min-h-80 flex-col border-t-4 border-primary bg-background p-6 shadow-sm transition-all duration-500 ease-out hover:-translate-y-2 hover:shadow-xl motion-safe:animate-fade-in-up"
+                  delay={index * 100}
+                  className="group flex min-h-80 flex-col border-t-4 border-primary bg-background p-6 shadow-sm transition-all duration-500 ease-out hover:-translate-y-2 hover:shadow-xl"
                 >
                   <span className={`flex h-14 w-14 items-center justify-center rounded-2xl ${feature.tone}`}>
                     <Icon className="h-7 w-7" />
@@ -436,16 +441,16 @@ function LandingPage() {
                   <Button variant="ghost" onClick={openAuth} className="mt-5 justify-between px-0 text-primary hover:bg-transparent hover:text-primary/80">
                     Experimentar <ArrowRight />
                   </Button>
-                </article>
+                </Reveal>
               );
             })}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       <section className="relative overflow-hidden bg-foreground px-5 py-20 text-background md:px-8 md:py-28">
         <div className="pointer-events-none absolute inset-y-0 left-0 w-1.5 bg-primary" aria-hidden="true" />
-        <div className="relative mx-auto grid max-w-7xl gap-14 lg:grid-cols-[0.82fr_1.18fr] lg:gap-20">
+        <Reveal className="relative mx-auto grid max-w-7xl gap-14 lg:grid-cols-[0.82fr_1.18fr] lg:gap-20">
           <div className="lg:sticky lg:top-28 lg:self-start">
             <p className="text-sm font-bold uppercase text-primary">Treino adaptativo</p>
             <h2 className="mt-4 text-4xl font-bold leading-[1.08] md:text-6xl">
@@ -458,10 +463,11 @@ function LandingPage() {
             {STEPS.map((step, index) => {
               const Icon = step.icon;
               return (
-                <li
+                <Reveal
+                  as="li"
                   key={step.n}
-                  style={{ animationDelay: `${index * 100}ms` }}
-                  className="group grid grid-cols-[56px_1fr] gap-5 rounded-2xl border border-background/15 bg-background/5 p-6 transition-all duration-500 hover:border-primary/70 hover:bg-background/10 motion-safe:animate-fade-in-up md:p-8"
+                  delay={index * 100}
+                  className="group grid grid-cols-[56px_1fr] gap-5 rounded-2xl border border-background/15 bg-background/5 p-6 transition-all duration-500 hover:border-primary/70 hover:bg-background/10 md:p-8"
                 >
                   <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground transition-transform group-hover:rotate-3 group-hover:scale-105">
                     <Icon className="h-7 w-7" />
@@ -471,16 +477,16 @@ function LandingPage() {
                     <h3 className="mt-1 text-2xl font-bold">{step.title}</h3>
                     <p className="mt-2 leading-relaxed text-background/65">{step.text}</p>
                   </div>
-                </li>
+                </Reveal>
               );
             })}
           </ol>
-        </div>
+        </Reveal>
       </section>
 
       <section className="relative overflow-hidden bg-primary px-5 py-20 text-primary-foreground md:px-8 md:py-28">
         <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full border-[40px] border-primary-foreground/10" aria-hidden="true" />
-        <div className="relative mx-auto max-w-4xl text-center">
+        <Reveal className="relative mx-auto max-w-4xl text-center">
           <Sparkles className="mx-auto h-10 w-10" />
           <h2 className="mt-5 text-4xl font-bold leading-tight md:text-6xl">
             Seus 15 minutos de hoje
@@ -492,7 +498,7 @@ function LandingPage() {
           <Button onClick={openAuth} size="lg" className="mt-9 h-13 rounded-xl bg-background px-7 text-base text-foreground hover:bg-background/90">
             Começar meus 15 minutos <ArrowRight />
           </Button>
-        </div>
+        </Reveal>
       </section>
 
       <footer className="border-t border-border bg-background px-5 py-10">
@@ -530,7 +536,7 @@ function ProductMockup() {
   ] as const;
 
   return (
-    <div className="relative mx-auto w-full max-w-[640px] motion-safe:animate-fade-in-up" style={{ animationDelay: "120ms" }} aria-label="Exemplo da experiência do Desafio Diário">
+    <div className="relative mx-auto w-full max-w-[640px]" aria-label="Exemplo da experiência do Desafio Diário">
       <div className="absolute -right-3 -top-5 z-20 rounded-full bg-accent px-4 py-2 text-xs font-bold text-accent-foreground shadow-lg" aria-live="polite">
         {confirmed ? "+10 XP" : "Treino ao vivo"}
       </div>

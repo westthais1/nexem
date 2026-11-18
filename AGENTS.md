@@ -30,3 +30,4 @@
 - Cross-feature "next step" decisions (today card, weakest subject/area, weakest essay competency) live in the pure browser-safe src/lib/next-steps.ts with tests, fed by owner-scoped read-only server data (getDashboardData); AI never decides them.
 - Keep gamification motion in global CSS and shared presentation helpers; animate only committed component values, respect reduced motion, and never block navigation or award rewards from an animation.
 - Align transitive React and React DOM versions with the app through package overrides; the legacy auth UI otherwise bundles a second dispatcher and cannot open.
+- Use the shared `Reveal` component for scroll entrances; hide content only when native observation is available and reduced motion is off, so server-rendered content stays readable.
