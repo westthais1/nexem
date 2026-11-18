@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Animar somente a apresentação de baú, respostas, combo, chefe, trilhas, sequência, celebrações, barras, medalhas e convite diário; tipos, compilação automática e 79 testes passaram. Landing conferida sem erros; /desafio redireciona sem login, portanto jornada autenticada não verificada. Sem dados reais escritos nem publicação.
+
 - [x] Gamificar Desafio Diário com sessão e recompensas no servidor, combo, chefe, baú, missões, escudo e conquistas; integrar perfil/dashboard/Estatísticas. Compilação e 61 testes passaram; páginas carregadas sem login. Concessões reais e telas autenticadas não verificadas, conforme restrição de não acessar contas nem gravar testes.
 
 - [ ] Criar cronograma persistido com tópicos editáveis, data configurável, priorização, adaptação semanal, calendário e sessões de hoje; verificar regras e fluxo real.

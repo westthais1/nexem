@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 
 import { FoxMascot } from "@/components/FoxMascot";
+import { Button } from "@/components/ui/button";
 import { XP_GAIN_EVENT, stageForLevel, type XpGainDetail } from "@/lib/xp";
 
 type Toast = XpGainDetail & { key: number };
 
-/** Feedback global de XP: aviso de XP ganho + modal de comemoração ao subir de nível/evoluir. */
+/** Feedback decorativo e não modal, somente para recompensas já recebidas. */
 export function XpCelebration() {
   const [toast, setToast] = useState<Toast | null>(null);
   const [celebration, setCelebration] = useState<XpGainDetail | null>(null);
@@ -22,7 +23,7 @@ export function XpCelebration() {
 
   useEffect(() => {
     if (!toast) return;
-    const id = setTimeout(() => setToast(null), 4500);
+    const id = setTimeout(() => { setToast(null); setCelebration(null); }, 1500);
     return () => clearTimeout(id);
   }, [toast]);
 
@@ -32,7 +33,7 @@ export function XpCelebration() {
         <div
           key={toast.key}
           role="status"
-          className="fixed bottom-6 right-6 z-50 flex max-w-xs items-center gap-3 rounded-2xl border border-primary/40 bg-card p-4 shadow-2xl xp-pop card-glow"
+          className={`pointer-events-none fixed bottom-6 right-6 z-50 flex max-w-xs items-center gap-3 rounded-2xl border border-primary/40 bg-card p-4 shadow-2xl xp-pop card-glow ${celebration ? 'sr-only' : ''}`}
         >
           <FoxMascot stage={stageForLevel(toast.level).id} className="h-12 w-12 shrink-0" animated={false} />
           <div>
@@ -43,11 +44,11 @@ export function XpCelebration() {
       )}
 
       {celebration && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
+        <div className="pointer-events-none fixed inset-x-4 bottom-4 z-50 flex justify-end" role="status">
           <Confetti />
-          <div className="relative w-full max-w-md rounded-2xl border border-primary/50 bg-card p-8 text-center card-glow xp-pop">
-            <FoxMascot stage={stageForLevel(celebration.level).id} className="mx-auto h-40 w-40" />
-            <h2 className="mt-2 text-2xl font-semibold text-foreground text-glow-neon">
+          <div className="relative w-full max-w-sm rounded-lg border border-primary/50 bg-card p-4 text-center card-glow xp-pop">
+            <div className="relative mx-auto h-24 w-24"><span aria-hidden="true" className="levelup-spin-rays absolute -inset-8 rounded-full"/><FoxMascot stage={stageForLevel(celebration.level).id} className="relative h-24 w-24" /></div>
+            <h2 key={celebration.level} className="game-number-pop mt-2 text-2xl font-semibold text-foreground text-glow-neon">
               {celebration.evolved ? "Sua raposa evoluiu!" : `Nível ${celebration.level}!`}
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -55,13 +56,13 @@ export function XpCelebration() {
                 ? `Agora ela é a ${celebration.stageName}. Continue estudando para a próxima evolução.`
                 : `Você chegou ao nível ${celebration.level} com +${celebration.amount} XP de "${celebration.label}".`}
             </p>
-            <button
+            <Button variant="outline"
               type="button"
               onClick={() => setCelebration(null)}
-              className="mt-6 inline-flex rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-[0_0_28px_-6px_var(--neon)]"
+              className="pointer-events-auto mt-3"
             >
-              Continuar estudando
-            </button>
+              Fechar
+            </Button>
           </div>
         </div>
       )}
@@ -70,18 +71,18 @@ export function XpCelebration() {
 }
 
 function Confetti() {
-  const pieces = Array.from({ length: 40 }, (_, i) => i);
+  const pieces = Array.from({ length: 30 }, (_, i) => i);
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
       {pieces.map((i) => {
         const left = (i * 37) % 100;
-        const delay = (i % 10) * 0.12;
-        const duration = 2.4 + ((i % 5) * 0.35);
-        const colors = ["var(--neon)", "var(--electric)", "#ffd166", "#ff7a7a"];
+        const delay = (i % 3) * 0.03;
+        const duration = 1.1 + ((i % 5) * 0.08);
+        const colors = ["var(--primary)", "var(--electric)", "var(--warning)"];
         return (
           <span
             key={i}
-            className="absolute top-[-10%] h-2.5 w-1.5 rounded-sm confetti-fall"
+            className="absolute top-[-10%] h-2.5 w-1.5 rounded-sm game-confetti"
             style={{
               left: `${left}%`,
               background: colors[i % colors.length],

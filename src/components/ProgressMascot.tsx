@@ -7,6 +7,7 @@ import { useXp } from "@/hooks/use-xp";
 import { useQuery } from "@tanstack/react-query";
 import { defaultProgress, fetchProgress } from "@/lib/progress";
 import { XP_REWARDS, foxMessage } from "@/lib/xp";
+import { AnimatedProgress } from "@/components/GameEffects";
 
 /** Widget "Progresso & Mascote" da Dashboard. */
 export function ProgressMascot() {
@@ -61,12 +62,7 @@ export function ProgressMascot() {
               </div>
             </div>
 
-            <div className="mt-4 h-3 w-full overflow-hidden rounded-full bg-secondary">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-[width] duration-700"
-                style={{ width: `${Math.round(xp.progresso * 100)}%` }}
-              />
-            </div>
+            <AnimatedProgress className="mt-4 h-3 w-full" label="Progresso para o próximo nível" value={xp.xpNoNivel} max={xp.xpParaProximo}/>
             <p className="mt-2 text-xs text-muted-foreground">
               {xp.xpNoNivel} / {xp.xpParaProximo} XP para o nível {xp.level + 1}
             </p>

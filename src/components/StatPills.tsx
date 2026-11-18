@@ -1,6 +1,7 @@
 import { Flame, Coins } from "lucide-react";
 import { useXp } from "@/hooks/use-xp";
 import { levelTitle } from '@/lib/gamification';
+import { AnimatedProgress } from '@/components/GameEffects';
 
 /** Barra estilo Duolingo: chama da sequência, nível e XP, no topo das páginas do app. */
 export function StatPills({ className }: { className?: string }) {
@@ -10,8 +11,8 @@ export function StatPills({ className }: { className?: string }) {
     <div className={`flex items-center justify-end gap-2 ${className ?? ""}`}>
       {/* Sequência */}
       <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 shadow-sm" aria-label={`${xp.streak} dias de sequência`}>
-        <Flame className={`h-4 w-4 ${xp.streak > 0 ? "text-primary" : "text-muted-foreground"}`} />
-        <span className="text-sm font-bold tabular-nums text-foreground">{xp.streak}</span>
+        <Flame aria-hidden="true" className={`game-flame h-4 w-4 ${xp.streak > 0 ? "text-primary" : "text-muted-foreground"}`} />
+        <span key={xp.streak} className="game-number-pop text-sm font-bold tabular-nums text-foreground">{xp.streak}</span>
       </span>
 
       {/* Nível */}
@@ -23,7 +24,7 @@ export function StatPills({ className }: { className?: string }) {
         <span className="text-sm font-bold tabular-nums text-foreground">{xp.level}</span>
         <span className="hidden text-xs text-muted-foreground sm:inline">{levelTitle(xp.level)}</span>
         </span>
-        <progress aria-label="Progresso do nível" max={xp.xpParaProximo} value={xp.xpNoNivel} className="game-progress mt-1 h-1 w-full"/>
+        <AnimatedProgress label="Progresso do nível" max={xp.xpParaProximo} value={xp.xpNoNivel} className="mt-1 h-1 w-full"/>
       </span>
 
       {/* XP */}

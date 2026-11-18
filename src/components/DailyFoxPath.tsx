@@ -85,7 +85,7 @@ export function DailyFoxPath({ className }: { className?: string }) {
             title: ultimo ? "Fim do nível" : `Caixa ${bi + 1}`,
             subtitle: feito ? "Concluída" : atual ? "Fazer o Desafio Diário" : "Bloqueada",
             state: feito ? "done" : atual ? "active" : "locked",
-            icon: ultimo ? <Trophy /> : <img src={foxAsset.url} alt="" className={cn("h-12 w-12 object-contain", pulouHoje ? "fox-jump" : "fox-idle")} />,
+            icon: ultimo ? <Trophy className={faltam<=2 ? "trophy-near" : ""} /> : <img src={foxAsset.url} alt="" className={cn("h-12 w-12 object-contain", pulouHoje ? "fox-jump" : "fox-idle")} />,
             onClick: () => navigate({ to: "/desafio" }),
           };
         })}

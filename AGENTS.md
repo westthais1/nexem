@@ -28,3 +28,4 @@
 - Browser XP imports are retired without removing existing records; browser storage caches only committed server snapshots, and saved essay/exam results authorize their own rewards.
 - Keep shared pure gamification rules in gamification.ts with unit tests, server entry points in gamification.functions.ts, and reusable account summaries in GameProgress; reward evidence comes from server-graded runs and saved results, never profile metadata.
 - Cross-feature "next step" decisions (today card, weakest subject/area, weakest essay competency) live in the pure browser-safe src/lib/next-steps.ts with tests, fed by owner-scoped read-only server data (getDashboardData); AI never decides them.
+- Keep gamification motion in global CSS and shared presentation helpers; animate only committed component values, respect reduced motion, and never block navigation or award rewards from an animation.

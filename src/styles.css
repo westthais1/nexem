@@ -320,7 +320,7 @@
   70% { transform: translate(-50%, 4px) scale(0.98); }
   100% { transform: translate(-50%, 0) scale(1); }
 }
-.fox-jump { animation: fox-jump 900ms cubic-bezier(.3,1.4,.5,1) 2; }
+.fox-jump { animation: fox-jump 900ms cubic-bezier(.3,1.4,.5,1) 1; }
 @keyframes box-glow {
   0%,100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 0%, transparent); }
   50% { box-shadow: 0 0 24px 6px color-mix(in oklab, var(--primary) 55%, transparent); }
@@ -338,15 +338,15 @@
 .fox-anim { transform-origin: 50% 100%; will-change: transform; }
 .fox-talking { animation: fox-talk 2.4s ease-in-out infinite; }
 .fox-thinking { animation: fox-think-tilt 3s ease-in-out infinite; }
-.fox-celebrating { animation: fox-jump 0.7s cubic-bezier(.3,1.6,.5,1) 3, fox-talk 2.4s ease-in-out 2.1s infinite; }
-.fox-encouraging { animation: fox-nod 1.2s ease-in-out 2, fox-talk 2.4s ease-in-out 2.4s infinite; }
+.fox-celebrating { animation: fox-jump 0.7s cubic-bezier(.3,1.6,.5,1) 2; }
+.fox-encouraging { animation: fox-nod 1.2s ease-in-out 1; }
 @keyframes fox-talk { 0%,100% { transform: translateY(0) scale(1,1); } 25% { transform: translateY(-3px) scale(1.01,.99); } 50% { transform: translateY(0) scale(1,1.02); } 75% { transform: translateY(-2px) rotate(-1.5deg); } }
 @keyframes fox-think-tilt { 0%,100% { transform: rotate(0); } 30%,60% { transform: rotate(-8deg) translateX(-2px); } }
 @keyframes fox-jump { 0%,100% { transform: translateY(0) scale(1); } 30% { transform: translateY(2px) scale(1.08,.9); } 60% { transform: translateY(-22px) scale(.95,1.06) rotate(4deg); } }
 @keyframes fox-nod { 0%,100% { transform: rotate(0); } 25% { transform: rotate(5deg); } 75% { transform: rotate(-5deg); } }
 .fox-think { animation: fox-bubble 1.6s ease-in-out infinite; }
 @keyframes fox-bubble { 0%,100% { transform: translateY(0); opacity: .7; } 50% { transform: translateY(-4px); opacity: 1; } }
-.fox-sparkles i { position: absolute; left: 50%; top: 40%; width: 8px; height: 8px; border-radius: 9999px; background: var(--primary); animation: fox-spark .9s ease-out 2 forwards; }
+.fox-sparkles i { position: absolute; left: 50%; top: 40%; width: 8px; height: 8px; border-radius: 9999px; background: var(--primary); animation: fox-spark .9s ease-out 1 forwards; }
 .fox-sparkles i:nth-child(2) { background: var(--accent); --dx: -40px; animation-delay: .1s; }
 .fox-sparkles i:nth-child(3) { --dx: 38px; --dy: -30px; animation-delay: .2s; }
 .fox-sparkles i:nth-child(4) { background: var(--accent); --dx: -20px; --dy: -50px; animation-delay: .3s; }
@@ -389,4 +389,68 @@
 @media (prefers-reduced-motion: reduce) {
   .confetti-up, .levelup-pop, .levelup-crown, .fox-party, .fox-idle, .node-ring, .xp-float { animation: none; }
   .confetti-up { display:none; }
+}
+
+/* Shared presentation motion for gamification. Effects are decorative and short-lived. */
+@keyframes game-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 50% { transform: translateX(4px); } 75% { transform: translateX(-2px); } }
+@keyframes game-pop { 0% { transform: scale(.82); opacity: .4; } 65% { transform: scale(1.12); opacity: 1; } 100% { transform: scale(1); } }
+@keyframes coin-fly { 0% { transform: translate(-50%,-50%) scale(.4); opacity: 0; } 20% { opacity: 1; } 100% { transform: translate(calc(-50% + var(--coin-x)), calc(-50% - var(--coin-y))) rotate(var(--coin-rot)) scale(1); opacity: 0; } }
+@keyframes shine-sweep { 0% { transform: translateX(-140%) skewX(-18deg); opacity: 0; } 20% { opacity: .7; } 100% { transform: translateX(260%) skewX(-18deg); opacity: 0; } }
+@keyframes flame-flicker { 0%,100% { transform: rotate(-2deg) scale(1); opacity: .9; } 35% { transform: rotate(3deg) scale(1.05,.97); opacity: 1; } 70% { transform: rotate(-1deg) scale(.98,1.04); } }
+@keyframes confetti-fall-short { 0% { transform: translateY(-10vh) rotate(0); opacity: 1; } 100% { transform: translateY(85vh) rotate(540deg); opacity: 0; } }
+@keyframes gentle-sway { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-7deg); } 75% { transform: rotate(7deg); } }
+@keyframes aura-pulse { 0%,100% { box-shadow: 0 0 0 1px color-mix(in oklab, var(--aura-matematica) 30%, transparent), 0 0 18px -8px var(--aura-matematica); } 50% { box-shadow: 0 0 0 2px color-mix(in oklab, var(--aura-matematica) 55%, transparent), 0 0 34px -8px var(--aura-matematica); } }
+@keyframes boss-banner { 0% { opacity: 0; transform: scale(.9); } 20%,75% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.03); } }
+@keyframes chest-open { 0%,36% { transform: rotate(0) scale(1); } 6%,18%,30% { transform: rotate(-7deg); } 12%,24% { transform: rotate(7deg); } 60% { transform: scale(1.22); } 100% { transform: scale(1); } }
+@keyframes glow-burst { 0% { opacity: 0; transform: scale(.4); } 45% { opacity: 1; } 100% { opacity: 0; transform: scale(1.35); } }
+@keyframes rise-out { 0% { opacity: 0; transform: translateY(8px); } 25% { opacity: 1; } 100% { opacity: 0; transform: translateY(-30px); } }
+@keyframes fill-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes ring-fill { from { stroke-dashoffset: 182.2; } }
+@keyframes snake-draw { from { stroke-dashoffset: 100; } }
+@keyframes ray-spin { to { transform: rotate(360deg); } }
+@keyframes breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.025); } }
+.game-shake { animation: game-shake .38s ease-in-out 1; }
+.game-pop, .game-number-pop { animation: game-pop .45s cubic-bezier(.3,1.5,.5,1) both; }
+.game-flame { transform-origin: 50% 90%; animation: flame-flicker 1.4s ease-in-out infinite; }
+.flame-warm { filter: drop-shadow(0 0 4px color-mix(in oklab, var(--warning) 60%, transparent)); }
+.flame-hot { color: var(--warning-foreground); filter: drop-shadow(0 0 8px var(--warning)); }
+.game-shield { animation: breathe 2s ease-in-out infinite; filter: drop-shadow(0 0 3px color-mix(in oklab, var(--electric) 50%, transparent)); }
+.game-sway { transform-origin: 50% 80%; animation: gentle-sway 2.4s ease-in-out infinite; }
+.answer-correct { animation: badge-flash .5s ease-out 2; }
+.answer-xp { animation: rise-out 1.2s ease-out forwards; }
+.combo-badge { box-shadow: 0 0 10px -4px var(--warning); transition: opacity .2s, transform .2s; }
+.combo-warm { box-shadow: 0 0 18px -5px var(--warning); }
+.combo-hot { box-shadow: 0 0 26px -4px var(--warning); }
+.combo-out { opacity: 0; transform: scale(.9); }
+.boss-aura { animation: aura-pulse 1.8s ease-in-out infinite; }
+.boss-shake { animation: game-shake .35s ease-in-out 2, aura-pulse 1.8s ease-in-out infinite; }
+.boss-entrance { background: linear-gradient(110deg, color-mix(in oklab, var(--aura-matematica) 85%, var(--card)), color-mix(in oklab, var(--electric) 75%, var(--card))); color: var(--pro-text); animation: boss-banner 1.2s ease-out forwards; }
+.chest-open { animation: chest-open 1.15s ease-out both; }
+.chest-glow { border-radius: 9999px; background: radial-gradient(circle, color-mix(in oklab, var(--warning) 60%, transparent), transparent 68%); animation: glow-burst 1.2s ease-out forwards; }
+.game-coin { animation: coin-fly 1.1s ease-out forwards; opacity: 0; }
+.game-coin:nth-child(1) { --coin-x: -42px; --coin-y: 42px; --coin-rot: -120deg; } .game-coin:nth-child(2) { --coin-x: -28px; --coin-y: 60px; --coin-rot: 80deg; animation-delay: .04s; } .game-coin:nth-child(3) { --coin-x: -10px; --coin-y: 70px; --coin-rot: 180deg; animation-delay: .08s; } .game-coin:nth-child(4) { --coin-x: 12px; --coin-y: 64px; --coin-rot: -80deg; animation-delay: .12s; } .game-coin:nth-child(5) { --coin-x: 34px; --coin-y: 52px; --coin-rot: 110deg; animation-delay: .16s; } .game-coin:nth-child(6) { --coin-x: 48px; --coin-y: 30px; --coin-rot: -150deg; animation-delay: .2s; } .game-coin:nth-child(7) { --coin-x: -50px; --coin-y: 20px; --coin-rot: 160deg; animation-delay: .24s; } .game-coin:nth-child(8) { --coin-x: 24px; --coin-y: 78px; --coin-rot: 40deg; animation-delay: .28s; } .game-coin:nth-child(9) { --coin-x: -36px; --coin-y: 76px; --coin-rot: -40deg; animation-delay: .32s; } .game-coin:nth-child(10) { --coin-x: 0px; --coin-y: 46px; --coin-rot: 220deg; animation-delay: .36s; }
+.journey-row { animation: fade-in-up .35s ease-out both; } .journey-row-1 { animation-delay: .08s; } .journey-row-2 { animation-delay: .16s; } .journey-row-3 { animation-delay: .24s; }
+.game-fill { transform-origin: left; transition: width .7s ease-out; animation: fill-grow .8s ease-out both; }
+.game-shine { background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--card) 70%, transparent), transparent); animation: shine-sweep 1.1s ease-out .35s both; }
+.game-ring-fill { transition: stroke-dashoffset .8s ease-out; animation: ring-fill .9s ease-out both; }
+.medal-new::after, .daily-cta-shine::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--card) 65%, transparent), transparent); animation: shine-sweep 1.1s ease-out both; }
+.daily-cta-shine::after { animation: daily-shine 4s ease-out infinite; }
+@keyframes daily-shine { 0% { transform: translateX(-140%) skewX(-18deg); opacity: 0; } 6% { opacity: .6; } 28%,100% { transform: translateX(260%) skewX(-18deg); opacity: 0; } }
+.medal-locked { filter: saturate(.55); transition: transform .3s ease-out; } .medal-locked:hover { animation: breathe 1.6s ease-in-out infinite; }
+.game-confetti { animation: confetti-fall-short 1.25s ease-in forwards; }
+.levelup-spin-rays { background: repeating-conic-gradient(color-mix(in oklab, var(--primary) 28%, transparent) 0 10deg, transparent 10deg 24deg); mask: radial-gradient(circle, black 15%, transparent 70%); animation: ray-spin 8s linear infinite; }
+.snake-progress { animation: snake-draw 1s ease-out both; transition: stroke-dashoffset .8s ease-out; }
+.trophy-near { animation: box-glow 1.6s ease-in-out infinite, breathe 1.6s ease-in-out infinite; border-radius: 9999px; }
+.confetti-up { animation-duration: 1.25s; }
+.quest-node::after { content: ''; position: absolute; left: 50%; top: 40px; width: 100%; height: 3px; background: var(--border); z-index: 0; pointer-events: none; }
+.quest-node:last-child::after { display: none; }
+.quest-token { position: relative; z-index: 1; }
+.quest-complete::after { background: var(--primary); transform-origin: left; animation: fill-grow .65s ease-out both; }
+@media(max-width:600px) { .quest-node:nth-child(5)::after { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .game-shake,.game-pop,.game-number-pop,.game-flame,.game-shield,.game-sway,.answer-correct,.answer-xp,.boss-aura,.boss-shake,.boss-entrance,.chest-open,.chest-glow,.game-coin,.journey-row,.game-fill,.game-shine,.game-ring-fill,.medal-new::after,.daily-cta-shine::after,.medal-locked:hover,.game-confetti,.levelup-spin-rays,.snake-progress,.trophy-near,.fox-jump,.box-glow { animation: none !important; transition: none !important; }
+  .game-coin,.game-confetti,.boss-entrance,.answer-xp { display: none; }
+  .quest-complete::after,.xp-pop,.fox-shadow,.fox-sparkles i { animation: none !important; }
+  .game-progress::-webkit-progress-value { transition: none; }
+  .game-shine,.medal-new::after,.daily-cta-shine::after,.chest-glow { display: none; }
 }

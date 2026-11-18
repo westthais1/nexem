@@ -1,4 +1,6 @@
 import { Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
+import { AnimatedProgress } from "@/components/GameEffects";
 import { Flame } from "lucide-react";
 
 import { useXp } from "@/hooks/use-xp";
@@ -30,7 +32,7 @@ export function DailyChallengeCard() {
                 Desafio Diário Nexem
               </h2>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
-                <Flame className="h-4 w-4" /> {xp.streak} {xp.streak === 1 ? "dia" : "dias"}
+                <Flame aria-hidden="true" className={`h-4 w-4 ${!completo ? "game-sway" : ""}`} /> {xp.streak} {xp.streak === 1 ? "dia" : "dias"}
               </span>
             </div>
             <p className="mt-2 max-w-xl text-sm text-muted-foreground">
@@ -38,12 +40,7 @@ export function DailyChallengeCard() {
               e 2 de chefe final. Concluir as 10 abre seu baú diário.
             </p>
 
-            <div className="mt-5 h-2.5 w-full max-w-md overflow-hidden rounded-full bg-secondary">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-[width] duration-500"
-                style={{ width: `${pct}%` }}
-              />
-            </div>
+            <AnimatedProgress className="mt-5 h-2.5 w-full max-w-md" label="Progresso do desafio de hoje" value={pct} max={100}/>
             <p className="mt-2 text-xs text-muted-foreground">
               {completo
                 ? "Desafio de hoje concluído. Novo conjunto amanhã!"
@@ -51,12 +48,9 @@ export function DailyChallengeCard() {
             </p>
           </div>
 
-          <Link
-            to="/desafio"
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-[0_0_28px_-6px_var(--neon)]"
-          >
-            {completo ? "Ver resumo do dia" : done > 0 ? "Continuar desafio" : "Iniciar desafio"}
-          </Link>
+          <Button asChild className={`relative overflow-hidden ${!completo ? 'daily-cta-shine' : ''}`}>
+            <Link to="/desafio">{completo ? "Ver resumo do dia" : done > 0 ? "Continuar desafio" : "Iniciar desafio"}</Link>
+          </Button>
         </div>
       </div>
     </section>

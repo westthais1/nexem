@@ -18,10 +18,10 @@ export function StreakCard({ className }: { className?: string }) {
               xp.streak > 0 ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground"
             }`}
           >
-            <Flame className="h-5 w-5" />
+            <Flame aria-hidden="true" className={`game-flame ${xp.streak>=7 ? "flame-hot h-7 w-7" : xp.streak>=3 ? "flame-warm h-6 w-6" : "h-5 w-5"}`} />
           </span>
           <div>
-            <p className="text-2xl font-semibold text-foreground">
+            <p key={xp.streak} className="game-number-pop text-2xl font-semibold text-foreground">
               {xp.streak} {xp.streak === 1 ? "dia" : "dias"}
             </p>
             <p className="text-xs text-muted-foreground">Sequência atual</p>

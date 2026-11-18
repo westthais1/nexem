@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Check, Lock, Star } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ConfettiBurst } from "@/components/LevelUpCelebration";
 
@@ -24,40 +25,44 @@ export function SnakePath({ nodes, className }: { nodes: SnakeNode[]; className?
   const height = Math.max(nodes.length * STEP, STEP);
   const d = points.map((p, i) => {
     if (i === 0) return `M ${p.x} ${p.y}`;
-    const prev = points[i - 1]!;
+    const prev = points[i - 1];
+    if (!prev) return "";
     const my = (prev.y + p.y) / 2;
     return `C ${prev.x} ${my}, ${p.x} ${my}, ${p.x} ${p.y}`;
   }).join(" ");
 
+  const reached = nodes.reduce((last, node, i) => node.state !== "locked" ? i : last, 0);
   return (
     <div className={cn("relative mx-auto w-full max-w-sm", className)} style={{ height }}>
       <svg aria-hidden className="pointer-events-none absolute left-1/2 top-0 overflow-visible text-border" width="1" height={height}>
         <path d={d} fill="none" stroke="currentColor" strokeWidth={6} strokeDasharray="2 14" strokeLinecap="round" />
+        <path className="snake-progress text-primary" d={d} fill="none" stroke="currentColor" strokeWidth={6} pathLength={100} strokeDasharray={100} strokeDashoffset={nodes.length>1 ? 100-(reached/(nodes.length-1))*100 : 100} strokeLinecap="round" />
       </svg>
       {nodes.map((n, i) => {
-        const p = points[i]!;
+        const p = points[i];
+        if (!p) return null;
         return (
           <div key={n.key} className="absolute left-1/2 flex w-40 -translate-x-1/2 flex-col items-center text-center" style={{ top: p.y - 36, marginLeft: p.x }}>
             {n.state === "active" && (
-              <span className="mb-1 animate-bounce rounded-lg border border-primary/30 bg-card px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-primary shadow-sm">
+              <span className="mb-1 game-sway rounded-lg border border-primary/30 bg-card px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-primary shadow-sm">
                 Próximo desafio
               </span>
             )}
-            <button
+            <Button variant="ghost"
               type="button"
               disabled={n.state === "locked"}
               onClick={n.onClick}
               aria-label={`${n.title}${n.state === "locked" ? " — bloqueado" : n.state === "done" ? " — concluído" : ""}`}
               className={cn(
-                "relative flex h-[72px] w-[72px] items-center justify-center rounded-full border-b-[6px] transition-all duration-200 [&_svg]:size-7",
-                n.state === "done" && "border-accent/60 bg-accent text-accent-foreground hover:-translate-y-1 hover:brightness-110",
+                "relative p-0 flex h-[72px] w-[72px] items-center justify-center rounded-full border-b-[6px] transition-all duration-200 [&_svg]:size-7",
+                n.state === "done" && "game-pop border-accent/60 bg-accent text-accent-foreground hover:-translate-y-1 hover:brightness-110",
                 n.state === "active" && "border-primary/60 bg-primary text-primary-foreground ring-4 ring-primary/30 node-ring hover:-translate-y-1 hover:scale-105 hover:animate-none active:translate-y-0.5 active:border-b-2",
                 n.state === "locked" && "cursor-not-allowed border-border bg-secondary text-muted-foreground",
               )}
             >
               {n.state === "done" ? <Check strokeWidth={3} /> : n.state === "locked" ? <Lock /> : n.icon ?? <Star />}
               {n.state === "done" && <Star className="absolute -right-1 -top-1 !size-5 fill-primary text-primary" />}
-            </button>
+            </Button>
             {n.badge}
             <p className={cn("mt-1 line-clamp-2 rounded-md bg-card/90 px-1 text-sm font-semibold leading-tight", n.state === "locked" ? "text-muted-foreground" : "text-foreground")}>{n.title}</p>
             {n.subtitle && <p className="rounded bg-card/90 px-1 text-[11px] text-muted-foreground">{n.subtitle}</p>}
