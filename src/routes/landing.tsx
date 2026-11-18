@@ -15,10 +15,14 @@ import {
   Trophy,
   Zap,
 } from "lucide-react";
+import { motion } from "motion/react";
 import { useEffect, useRef, useState, type ComponentType, type MouseEvent } from "react";
 
 import { AuthModal } from "@/components/AuthModal";
-import { Reveal } from "@/components/Reveal";
+import { ParallaxImage } from "@/components/ParallaxImage";
+import { Reveal, RevealItem, RevealStagger, RevealStepIcon, useRevealMotion } from "@/components/Reveal";
+import { WordsReveal } from "@/components/WordsReveal";
+import { useCountUp } from "@/hooks/use-count-up";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import nexemLogo from "@/assets/nexem-logo.png.asset.json";
@@ -131,6 +135,7 @@ function LandingPage() {
   const { preview } = Route.useSearch();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const motionEnabled = useRevealMotion();
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -252,7 +257,10 @@ function LandingPage() {
 
       <section className="px-3 pt-4 md:px-6 md:pt-6">
         <div className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[32px] shadow-2xl shadow-foreground/10">
-          <video
+          <motion.video
+            initial={false}
+            animate={motionEnabled ? { scale: [1.08, 1] } : { scale: 1, transition: { duration: 0 } }}
+            transition={{ duration: 1.6, ease: "easeOut" }}
             ref={videoRef}
             className="absolute inset-0 h-full w-full object-cover"
             poster={heroPoster}
@@ -266,21 +274,23 @@ function LandingPage() {
           >
             <source src={heroWebVideo.url} type="video/webm" />
             <source src={heroVideo.url} type="video/mp4" />
-          </video>
+          </motion.video>
           <div className="absolute inset-0 bg-foreground/45" aria-hidden="true" />
           <div className="relative flex min-h-[78vh] flex-col items-center justify-center px-6 py-24 text-center md:min-h-[84vh]">
-            <Reveal as="span" className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+            <Reveal as="span" variant="zoom" className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm">
               <Clock3 className="h-3.5 w-3.5" />
               Desafio Diário · grátis
             </Reveal>
-            <Reveal as="h1" delay={80} className="mt-7 max-w-4xl text-5xl font-bold leading-[0.98] text-white md:text-7xl">
-              15 minutos por dia.<br />Até a sua aprovação.
-            </Reveal>
-            <Reveal as="p" delay={160} className="mt-6 max-w-xl text-base leading-relaxed text-white/85 md:text-lg">
+            <WordsReveal
+              as="h1"
+              text={["15 minutos por dia.", "Até a sua aprovação."]}
+              className="mt-7 max-w-4xl text-5xl font-bold leading-[0.98] text-white md:text-7xl"
+            />
+            <Reveal as="p" delay={300} className="mt-6 max-w-xl text-base leading-relaxed text-white/85 md:text-lg">
               Todo dia, 10 questões no seu nível e o Tutor Nex guiando o raciocínio. Um treino curto
               que cabe em qualquer rotina e vira pontos no ENEM.
             </Reveal>
-            <Reveal delay={240} className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <Reveal variant="rise" delay={450} className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Button onClick={openAuth} size="lg" className="h-13 rounded-full px-7 text-base shadow-lg shadow-primary/30 transition-transform hover:-translate-y-0.5">
                 Começar meus 15 minutos <ArrowRight />
               </Button>
@@ -290,7 +300,7 @@ function LandingPage() {
                 </a>
               </Button>
             </Reveal>
-            <Reveal delay={320} className="mt-9 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm font-medium text-white/80">
+            <Reveal variant="rise" delay={600} className="mt-9 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm font-medium text-white/80">
               <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-primary-foreground" /> 10 questões</span>
               <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-primary-foreground" /> 15 minutos</span>
               <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-primary-foreground" /> Grátis, todo dia</span>
@@ -300,7 +310,7 @@ function LandingPage() {
       </section>
 
       <div className="mt-10 overflow-hidden bg-background py-4" aria-hidden="true">
-        <div className="flex w-max animate-marquee gap-10 pr-10">
+        <div className={`flex w-max gap-10 pr-10 ${motionEnabled ? "motion-safe:animate-marquee" : ""}`}>
           {[0, 1].map((copy) => (
             <div key={copy} className="flex items-center gap-10 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
               {["15 minutos por dia", "Desafio Diário", "Tutor Nex", "Níveis de Maestria", "Simulado Completo", "Redação Inteligente", "Estatísticas TRI"].map((item) => (
@@ -314,15 +324,13 @@ function LandingPage() {
       </div>
 
       <section className="px-5 py-20 md:px-8 md:py-28">
-        <Reveal className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-6xl">
           <div className="grid items-center gap-12 lg:grid-cols-[1fr_0.9fr]">
-            <div>
+            <Reveal variant="rise">
               <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-warning/25 text-warning-foreground">
                 <Zap className="h-7 w-7" />
               </span>
-              <h2 className="mt-6 text-4xl font-bold leading-tight text-foreground md:text-6xl">
-                O objetivo de cada dia: 15 minutos.
-              </h2>
+              <WordsReveal className="mt-6 text-4xl font-bold leading-tight text-foreground md:text-6xl" text="O objetivo de cada dia: 15 minutos." />
               <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
                 Você não precisa de horas. Precisa aparecer todo dia. O Nexem transforma 15 minutos em um treino certeiro:
                 10 questões no seu nível, com o Tutor Nex ajudando quando você trava.
@@ -330,107 +338,99 @@ function LandingPage() {
               <Button onClick={openAuth} size="lg" className="mt-8 h-13 rounded-xl px-6 text-base">
                 Fazer meus 15 minutos de hoje <ArrowRight />
               </Button>
-            </div>
+            </Reveal>
 
-            <div className="relative grid gap-4">
+            <RevealStagger className="relative grid gap-4">
               {[{ n: "01", v: "15 minutos", s: "a meta diária do Nexem" }, { n: "02", v: "10 questões", s: "no seu nível, sem sobrecarga" }, { n: "03", v: "todo dia", s: "sequência que vira progresso" }].map((item, index) => (
-                <Reveal key={item.n} delay={index * 100} className={`flex items-center gap-5 border border-border bg-card p-5 shadow-sm transition-transform hover:translate-x-2 ${index === 1 ? "lg:ml-10" : ""}`}>
+                <RevealItem key={item.n} variant={index % 2 === 0 ? "left" : "right"} className={`flex items-center gap-5 border border-border bg-card p-5 shadow-sm motion-safe:transition-transform motion-safe:hover:translate-x-2 ${index === 1 ? "lg:ml-10" : ""}`}>
                   <span className="text-sm font-bold text-primary">{item.n}</span>
                   <div>
                     <strong className="block text-xl font-bold uppercase text-foreground">{item.v}</strong>
                     <span className="text-sm text-muted-foreground">{item.s}</span>
                   </div>
-                </Reveal>
+                </RevealItem>
               ))}
-            </div>
+            </RevealStagger>
           </div>
-        </Reveal>
+        </div>
       </section>
 
       <section className="px-5 py-16 md:px-8 md:py-24">
-        <Reveal className="mx-auto max-w-7xl">
-          <div className="mx-auto max-w-2xl text-center">
+        <div className="mx-auto max-w-7xl">
+          <Reveal variant="rise" className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-bold uppercase text-accent">Quem estuda com o Nexem</p>
-            <h2 className="mt-3 text-4xl font-bold leading-tight text-foreground md:text-5xl">
-              Estudo de verdade, no seu dia a dia.
-            </h2>
+            <WordsReveal className="mt-3 text-4xl font-bold leading-tight text-foreground md:text-5xl" text="Estudo de verdade, no seu dia a dia." />
             <p className="mt-4 text-base leading-relaxed text-muted-foreground md:text-lg">
               Em casa, na biblioteca, no intervalo ou no ônibus: 15 minutos por dia cabem em qualquer rotina.
             </p>
-          </div>
-          <div className="mt-12 grid gap-5 sm:grid-cols-3">
+          </Reveal>
+          <RevealStagger className="mt-12 grid gap-5 sm:grid-cols-3">
             {[
               { src: student1, alt: "Adolescente estudando para o ENEM e escrevendo no caderno em casa" },
               { src: student2, alt: "Adolescente revisando um livro e fazendo anotações na biblioteca" },
               { src: student3, alt: "Dois adolescentes estudando juntos com caderno e notebook" },
-            ].map((photo, index) => (
-              <Reveal
+            ].map((photo) => (
+              <RevealItem
                 as="figure"
+                variant="zoom"
                 key={photo.src}
-                delay={index * 100}
                 className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm"
               >
-                <img
+                <ParallaxImage
                   src={photo.src}
                   alt={photo.alt}
                   loading="lazy"
                   width={1280}
                   height={960}
-                  className="aspect-[4/5] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  className="aspect-[4/5] w-full object-cover"
                 />
-              </Reveal>
+              </RevealItem>
             ))}
-          </div>
-        </Reveal>
+          </RevealStagger>
+        </div>
       </section>
 
       <section className="bg-card px-5 py-16 md:px-8 md:py-24">
-        <Reveal>
+        <div>
           <div className="mx-auto max-w-7xl">
             <div className="mx-auto max-w-2xl text-center">
               <p className="text-sm font-bold uppercase text-primary">Veja o treino em ação</p>
-              <h2 className="mt-3 text-4xl font-bold leading-tight text-foreground md:text-5xl">
-                Uma questão. Uma pista. Um passo a mais.
-              </h2>
+              <WordsReveal className="mt-3 text-4xl font-bold leading-tight text-foreground md:text-5xl" text="Uma questão. Uma pista. Um passo a mais." />
             </div>
-            <div className="mt-12">
+            <Reveal className="mt-12" variant="flip">
               <ProductMockup />
-            </div>
+            </Reveal>
           </div>
-          <div className="mx-auto mt-16 grid max-w-5xl grid-cols-3 divide-x divide-border rounded-2xl border border-border bg-background px-3 py-5 shadow-sm md:px-8">
-            {[{ n: "15 min", l: "meta diária" }, { n: "10", l: "questões por dia" }, { n: "4", l: "áreas do ENEM" }].map((item, index) => (
-              <Reveal key={item.l} delay={index * 100} className="text-center">
-                <strong className="block text-xl font-bold text-foreground md:text-3xl">{item.n}</strong>
-                <span className="mt-1 block text-[10px] font-semibold uppercase text-muted-foreground md:text-xs">{item.l}</span>
-              </Reveal>
+          <RevealStagger className="mx-auto mt-16 grid max-w-5xl grid-cols-3 divide-x divide-border rounded-2xl border border-border bg-background px-3 py-5 shadow-sm md:px-8">
+            {[{ n: 15, suffix: " min", l: "meta diária" }, { n: 10, suffix: "", l: "questões por dia" }, { n: 4, suffix: "", l: "áreas do ENEM" }].map((item) => (
+              <LandingMetric key={item.l} value={item.n} suffix={item.suffix} label={item.l} />
             ))}
-          </div>
-        </Reveal>
+          </RevealStagger>
+        </div>
       </section>
 
       <section id="como-funciona" className="scroll-mt-20 bg-card px-5 py-20 md:px-8 md:py-28">
-        <Reveal className="mx-auto max-w-7xl">
-          <div className="grid gap-6 md:grid-cols-[1.1fr_0.9fr] md:items-end">
+        <div className="mx-auto max-w-7xl">
+          <Reveal variant="rise" className="grid gap-6 md:grid-cols-[1.1fr_0.9fr] md:items-end">
             <div>
               <p className="text-sm font-bold uppercase text-accent">Feito para o seu ritmo</p>
-              <h2 className="mt-3 max-w-3xl text-4xl font-bold leading-tight text-foreground md:text-6xl">
-                Como funciona o Nexem.
-              </h2>
+              <WordsReveal className="mt-3 max-w-3xl text-4xl font-bold leading-tight text-foreground md:text-6xl" text="Como funciona o Nexem." />
             </div>
             <p className="max-w-md text-base leading-relaxed text-muted-foreground md:pb-2 md:text-lg">
               Crie sua conta, conte sua série e sua meta no questionário inicial e escolha por onde começar. Seu treino e seu progresso ficam ligados à sua conta.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {FEATURES.map((feature, index) => {
+          <RevealStagger className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {FEATURES.map((feature) => {
               const Icon = feature.icon;
               return (
-                <Reveal
+                <RevealItem
                   as="article"
+                  variant="blur"
+                  lift
                   key={feature.title}
-                  delay={index * 100}
-                  className="group flex min-h-80 flex-col border-t-4 border-primary bg-background p-6 shadow-sm transition-all duration-500 ease-out hover:-translate-y-2 hover:shadow-xl"
+                  className="group flex min-h-80 flex-col border-t-4 border-primary bg-background p-6 shadow-sm"
                 >
                   <span className={`flex h-14 w-14 items-center justify-center rounded-2xl ${feature.tone}`}>
                     <Icon className="h-7 w-7" />
@@ -441,57 +441,63 @@ function LandingPage() {
                   <Button variant="ghost" onClick={openAuth} className="mt-5 justify-between px-0 text-primary hover:bg-transparent hover:text-primary/80">
                     Experimentar <ArrowRight />
                   </Button>
-                </Reveal>
+                </RevealItem>
               );
             })}
-          </div>
-        </Reveal>
+          </RevealStagger>
+        </div>
       </section>
 
       <section className="relative overflow-hidden bg-foreground px-5 py-20 text-background md:px-8 md:py-28">
         <div className="pointer-events-none absolute inset-y-0 left-0 w-1.5 bg-primary" aria-hidden="true" />
-        <Reveal className="relative mx-auto grid max-w-7xl gap-14 lg:grid-cols-[0.82fr_1.18fr] lg:gap-20">
-          <div className="lg:sticky lg:top-28 lg:self-start">
+        <div className="relative mx-auto grid max-w-7xl gap-14 lg:grid-cols-[0.82fr_1.18fr] lg:gap-20">
+          <Reveal variant="rise" className="lg:sticky lg:top-28 lg:self-start">
             <p className="text-sm font-bold uppercase text-primary">Treino adaptativo</p>
-            <h2 className="mt-4 text-4xl font-bold leading-[1.08] md:text-6xl">
-              Seu treino não deveria ser igual ao de todo mundo.
-            </h2>
+            <WordsReveal className="mt-4 text-4xl font-bold leading-[1.08] md:text-6xl" text="Seu treino não deveria ser igual ao de todo mundo." />
             <p className="mt-8 text-lg text-background/70">Mais precisão. Menos desperdício. Mais evolução.</p>
-          </div>
+          </Reveal>
 
-          <ol className="space-y-5">
-            {STEPS.map((step, index) => {
+          <RevealStagger as="ol" className="space-y-5">
+            {STEPS.map((step) => {
               const Icon = step.icon;
               return (
-                <Reveal
+                <RevealItem
                   as="li"
+                  variant="right"
                   key={step.n}
-                  delay={index * 100}
                   className="group grid grid-cols-[56px_1fr] gap-5 rounded-2xl border border-background/15 bg-background/5 p-6 transition-all duration-500 hover:border-primary/70 hover:bg-background/10 md:p-8"
                 >
-                  <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground transition-transform group-hover:rotate-3 group-hover:scale-105">
+                  <RevealStepIcon className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
                     <Icon className="h-7 w-7" />
-                  </span>
+                  </RevealStepIcon>
                   <div>
                     <p className="text-xs font-bold uppercase text-primary">Passo {step.n}</p>
                     <h3 className="mt-1 text-2xl font-bold">{step.title}</h3>
                     <p className="mt-2 leading-relaxed text-background/65">{step.text}</p>
                   </div>
-                </Reveal>
+                </RevealItem>
               );
             })}
-          </ol>
-        </Reveal>
+          </RevealStagger>
+        </div>
       </section>
 
       <section className="relative overflow-hidden bg-primary px-5 py-20 text-primary-foreground md:px-8 md:py-28">
         <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full border-[40px] border-primary-foreground/10" aria-hidden="true" />
-        <Reveal className="relative mx-auto max-w-4xl text-center">
-          <Sparkles className="mx-auto h-10 w-10" />
-          <h2 className="mt-5 text-4xl font-bold leading-tight md:text-6xl">
-            Seus 15 minutos de hoje
-            <span className="mt-2 block text-background">começam agora.</span>
-          </h2>
+        <Reveal variant="zoom" className="relative mx-auto max-w-4xl text-center">
+          <motion.span
+            aria-hidden="true"
+            className="mx-auto block w-fit"
+            initial={false}
+            animate={motionEnabled ? { scale: [1, 1.12, 1], opacity: [1, 0.78, 1] } : { scale: 1, opacity: 1, transition: { duration: 0 } }}
+            transition={{ duration: 2.8, ease: "easeInOut", repeat: Infinity }}
+          >
+            <Sparkles className="h-10 w-10" />
+          </motion.span>
+          <WordsReveal
+            className="mt-5 text-4xl font-bold leading-tight md:text-6xl"
+            text={["Seus 15 minutos de hoje", { text: "começam agora.", className: "mt-2 block text-background" }]}
+          />
           <p className="mx-auto mt-6 max-w-xl text-lg text-primary-foreground/80">
             Não é estudar mais. É estudar 15 minutos, todo dia, no lugar certo.
           </p>
@@ -515,7 +521,28 @@ function LandingPage() {
   );
 }
 
+function LandingMetric({ value, suffix, label }: { value: number; suffix: string; label: string }) {
+  const [entered, setEntered] = useState(false);
+  const enabled = useRevealMotion();
+  return (
+    <RevealItem variant="zoom" className="text-center" onViewportEnter={() => setEntered(true)}>
+      <strong className="block text-xl font-bold tabular-nums text-foreground md:text-3xl">
+        <span className="sr-only">{value}{suffix}</span>
+        <span aria-hidden="true">
+          {enabled && entered ? <CountingMetric value={value} /> : value}{suffix}
+        </span>
+      </strong>
+      <span className="mt-1 block text-[10px] font-semibold uppercase text-muted-foreground md:text-xs">{label}</span>
+    </RevealItem>
+  );
+}
+
+function CountingMetric({ value }: { value: number }) {
+  return useCountUp(value);
+}
+
 function ProductMockup() {
+  const enterClass = useRevealMotion() ? "motion-safe:animate-fade-in-up" : "";
   const [demoStep, setDemoStep] = useState(0);
   const selected = demoStep >= 1 ? "B" : null;
   const confirmed = demoStep >= 3;
@@ -565,7 +592,7 @@ function ProductMockup() {
             <div className="mt-5 h-2 overflow-hidden rounded-full bg-muted">
               <div className={`h-full rounded-full bg-gradient-to-r from-accent to-primary transition-all duration-1000 ${confirmed ? "w-full" : "w-4/5"}`} />
             </div>
-            <div key={confirmed ? "answered" : "question"} className="mt-6 animate-fade-in-up rounded-xl border border-border p-5">
+            <div key={confirmed ? "answered" : "question"} className={`mt-6 ${enterClass} rounded-xl border border-border p-5`}>
               <div className="flex gap-2">
                 <span className="rounded-full bg-secondary px-3 py-1 text-[10px] font-semibold text-secondary-foreground">Física</span>
                 <span className="rounded-full bg-primary/15 px-3 py-1 text-[10px] font-semibold text-primary">Dificuldade 38</span>
@@ -585,7 +612,7 @@ function ProductMockup() {
                       onClick={() => setDemoStep(letter === "B" ? 1 : 0)}
                       className={`flex items-center gap-2 rounded-lg border px-3 py-3 text-left text-xs transition-all duration-500 ${
                         correct
-                          ? "scale-[1.02] border-success bg-success/10 font-bold text-foreground"
+                          ? "motion-safe:scale-[1.02] border-success bg-success/10 font-bold text-foreground"
                           : active
                             ? "border-accent bg-secondary font-bold text-accent shadow-sm"
                             : "border-border text-muted-foreground hover:border-primary/50"
@@ -597,7 +624,7 @@ function ProductMockup() {
                 })}
               </div>
               {confirmed && (
-                <p className="mt-3 animate-fade-in-up text-xs font-semibold text-success">
+                <p className={`mt-3 ${enterClass} text-xs font-semibold text-success`}>
                   Correto: (60 − 9) × 5 × 30 = 7,65 kWh.
                 </p>
               )}
@@ -625,17 +652,17 @@ function ProductMockup() {
               Não vou entregar a resposta. Primeiro: qual é a diferença de potência entre as duas lâmpadas?
             </div>
             {demoStep >= 1 && (
-              <div className="ml-auto mt-3 max-w-[88%] animate-fade-in-up rounded-xl bg-foreground p-4 text-xs leading-relaxed text-background">
+              <div className={`ml-auto mt-3 max-w-[88%] ${enterClass} rounded-xl bg-foreground p-4 text-xs leading-relaxed text-background`}>
                 51 W. Depois multiplico pelas horas de uso?
               </div>
             )}
             {demoStep >= 2 && (
-              <div className="mt-3 animate-fade-in-up rounded-xl bg-card p-4 text-xs leading-relaxed text-foreground shadow-sm">
+              <div className={`mt-3 ${enterClass} rounded-xl bg-card p-4 text-xs leading-relaxed text-foreground shadow-sm`}>
                 <strong className="text-accent">Isso.</strong> Multiplique por 5 horas e 30 dias. No fim, lembre de converter Wh para kWh.
               </div>
             )}
             {confirmed && (
-              <div className="mt-3 animate-fade-in-up rounded-xl border border-success/40 bg-success/10 p-4 text-xs leading-relaxed text-foreground">
+              <div className={`mt-3 ${enterClass} rounded-xl border border-success/40 bg-success/10 p-4 text-xs leading-relaxed text-foreground`}>
                 <strong>Raciocínio consistente.</strong><br />Você chegou a 7,65 kWh sem depender do gabarito.
               </div>
             )}
